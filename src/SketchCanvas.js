@@ -2,6 +2,7 @@
 
 import React from 'react'
 import PropTypes from 'prop-types'
+import { ViewPropTypes } from 'deprecated-react-native-prop-types'
 import ReactNative, {
   requireNativeComponent,
   NativeModules,
@@ -9,7 +10,6 @@ import ReactNative, {
   PanResponder,
   PixelRatio,
   Platform,
-  ViewPropTypes,
   processColor
 } from 'react-native'
 import { requestPermissions } from './handlePermissions';
