@@ -1,12 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import ReactNative, {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  ViewPropTypes,
-} from 'react-native'
+import { ViewPropTypes } from 'deprecated-react-native-prop-types'
+import { View, TouchableOpacity, FlatList } from 'react-native'
 import SketchCanvas from './src/SketchCanvas'
 import { requestPermissions } from './src/handlePermissions';
 
@@ -156,7 +151,7 @@ export default class RNSketchCanvas extends React.Component {
       this._sketchCanvas.save(p.imageType, p.transparent, p.folder ? p.folder : '', p.filename, p.includeImage !== false, p.includeText !== false, p.cropToImageSize || false)
     } else {
       const date = new Date()
-      this._sketchCanvas.save('png', false, '', 
+      this._sketchCanvas.save('png', false, '',
         date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + ('0' + date.getDate()).slice(-2) + ' ' + ('0' + date.getHours()).slice(-2) + '-' + ('0' + date.getMinutes()).slice(-2) + '-' + ('0' + date.getSeconds()).slice(-2),
         true, true, false)
     }

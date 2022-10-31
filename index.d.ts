@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {
-  ViewProperties,
+  ViewProps,
   StyleProp,
   ViewStyle
 } from "react-native"
@@ -87,26 +87,31 @@ export interface SketchCanvasProps {
   onPathsChange?: (pathsCount: number) => void
 }
 
-export class SketchCanvas extends React.Component<SketchCanvasProps & ViewProperties> {
+export class SketchCanvas extends React.Component<SketchCanvasProps & ViewProps> {
   clear(): void
   undo(): number
   addPath(data: Path): void
   deletePath(id: number): void
 
   /**
-   * @param imageType "png" or "jpg"
-   * @param includeImage Set to `true` to include the image loaded from `LocalSourceImage`
-   * @param includeText Set to `true` to include the text drawn from `Text`.
-   * @param cropToImageSize Set to `true` to crop output image to the image loaded from `LocalSourceImage`
+   * @param {imageType} imageType "png" or "jpg"
+   * @param {boolean} transparent
+   * @param {string} folder
+   * @param {string} filename
+   * @param {includeImage} includeImage Set to `true` to include the image loaded from `LocalSourceImage`
+   * @param {includeText} includeText Set to `true` to include the text drawn from `Text`.
+   * @param {boolean} cropToImageSize Set to `true` to crop output image to the image loaded from `LocalSourceImage`
    */
   save(imageType: ImageType, transparent: boolean, folder: string, filename: string, includeImage: boolean, includeText: boolean, cropToImageSize: boolean): void
   getPaths(): Path[]
 
   /**
-   * @param imageType "png" or "jpg"
-   * @param includeImage Set to `true` to include the image loaded from `LocalSourceImage`
-   * @param includeText Set to `true` to include the text drawn from `Text`.
-   * @param cropToImageSize Set to `true` to crop output image to the image loaded from `LocalSourceImage`
+   * @param {imageType} imageType "png" or "jpg"
+   * @param {boolean} transparent
+   * @param {boolean} includeImage Set to `true` to include the image loaded from `LocalSourceImage`
+   * @param {boolean} includeText Set to `true` to include the text drawn from `Text`.
+   * @param {boolean} cropToImageSize Set to `true` to crop output image to the image loaded from `LocalSourceImage`
+   * @param {*} callback
    */
   getBase64(imageType: ImageType, transparent: boolean, includeImage: boolean, includeText: boolean, cropToImageSize: boolean, callback: (error: any, result?: string) => void): void
 
@@ -156,15 +161,15 @@ export interface RNSketchCanvasProps {
   text?: CanvasText[]
   /**
    * {
-   *    path: string, 
-   *    directory: string, 
+   *    path: string,
+   *    directory: string,
    *    mode: 'AspectFill' | 'AspectFit' | 'ScaleToFill'
    * }
    */
   localSourceImage?: LocalSourceImage
 }
 
-export default class RNSketchCanvas extends React.Component<RNSketchCanvasProps & ViewProperties> {
+export default class RNSketchCanvas extends React.Component<RNSketchCanvasProps & ViewProps> {
   clear(): void
   undo(): number
   addPath(data: Path): void
