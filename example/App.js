@@ -13,7 +13,8 @@ import {
   Alert,
   TouchableOpacity,
   ScrollView,
-  Platform
+  Platform,
+  SafeAreaView
 } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 
@@ -46,7 +47,7 @@ export default class example extends Component {
 
   render() {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         {
           this.state.example === 0 &&
           <View style={{ justifyContent: 'center', alignItems: 'center', width: 340 }}>
@@ -596,7 +597,7 @@ export default class example extends Component {
             </ScrollView>
           </View>
         }
-      </View>
+      </SafeAreaView>
     );
   }
 }
@@ -665,5 +666,6 @@ const styles = StyleSheet.create({
     shadowRadius: 2
   }
 });
-
-AppRegistry.registerComponent('example', () => example);
+ 
+ AppRegistry.registerComponent('example', () => example);
+ 
