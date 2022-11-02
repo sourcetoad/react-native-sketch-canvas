@@ -7,7 +7,32 @@
   "version": "1.0.0",
   "description": "react-native-sketch-canvas allows you to draw / sketch on both iOS and Android devices and sync the drawing data between users. Of course you can save as image.",
   "author": "Terry Lin",
-  "main": "index.js",
+  "main": "lib/commonjs/index",
+  "module": "lib/module/index",
+  "types": "lib/typescript/index.d.ts",
+  "react-native": "src/index",
+  "source": "src/index",
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "cpp",
+    "RNSketchCanvas.podspec",
+    "!lib/typescript/example",
+    "!android/build",
+    "!ios/build",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__"
+  ],
+  "scripts": {
+    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "prepare": "bob build",
+    "example": "yarn --cwd example",
+    "pods": "cd example && pod-install --quiet",
+    "bootstrap": "yarn example && yarn && yarn pods"
+  },
   "keywords": [
     "react-native",
     "react-native-sketch",
@@ -29,5 +54,34 @@
     "@types/react-native": "^0.70.6",
     "deprecated-react-native-prop-types": "^2.3.0",
     "prop-types": "^15.8.1"
+  },
+  "devDependencies": {
+    "@react-native-community/eslint-config": "^2.0.0",
+    "@tsconfig/react-native": "^2.0.2",
+    "@types/react": "^18.0.21",
+    "@types/react-native": "^0.70.6",
+    "@typescript-eslint/eslint-plugin": "^5.37.0",
+    "@typescript-eslint/parser": "^5.37.0",
+    "eslint": "^7.32.0",
+    "react": "18.1.0",
+    "react-native": "0.70.4",
+    "react-native-builder-bob": "^0.18.0",
+    "metro-react-native-babel-preset": "0.72.3",
+    "typescript": "^4.1.3",
+    "pod-install": "^0.1.0"
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      "commonjs",
+      "module",
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
   }
 }
