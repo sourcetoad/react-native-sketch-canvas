@@ -10,7 +10,6 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@terrylinla/react-native-sketch-canvas": "file:..",
     "react": "18.1.0",
     "react-native": "0.70.4",
     "react-native-camera": "https://github.com/sourcetoad/react-native-camera#ee265b22c7a3544a720478a6397d0e547430ff93"
@@ -20,6 +19,7 @@
     "@babel/runtime": "^7.12.5",
     "@react-native-community/eslint-config": "^2.0.0",
     "babel-jest": "^26.6.3",
+    "babel-plugin-module-resolver": "^4.0.0",
     "eslint": "^7.32.0",
     "jest": "^26.6.3",
     "metro-react-native-babel-preset": "0.72.3",
