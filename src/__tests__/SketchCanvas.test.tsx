@@ -6,6 +6,5 @@ import SketchCanvas from '../SketchCanvas';
 import renderer from 'react-test-renderer';
 
 it('renders correctly', () => {
-  console.log(SketchCanvas);
   renderer.create(<SketchCanvas />);
 });
