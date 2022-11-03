@@ -159,6 +159,8 @@ android {
                 }
             }
         }
+
+        missingDimensionStrategy 'react-native-camera', 'general'
     }
 
     if (isNewArchitectureEnabled()) {
@@ -277,6 +279,9 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    implementation project(':@react-native-sketch-canvas')
+    implementation project(':react-native-camera')
 }
 
 if (isNewArchitectureEnabled()) {

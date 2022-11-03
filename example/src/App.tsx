@@ -46,11 +46,16 @@ export default class example extends Component<any, ExampleState> {
 
   takePicture = async () => {
     if (this.camera) {
-      const options = {quality: 0.5, base64: true};
-      const data = await this.camera.takePictureAsync(options);
-      this.setState({
-        photoPath: data.uri.replace('file://', ''),
-      });
+      try {
+        const options = {quality: 0.5, base64: true};
+        const data = await this.camera.takePictureAsync(options);
+
+        this.setState({
+          photoPath: data.uri.replace('file://', ''),
+        });
+      } catch (err) {
+        console.log(err);
+      }
     }
   };
 
@@ -513,16 +518,20 @@ export default class example extends Component<any, ExampleState> {
           (this.state.photoPath === null ? (
             <View style={styles.cameraContainer}>
               <RNCamera
-                ref={ref => {
+                cameraId="1"
+                ref={(ref: any) => {
                   this.camera = ref;
                 }}
                 style={styles.preview}
                 type={RNCamera.Constants.Type.back}
                 flashMode={RNCamera.Constants.FlashMode.on}
-                permissionDialogTitle={'Permission to use camera'}
-                permissionDialogMessage={
-                  'We need your permission to use your camera phone'
-                }
+                androidCameraPermissionOptions={{
+                  title: 'Permission to use camera',
+                  message: 'We need your permission to use your camera',
+                  buttonPositive: 'Ok',
+                  buttonNegative: 'Cancel',
+                }}
+                captureAudio={false}
               />
               <View
                 style={{
