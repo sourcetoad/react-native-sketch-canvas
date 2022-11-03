@@ -27,6 +27,7 @@
     "!**/__mocks__"
   ],
   "scripts": {
+    "test": "jest",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "prepare": "bob build",
     "example": "yarn --cwd example",
@@ -58,17 +59,33 @@
   "devDependencies": {
     "@react-native-community/eslint-config": "^2.0.0",
     "@tsconfig/react-native": "^2.0.2",
+    "@types/jest": "^26.0.0",
     "@types/react": "^18.0.21",
     "@types/react-native": "^0.70.6",
+    "@types/react-test-renderer": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "^5.37.0",
     "@typescript-eslint/parser": "^5.37.0",
+    "babel-jest": "^26.6.3",
     "eslint": "^7.32.0",
+    "jest": "^26.6.3",
+    "metro-react-native-babel-preset": "0.72.3",
+    "pod-install": "^0.1.0",
     "react": "18.1.0",
     "react-native": "0.70.4",
     "react-native-builder-bob": "^0.18.0",
-    "metro-react-native-babel-preset": "0.72.3",
-    "typescript": "^4.1.3",
-    "pod-install": "^0.1.0"
+    "react-test-renderer": "18.1.0",
+    "typescript": "^4.1.3"
+  },
+  "jest": {
+    "preset": "react-native",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/src/__tests__/Setup",
+      "<rootDir>/example/",
+      "<rootDir>/lib/"
+    ],
+    "setupFiles": [
+      "<rootDir>/src/__tests__/Setup.tsx"
+    ]
   },
   "react-native-builder-bob": {
     "source": "src",
