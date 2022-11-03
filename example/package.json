@@ -11,8 +11,7 @@
   },
   "dependencies": {
     "react": "18.1.0",
-    "react-native": "0.70.4",
-    "react-native-camera": "https://github.com/sourcetoad/react-native-camera#ee265b22c7a3544a720478a6397d0e547430ff93"
+    "react-native": "0.70.4"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
