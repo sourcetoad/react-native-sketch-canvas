@@ -1,0 +1,28 @@
+name: RNSketchCanvas CI
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    name: Lint and Tests
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'yarn'
+
+      - name: Yarn Install
+        run: yarn install
+
+      - name: Linting
+        run: yarn lint
+
+      - name: Typing
+        run: yarn typescript
+
+      - name: Testing
+        run: yarn test --coverage
+
+      - name: Prepare Build
+        run: yarn prepare
