@@ -9,6 +9,19 @@ type CanvasState = {
   alpha: string;
 };
 
+function generateUniqueFilename() {
+  var dt = new Date().getTime();
+  var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
+    /[xy]/g,
+    function (c) {
+      var r = (dt + Math.random() * 16) % 16 | 0;
+      dt = Math.floor(dt / 16);
+      return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+    },
+  );
+  return uuid;
+}
+
 export default class RNSketchCanvas extends React.Component<
   RNSketchCanvasProps,
   CanvasState
@@ -124,22 +137,11 @@ export default class RNSketchCanvas extends React.Component<
         p.cropToImageSize || false,
       );
     } else {
-      const date = new Date();
       this._sketchCanvas.save(
         'png',
         false,
         '',
-        date.getFullYear() +
-          '-' +
-          (date.getMonth() + 1) +
-          '-' +
-          ('0' + date.getDate()).slice(-2) +
-          ' ' +
-          ('0' + date.getHours()).slice(-2) +
-          '-' +
-          ('0' + date.getMinutes()).slice(-2) +
-          '-' +
-          ('0' + date.getSeconds()).slice(-2),
+        generateUniqueFilename(),
         true,
         true,
         false,
