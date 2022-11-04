@@ -430,7 +430,7 @@ DEPENDENCIES:
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
-  - react-native-camera (from `../../node_modules/react-native-camera`)
+  - react-native-camera (from `../node_modules/react-native-camera`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
   - React-RCTAnimation (from `../node_modules/react-native/Libraries/NativeAnimation`)
@@ -443,7 +443,7 @@ DEPENDENCIES:
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - RNSketchCanvas (from `../..`)
+  - "RNSketchCanvas (from `../node_modules/@sourcetoad/react-native-sketch-canvas`)"
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -508,7 +508,7 @@ EXTERNAL SOURCES:
   React-logger:
     :path: "../node_modules/react-native/ReactCommon/logger"
   react-native-camera:
-    :path: "../../node_modules/react-native-camera"
+    :path: "../node_modules/react-native-camera"
   React-perflogger:
     :path: "../node_modules/react-native/ReactCommon/reactperflogger"
   React-RCTActionSheet:
@@ -534,7 +534,7 @@ EXTERNAL SOURCES:
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
   RNSketchCanvas:
-    :path: "../.."
+    :path: "../node_modules/@sourcetoad/react-native-sketch-canvas"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -591,6 +591,6 @@ SPEC CHECKSUMS:
   Yoga: 1f02ef4ce4469aefc36167138441b27d988282b1
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 8586834ad461ad53144d789d760fd51d75fc4a5e
+PODFILE CHECKSUM: e9774a3132cc2072013fd07ec1ade8155544b823
 
 COCOAPODS: 1.11.3
