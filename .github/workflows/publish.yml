@@ -1,4 +1,4 @@
-name: Publish to NPM
+name: Publish to NPM/GPR
 on:
   release:
     types: [published]
@@ -23,6 +23,15 @@ jobs:
         run: yarn install --network-concurrency 1
 
       - name: Publish (NPM)
-        run: npm publish --access public
+        run: yarn publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - uses: actions/setup-node@v3
+        with:
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Publish (GPR)
+        run: yarn publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
