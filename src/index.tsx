@@ -149,6 +149,24 @@ export default class RNSketchCanvas extends React.Component<
     }
   }
 
+  getBase64(
+    imageType: string,
+    transparent: boolean,
+    includeImage: boolean,
+    includeText: boolean,
+    cropToImageSize: boolean,
+    callback: () => void,
+  ) {
+    return this._sketchCanvas.getBase64(
+      imageType,
+      transparent,
+      includeImage,
+      includeText,
+      cropToImageSize,
+      callback,
+    );
+  }
+
   nextStrokeWidth() {
     if (
       (this.state.strokeWidth >= (this.props.maxStrokeWidth || 0) &&
