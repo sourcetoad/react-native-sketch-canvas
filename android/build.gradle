@@ -19,6 +19,12 @@ android {
     }
 }
 
+repositories {
+    mavenCentral()
+    google()
+}
+
 dependencies {
+    //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"
 }
