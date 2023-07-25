@@ -321,6 +321,7 @@ export default class example extends Component<any, ExampleState> {
                       false,
                       true,
                       true,
+                      true,
                       (err: any, result: any) => {
                         console.log(result);
                       },
