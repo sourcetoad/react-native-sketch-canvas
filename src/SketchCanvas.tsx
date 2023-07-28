@@ -99,7 +99,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     this._path = null;
     UIManager.dispatchViewManagerCommand(
       this._handle,
-      UIManager.getViewManagerConfig(RNSketchCanvas).Commands.clear,
+      UIManager.getViewManagerConfig(RNSketchCanvas).Commands.clear!,
       [],
     );
   }
@@ -132,7 +132,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
       });
       UIManager.dispatchViewManagerCommand(
         this._handle,
-        UIManager.getViewManagerConfig(RNSketchCanvas).Commands.addPath,
+        UIManager.getViewManagerConfig(RNSketchCanvas).Commands.addPath!,
         [
           data.path.id,
           processColor(data.path.color),
@@ -150,7 +150,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     this._paths = this._paths.filter(p => p.path.id !== id);
     UIManager.dispatchViewManagerCommand(
       this._handle,
-      UIManager.getViewManagerConfig(RNSketchCanvas).Commands.deletePath,
+      UIManager.getViewManagerConfig(RNSketchCanvas).Commands.deletePath!,
       [id],
     );
   }
@@ -166,7 +166,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
   ) {
     UIManager.dispatchViewManagerCommand(
       this._handle,
-      UIManager.getViewManagerConfig(RNSketchCanvas).Commands.save,
+      UIManager.getViewManagerConfig(RNSketchCanvas).Commands.save!,
       [
         imageType,
         folder,
@@ -237,7 +237,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
 
         UIManager.dispatchViewManagerCommand(
           this._handle,
-          UIManager.getViewManagerConfig(RNSketchCanvas).Commands.newPath,
+          UIManager.getViewManagerConfig(RNSketchCanvas).Commands.newPath!,
           [
             this._path.id,
             processColor(this._path.color),
@@ -247,7 +247,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
 
         UIManager.dispatchViewManagerCommand(
           this._handle,
-          UIManager.getViewManagerConfig(RNSketchCanvas).Commands.addPoint,
+          UIManager.getViewManagerConfig(RNSketchCanvas).Commands.addPoint!,
           [
             parseFloat(
               (
@@ -275,7 +275,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
         if (this._path) {
           UIManager.dispatchViewManagerCommand(
             this._handle,
-            UIManager.getViewManagerConfig(RNSketchCanvas).Commands.addPoint,
+            UIManager.getViewManagerConfig(RNSketchCanvas).Commands.addPoint!,
             [
               parseFloat(
                 (
@@ -317,7 +317,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
         }
         UIManager.dispatchViewManagerCommand(
           this._handle,
-          UIManager.getViewManagerConfig(RNSketchCanvas).Commands.endPath,
+          UIManager.getViewManagerConfig(RNSketchCanvas).Commands.endPath!,
           [],
         );
       },
