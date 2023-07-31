@@ -1,16 +1,19 @@
 module.exports = {
   root: true,
-  extends: '@react-native-community',
-  parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint'],
-  overrides: [
-    {
-      files: ['*.d.ts', '*.ts', '*.tsx'],
-      rules: {
-        '@typescript-eslint/no-shadow': ['error'],
-        'no-shadow': 'off',
-        'no-undef': 'off',
+  extends: ['@react-native-community', 'prettier'],
+  rules: {
+    'prettier/prettier': [
+      'error',
+      {
+        quoteProps: 'consistent',
+        tabWidth: 2,
+        useTabs: false,
+        arrowParens: 'avoid',
+        bracketSameLine: true,
+        bracketSpacing: false,
+        singleQuote: true,
+        trailingComma: 'all',
       },
-    },
-  ],
+    ],
+  },
 };

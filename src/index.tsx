@@ -191,13 +191,13 @@ export default class RNSketchCanvas extends React.Component<
           if (this._alphaStep < 0) {
             this._alphaStep = index === 0 ? 1 : -1;
             this.setState({
-              alpha: this.props.alphlaValues[index + this._alphaStep],
+              alpha: this.props.alphlaValues[index + this._alphaStep]!,
             });
           } else {
             this._alphaStep =
               index === this.props.alphlaValues.length - 1 ? -1 : 1;
             this.setState({
-              alpha: this.props.alphlaValues[index + this._alphaStep],
+              alpha: this.props.alphlaValues[index + this._alphaStep]!,
             });
           }
         } else {

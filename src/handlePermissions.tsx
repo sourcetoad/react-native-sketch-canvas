@@ -6,7 +6,7 @@ export const requestPermissions = async (
 ) => {
   if (Platform.OS === 'android') {
     const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE!,
       {
         title: permissionDialogTitle,
         message: permissionDialogMessage,
