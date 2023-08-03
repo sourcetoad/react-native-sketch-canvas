@@ -9,6 +9,7 @@ import {
   ScrollView,
   Platform,
   SafeAreaView,
+  TextInput,
 } from 'react-native';
 import {RNCamera} from 'react-native-camera';
 
@@ -747,9 +748,18 @@ export default class example extends Component<any, ExampleState> {
         )}
 
         {this.state.example === 6 && (
-          <View style={{flex: 1, flexDirection: 'row'}}>
+          <View style={{flex: 1, flexDirection: 'column'}}>
+            <TextInput value={this.state.message} onChangeText={text => this.setState({message: text})} />
             <RNSketchCanvas
               text={[
+                {
+                  text: this.state.message,
+                  fontSize: 25,
+                  position: {x: 0, y: 0.25},
+                  anchor: {x: 0, y: 0},
+                  coordinate: 'Ratio',
+                  fontColor: 'green',
+                },
                 {
                   text: 'Welcome to my GitHub',
                   font: 'fonts/IndieFlower.ttf',
