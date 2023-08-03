@@ -72,26 +72,6 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     this._offset = {x: 0, y: 0};
     this._size = {width: 0, height: 0};
     this._initialized = false;
-
-    this.state.text = this._processText(
-      props.text ? props.text.map(t => Object.assign({}, t)) : null,
-    );
-  }
-
-  UNSAFE_componentWillReceiveProps(nextProps: SketchCanvasProps) {
-    this.setState({
-      text: this._processText(
-        nextProps.text ? nextProps.text.map(t => Object.assign({}, t)) : null,
-      ),
-    });
-  }
-
-  _processText(text: any) {
-    text &&
-      text.forEach(
-        (t: {fontColor: any}) => (t.fontColor = processColor(t.fontColor)),
-      );
-    return text;
   }
 
   clear() {
@@ -370,7 +350,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
         localSourceImage={this.props.localSourceImage}
         permissionDialogTitle={this.props.permissionDialogTitle}
         permissionDialogMessage={this.props.permissionDialogMessage}
-        text={this.state.text}
+        text={this.props.text}
       />
     );
   }
