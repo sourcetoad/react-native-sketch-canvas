@@ -1,5 +1,6 @@
 'use strict';
 
+import memoize from 'memoize-one';
 import React from 'react';
 import ReactNative, {
   requireNativeComponent,
@@ -11,7 +12,7 @@ import ReactNative, {
   processColor,
 } from 'react-native';
 import {requestPermissions} from './handlePermissions';
-import type {SketchCanvasProps, PathData, Path} from './types';
+import type {SketchCanvasProps, CanvasText, PathData, Path} from './types';
 
 const SketchViewName = 'RNSketchCanvas';
 const RNSketchCanvas = requireNativeComponent(
@@ -186,6 +187,22 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     });
   }
 
+  _processText(text: any) {
+    text &&
+      text.forEach(
+        (t: {fontColor: any}) => (t.fontColor = processColor(t.fontColor)),
+      );
+    return text;
+  }
+
+  getProcessedText = memoize((text: CanvasText[]|undefined) => {
+    const textCopy = text
+      ? text.map(t => Object.assign({}, t))
+      : null;
+
+    return this._processText(textCopy);
+  });
+
   clear() {
     this._paths = [];
     this._path = null;
@@ -348,7 +365,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
         localSourceImage={this.props.localSourceImage}
         permissionDialogTitle={this.props.permissionDialogTitle}
         permissionDialogMessage={this.props.permissionDialogMessage}
-        text={this.props.text}
+        text={this.getProcessedText(this.props.text)}
       />
     );
   }
