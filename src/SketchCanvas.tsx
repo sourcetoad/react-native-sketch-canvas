@@ -88,7 +88,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
         const e = evt.nativeEvent;
         this._offset = {x: e.pageX - e.locationX, y: e.pageY - e.locationY};
         this._path = {
-          id: parseInt(String(Math.random() * 100000000)),
+          id: parseInt(String(Math.random() * 100000000), 10),
           color: this.props.strokeColor,
           width: this.props.strokeWidth,
           data: [],
@@ -195,10 +195,8 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     return text;
   }
 
-  getProcessedText = memoize((text: CanvasText[]|undefined) => {
-    const textCopy = text
-      ? text.map(t => Object.assign({}, t))
-      : null;
+  getProcessedText = memoize((text: CanvasText[] | undefined) => {
+    const textCopy = text ? text.map(t => Object.assign({}, t)) : null;
 
     return this._processText(textCopy);
   });
