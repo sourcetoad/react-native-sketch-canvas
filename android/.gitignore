@@ -1,0 +1,5 @@
+# Running Android in isolation in IDE causes these to be generated.
+# They wouldn't be generated in usage of the library in React Native.
+gradlew
+gradlew.bat
+gradle/wrapper/*
