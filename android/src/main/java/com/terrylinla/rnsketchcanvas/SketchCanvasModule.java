@@ -1,7 +1,5 @@
 package com.terrylinla.rnsketchcanvas;
 
-import android.util.Log;
-
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -21,8 +19,8 @@ public class SketchCanvasModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void transferToBase64(final int tag, final String type, final boolean transparent, 
-        final boolean includeImage, final boolean includeText, final boolean cropToImageSize, final Callback callback){
+    public void transferToBase64(final int tag, final String type, final boolean transparent,
+                                 final boolean includeImage, final boolean includeText, final boolean cropToImageSize, final Callback callback) {
         try {
             final ReactApplicationContext context = getReactApplicationContext();
             UIManagerModule uiManager = context.getNativeModule(UIManagerModule.class);

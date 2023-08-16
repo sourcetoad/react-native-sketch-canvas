@@ -52,10 +52,10 @@ public class SketchData {
 
         if (this.isTranslucent) {
             if (pointsCount >= 3) {
-                addPointToPath(mPath, 
-                    this.points.get(pointsCount - 3), 
-                    this.points.get(pointsCount - 2),
-                    p);
+                addPointToPath(mPath,
+                        this.points.get(pointsCount - 3),
+                        this.points.get(pointsCount - 2),
+                        p);
             } else if (pointsCount >= 2) {
                 addPointToPath(mPath, this.points.get(0), this.points.get(0), p);
             } else {
@@ -65,14 +65,14 @@ public class SketchData {
             float x = p.x, y = p.y;
             if (mDirty == null) {
                 mDirty = new RectF(x, y, x + 1, y + 1);
-                updateRect = new RectF(x - this.strokeWidth, y - this.strokeWidth, 
-                    x + this.strokeWidth, y + this.strokeWidth);
+                updateRect = new RectF(x - this.strokeWidth, y - this.strokeWidth,
+                        x + this.strokeWidth, y + this.strokeWidth);
             } else {
                 mDirty.union(x, y);
                 updateRect = new RectF(
-                                    mDirty.left - this.strokeWidth, mDirty.top - this.strokeWidth,
-                                    mDirty.right + this.strokeWidth, mDirty.bottom + this.strokeWidth
-                                    );
+                        mDirty.left - this.strokeWidth, mDirty.top - this.strokeWidth,
+                        mDirty.right + this.strokeWidth, mDirty.bottom + this.strokeWidth
+                );
             }
         } else {
             if (pointsCount >= 3) {
@@ -101,7 +101,7 @@ public class SketchData {
         }
         Rect integralRect = new Rect();
         updateRect.roundOut(integralRect);
-        
+
         return integralRect;
     }
 
@@ -180,14 +180,14 @@ public class SketchData {
         int pointsCount = points.size();
         Path path = new Path();
 
-        for(int pointIndex=0; pointIndex<pointsCount; pointIndex++) {
+        for (int pointIndex = 0; pointIndex < pointsCount; pointIndex++) {
             if (pointsCount >= 3 && pointIndex >= 2) {
                 PointF a = points.get(pointIndex - 2);
                 PointF b = points.get(pointIndex - 1);
                 PointF c = points.get(pointIndex);
                 PointF prevMid = midPoint(a, b);
                 PointF currentMid = midPoint(b, c);
-                
+
                 // Draw a curve
                 path.moveTo(prevMid.x, prevMid.y);
                 path.quadTo(b.x, b.y, currentMid.x, currentMid.y);
@@ -195,14 +195,14 @@ public class SketchData {
                 PointF a = points.get(pointIndex - 1);
                 PointF b = points.get(pointIndex);
                 PointF mid = midPoint(a, b);
-                
+
                 // Draw a line to the middle of points a and b
                 // This is so the next draw which uses a curve looks correct and continues from there
                 path.moveTo(a.x, a.y);
                 path.lineTo(mid.x, mid.y);
             } else if (pointsCount >= 1) {
                 PointF a = points.get(pointIndex);
-                
+
                 // Draw a single point
                 path.moveTo(a.x, a.y);
                 path.lineTo(a.x, a.y);
