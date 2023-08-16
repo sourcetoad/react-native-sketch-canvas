@@ -77,6 +77,11 @@ public class SketchCanvasManager extends SimpleViewManager<SketchCanvas> {
     }
 
     @Override
+    public void receiveCommand(SketchCanvas view, String commandType, @Nullable ReadableArray args) {
+        receiveCommand(view, Integer.parseInt(commandType), args);
+    }
+
+    @Override
     public void receiveCommand(SketchCanvas view, int commandType, @Nullable ReadableArray args) {
         switch (commandType) {
             case COMMAND_ADD_POINT: {
