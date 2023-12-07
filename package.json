@@ -50,15 +50,12 @@
     "react": "*",
     "react-native": "*"
   },
-  "dependencies": {
-    "@types/react": "^18.0.24",
-    "@types/react-native": "^0.70.12",
-    "deprecated-react-native-prop-types": "^2.3.0",
-    "prop-types": "^15.8.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@react-native-community/eslint-config": "^3.0.2",
     "@types/jest": "^29.5.3",
+    "@types/react": "^18.0.24",
+    "@types/react-native": "^0.70.12",
     "@types/react-test-renderer": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "^5.37.0",
     "@typescript-eslint/parser": "^5.37.0",
