@@ -27,6 +27,7 @@ DerivedData
 *.hmap
 *.ipa
 *.xcuserstate
+example/ios/.xcode.env.local
 project.xcworkspace
 
 # Android/IJ
