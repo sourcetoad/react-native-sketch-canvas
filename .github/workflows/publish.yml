@@ -16,14 +16,14 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 14
-          cache: 'yarn'
+          cache: 'npm'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Yarn Install
-        run: yarn install --network-concurrency 1
+      - name: NPM Install
+        run: npm ci
 
       - name: Publish (NPM)
-        run: yarn publish --access public
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -32,6 +32,6 @@ jobs:
           registry-url: 'https://npm.pkg.github.com'
 
       - name: Publish (GPR)
-        run: yarn publish
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

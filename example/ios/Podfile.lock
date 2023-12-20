@@ -1198,7 +1198,7 @@ DEPENDENCIES:
   - React-runtimescheduler (from `../node_modules/react-native/ReactCommon/react/renderer/runtimescheduler`)
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - "RNSketchCanvas (from `../node_modules/@sourcetoad/react-native-sketch-canvas`)"
+  - RNSketchCanvas (from `../..`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -1316,7 +1316,7 @@ EXTERNAL SOURCES:
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
   RNSketchCanvas:
-    :path: "../node_modules/@sourcetoad/react-native-sketch-canvas"
+    :path: "../.."
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -1383,8 +1383,8 @@ SPEC CHECKSUMS:
   ReactCommon: ddb128564dcbfa0287d3d1a2d10f8c7457c971f6
   RNSketchCanvas: a4f3b8e0054ce5e9f769391c252120c1f9cc60b4
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  Yoga: 2b33a7ac96c58cdaa7b810948fc6a2a76ed2d108
+  Yoga: 2b6b6bd4fe6346d0cc7fa873e368cf12f1e59437
 
 PODFILE CHECKSUM: 807d530c19d8b98202c0663366947e091e579097
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.14.3
