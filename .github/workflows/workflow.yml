@@ -10,19 +10,19 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
-          cache: 'yarn'
+          cache: 'npm'
 
-      - name: Yarn Install
-        run: yarn install
+      - name: NPM Install
+        run: npm ci
 
       - name: Linting
-        run: yarn lint
+        run: npm run lint
 
       - name: Typing
-        run: yarn typescript
+        run: npm run typescript
 
       - name: Testing
-        run: yarn test --coverage
+        run: npm run test --coverage
 
       - name: Prepare Build
-        run: yarn prepare
+        run: npm run prepare
