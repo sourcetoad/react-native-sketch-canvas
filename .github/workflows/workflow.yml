@@ -25,4 +25,4 @@ jobs:
         run: npm run test --coverage
 
       - name: Prepare Build
-        run: npm run prepare
+        run: npm run build

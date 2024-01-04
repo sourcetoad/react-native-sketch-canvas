@@ -29,7 +29,10 @@
     "test": "jest",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
-    "prepare": "bob build",
+    "example:start": "cd example && npm start",
+    "example:android": "cd example && npm run android",
+    "example:ios": "cd example && npm run ios",
+    "build": "bob build",
     "pods": "cd example/ios && bundle install && bundle exec pod install && cd ../.."
   },
   "keywords": [
