@@ -29,6 +29,7 @@
     "test": "jest",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "prepare": "npm run build",
     "example:start": "cd example && npm start",
     "example:android": "cd example && npm run android",
     "example:ios": "cd example && npm run ios",
