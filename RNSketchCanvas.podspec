@@ -10,6 +10,7 @@ Pod::Spec.new do |s|
   s.license      = package['license']
   s.authors      = package['author']
   s.source       = { :git => package['repository']['url'] }
+  s.resource_bundles = { 'RNSketchCanvas_PrivacyInfo' => 'ios/RNSketchCanvas/PrivacyInfo.xcprivacy' }
   s.platform     = :ios, '8.0'
   s.source_files = 'ios/**/*.{h,m}'
   s.dependency   'React'
