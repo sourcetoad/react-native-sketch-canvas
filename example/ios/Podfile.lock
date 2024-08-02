@@ -1172,7 +1172,7 @@ PODS:
     - React-logger (= 0.74.3)
     - React-perflogger (= 0.74.3)
     - React-utils (= 0.74.3)
-  - RNSketchCanvas (1.1.2):
+  - RNSketchCanvas (1.2.0):
     - React
   - SocketRocket (0.7.0)
   - Yoga (0.0.0)
@@ -1411,9 +1411,9 @@ SPEC CHECKSUMS:
   React-runtimescheduler: 0c80752bceb80924cb8a4babc2a8e3ed70d41e87
   React-utils: a06061b3887c702235d2dac92dacbd93e1ea079e
   ReactCommon: f00e436b3925a7ae44dfa294b43ef360fbd8ccc4
-  RNSketchCanvas: 22b0657dce72b4c17672e90e9669060768d80f7f
+  RNSketchCanvas: c6a77b330a60d2a9122b712df708ce1ffb5706f6
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
-  Yoga: 88480008ccacea6301ff7bf58726e27a72931c8d
+  Yoga: ceb08197dbe332e431b1adff98b9aae41ddc6b3b
 
 PODFILE CHECKSUM: 64ae403f1e0b5a8f50794fd5f40953a1b9174200
 
