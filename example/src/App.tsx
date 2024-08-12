@@ -650,7 +650,7 @@ export default class example extends Component<any, ExampleState> {
           <View style={{flex: 1, flexDirection: 'row'}}>
             <RNSketchCanvas
               localSourceImage={{
-                filename: 'whale.png',
+                filename: 'bigimage.jpg',
                 directory: SketchCanvas.MAIN_BUNDLE,
                 mode: 'AspectFit',
               }}
@@ -729,7 +729,7 @@ export default class example extends Component<any, ExampleState> {
                   folder: 'RNSketchCanvas',
                   filename: String(Math.ceil(Math.random() * 100000000)),
                   transparent: false,
-                  includeImage: false,
+                  includeImage: true,
                   cropToImageSize: false,
                   imageType: 'jpg',
                 };
@@ -749,7 +749,10 @@ export default class example extends Component<any, ExampleState> {
 
         {this.state.example === 6 && (
           <View style={{flex: 1, flexDirection: 'column'}}>
-            <TextInput value={this.state.message} onChangeText={text => this.setState({message: text})} />
+            <TextInput
+              value={this.state.message}
+              onChangeText={text => this.setState({message: text})}
+            />
             <RNSketchCanvas
               text={[
                 {
