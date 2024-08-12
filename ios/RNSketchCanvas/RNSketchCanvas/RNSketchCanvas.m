@@ -445,26 +445,21 @@
     }
 }
 
-- (UIImage *)scaleImage:(UIImage *)originalImage toSize:(CGSize)size contentMode: (NSString*)mode
-{
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    CGContextRef context = CGBitmapContextCreate(NULL, size.width, size.height, 8, 0, colorSpace, kCGImageAlphaPremultipliedLast);
-    CGContextClearRect(context, CGRectMake(0, 0, size.width, size.height));
+- (UIImage *)scaleImage:(UIImage *)originalImage toSize:(CGSize)size contentMode:(NSString *)mode {
+    UIGraphicsImageRendererFormat *format = [UIGraphicsImageRendererFormat defaultFormat];
+    format.opaque = NO; // To handle transparency if needed
+    format.scale = [UIScreen mainScreen].scale; // Use the screen scale to ensure high quality
 
-    CGRect targetRect = [Utility fillImageWithSize:originalImage.size toSize:size contentMode:mode];
-    CGContextDrawImage(context, targetRect, originalImage.CGImage);
-    
-    CGImageRef scaledImage = CGBitmapContextCreateImage(context);
-    CGColorSpaceRelease(colorSpace);
-    colorSpace = nil;
-    CGContextRelease(context);
-    context = nil;
-    
-    UIImage *image = [UIImage imageWithCGImage:scaledImage];
-    CGImageRelease(scaledImage);
-    scaledImage = nil;
-    
-    return image;
+    // Set the preferred range to automatic to allow the system to choose the best range for the device
+    format.preferredRange = UIGraphicsImageRendererFormatRangeAutomatic;
+
+    UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:size format:format];
+    UIImage *scaledImage = [renderer imageWithActions:^(UIGraphicsImageRendererContext * _Nonnull rendererContext) {
+        CGRect targetRect = [Utility fillImageWithSize:originalImage.size toSize:size contentMode:mode];
+        [originalImage drawInRect:targetRect];
+    }];
+
+    return scaledImage;
 }
 
 - (NSString*) transferToBase64OfType: (NSString*) type withTransparentBackground: (BOOL) transparent includeImage:(BOOL)includeImage includeText:(BOOL)includeText cropToImageSize:(BOOL)cropToImageSize {
