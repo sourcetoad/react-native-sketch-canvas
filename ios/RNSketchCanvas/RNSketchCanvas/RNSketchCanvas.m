@@ -452,13 +452,13 @@
 
     // Set the preferred range to automatic to allow the system to choose the best range for the device
     format.preferredRange = UIGraphicsImageRendererFormatRangeAutomatic;
-    
+
     UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:size format:format];
     UIImage *scaledImage = [renderer imageWithActions:^(UIGraphicsImageRendererContext * _Nonnull rendererContext) {
         CGRect targetRect = [Utility fillImageWithSize:originalImage.size toSize:size contentMode:mode];
         [originalImage drawInRect:targetRect];
     }];
-    
+
     return scaledImage;
 }
 
