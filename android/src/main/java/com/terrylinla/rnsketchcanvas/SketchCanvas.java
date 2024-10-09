@@ -1,5 +1,6 @@
 package com.terrylinla.rnsketchcanvas;
 
+import android.database.Cursor;
 import android.graphics.Typeface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,7 +12,9 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import android.net.Uri;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -64,6 +67,30 @@ public class SketchCanvas extends View {
         mContext = context;
     }
 
+    private Uri getFileUri(String filepath) {
+        Uri uri = Uri.parse(filepath);
+        if (uri.getScheme() == null) {
+            uri = Uri.parse("file://" + filepath);
+        }
+        return uri;
+    }
+
+    private String getOriginalFilepath(String filepath) {
+        Uri uri = getFileUri(filepath);
+        String originalFilepath = filepath;
+        if (uri.getScheme().equals("content")) {
+            try {
+                Cursor cursor = mContext.getContentResolver().query(uri, null, null, null, null);
+                if (cursor.moveToFirst()) {
+                    originalFilepath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+                }
+                cursor.close();
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        return originalFilepath;
+    }
+
     public boolean openImageFile(String filename, String directory, String mode) {
         if (filename != null) {
             int res = mContext.getResources().getIdentifier(
@@ -71,7 +98,10 @@ public class SketchCanvas extends View {
                     "drawable",
                     mContext.getPackageName());
             BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
-            File file = new File(filename, directory == null ? "" : directory);
+
+            String originalFilepath = getOriginalFilepath(filename);
+            File file = new File(originalFilepath, directory == null ? "" : directory);
+
             Bitmap bitmap = res == 0 ?
                     BitmapFactory.decodeFile(file.toString(), bitmapOptions) :
                     BitmapFactory.decodeResource(mContext.getResources(), res);
