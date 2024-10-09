@@ -269,7 +269,7 @@ Note: Because native module cannot read the file in JS bundle, file path cannot 
 ## Objects
 -------------
 ### SavePreference object
-```javascript
+```json5
 {
   folder: 'RNSketchCanvas',
   filename: 'image',
@@ -312,7 +312,7 @@ Note: Because native module cannot read the file in JS bundle, file path cannot 
 ```
 
 ### LocalSourceImage object
-```javascript
+```json5
 {
   filename: 'image.png',  // e.g. 'image.png' or '/storage/sdcard0/Pictures/image.png'
   directory: '', // e.g. SketchCanvas.MAIN_BUNDLE or '/storage/sdcard0/Pictures/'
@@ -326,7 +326,7 @@ Note: Because native module cannot read the file in JS bundle, file path cannot 
 | mode?      | boolean | Specify how the background image resizes itself to fit or fill the canvas.<br/>Options: `AspectFill`, `AspectFit`, `ScaleToFill` | `AspectFit` |
 
 ### CanvasText object
-```javascript
+```json5
 {
   text: 'TEXT',
   font: '',
@@ -370,4 +370,4 @@ Check full example app in the [example](./example) folder
 
 ## Troubleshooting
 -------------
-Please refer  [here](https://github.com/sourcetoad/react-native-sketch-canvas/wiki/Troubleshooting).
+Please refer [here](https://github.com/sourcetoad/react-native-sketch-canvas/wiki/Troubleshooting).
