@@ -1,30 +1,29 @@
 {
-  "name": "example",
+  "name": "@sourcetoad/react-native-sketch-canvas-example",
   "version": "0.0.1",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
-    "pods": "pod-install --quiet"
+    "build:android": "react-native build-android --extra-params \"--no-daemon --console=plain -PreactNativeArchitectures=arm64-v8a\"",
+    "build:ios": "react-native build-ios --scheme ReactNativeSketchCanvasExample --mode Debug --extra-params \"-sdk iphonesimulator CC=clang CPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ GCC_OPTIMIZATION_LEVEL=0 GCC_PRECOMPILE_PREFIX_HEADER=YES ASSETCATALOG_COMPILER_OPTIMIZATION=time DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO\""
   },
   "dependencies": {
-    "react": "18.2.0",
-    "react-native": "0.74.3",
-    "@sourcetoad/react-native-sketch-canvas": "../",
-    "react-native-camera": "https://github.com/sourcetoad/react-native-camera#ee265b22c7a3544a720478a6397d0e547430ff93"
+    "react": "18.3.1",
+    "react-native": "0.76.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.22.5",
-    "@babel/preset-env": "^7.22.5",
-    "@babel/runtime": "^7.22.5",
-    "@react-native/babel-preset": "0.74.85",
-    "@react-native/eslint-config": "0.74.85",
-    "@react-native/metro-config": "0.74.85",
-    "babel-plugin-module-resolver": "^5.0.0"
-  },
-  "jest": {
-    "preset": "react-native"
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "@babel/runtime": "^7.25.0",
+    "@react-native-community/cli": "15.0.1",
+    "@react-native-community/cli-platform-android": "15.0.1",
+    "@react-native-community/cli-platform-ios": "15.0.1",
+    "@react-native/babel-preset": "0.76.3",
+    "@react-native/metro-config": "0.76.3",
+    "@react-native/typescript-config": "0.76.3",
+    "react-native-builder-bob": "^0.33.3"
   },
   "engines": {
     "node": ">=18"
