@@ -1,0 +1,33 @@
+package com.sourcetoad.reactnativesketchcanvas
+
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.WritableMap
+import com.facebook.react.uimanager.events.Event
+
+class OnChangeEvent(
+  surfaceId: Int,
+  viewId: Int,
+  private val success: Boolean,
+  private val path: String,
+  private val pathsUpdate: Int
+) : Event<OnChangeEvent>(surfaceId, viewId)  {
+  override fun getEventName(): String {
+    return EVENT_NAME
+  }
+
+  override fun getEventData(): WritableMap {
+    val eventData = Arguments.createMap()
+
+    if (pathsUpdate > 0) {
+        eventData.putInt("pathsUpdate", pathsUpdate);
+    } else {
+      eventData.putBoolean("success", success);
+      eventData.putString("path", path);
+    }
+    return eventData
+  }
+
+  companion object {
+    const val EVENT_NAME = "onChange"
+  }
+}
