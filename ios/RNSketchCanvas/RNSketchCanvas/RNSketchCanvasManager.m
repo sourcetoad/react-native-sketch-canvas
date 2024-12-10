@@ -74,16 +74,19 @@ RCT_EXPORT_METHOD(addPoint:(nonnull NSNumber *)reactTag x: (float)x y: (float)y)
 
 RCT_EXPORT_METHOD(addPath:(nonnull NSNumber *)reactTag pathId: (int) pathId strokeColor: (UIColor*) strokeColor strokeWidth: (int) strokeWidth points: (NSArray*) points)
 {
-    NSMutableArray *cgPoints = [[NSMutableArray alloc] initWithCapacity: points.count];
+    NSMutableArray *cgPoints = [[NSMutableArray alloc] initWithCapacity:points.count];
+        
     for (NSString *coor in points) {
         @autoreleasepool {
-            NSArray *coorInNumber = [coor componentsSeparatedByString: @","];
-            [cgPoints addObject: [NSValue valueWithCGPoint: CGPointMake([coorInNumber[0] floatValue], [coorInNumber[1] floatValue])]];
-            [self runCanvas:reactTag block:^(RNSketchCanvas *canvas) {
-                [canvas addPath: pathId strokeColor: strokeColor strokeWidth: strokeWidth points: cgPoints];
-            }];
+            NSArray *coorInNumber = [coor componentsSeparatedByString:@","];
+            CGPoint point = CGPointMake([coorInNumber[0] floatValue], [coorInNumber[1] floatValue]);
+            [cgPoints addObject:[NSValue valueWithCGPoint:point]];
         }
     }
+    
+    [self runCanvas:reactTag block:^(RNSketchCanvas *canvas) {
+        [canvas addPath:pathId strokeColor:strokeColor strokeWidth:strokeWidth points:cgPoints];
+    }];
 }
 
 RCT_EXPORT_METHOD(newPath:(nonnull NSNumber *)reactTag pathId: (int) pathId strokeColor: (UIColor*) strokeColor strokeWidth: (int) strokeWidth)
