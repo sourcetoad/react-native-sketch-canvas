@@ -2,13 +2,13 @@ package com.sourcetoad.reactnativesketchcanvas
 
 import android.database.Cursor
 import android.graphics.*
-import androidx.exifinterface.media.ExifInterface
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Base64
 import android.util.Log
 import android.view.View
+import androidx.exifinterface.media.ExifInterface
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerHelper
@@ -68,7 +68,8 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
             try {
                 val cursor: Cursor? = mContext.contentResolver.query(uri, null, null, null, null)
                 if (cursor != null && cursor.moveToFirst()) {
-                    originalFilepath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA))
+                    originalFilepath =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA))
                     cursor.close()
                 }
             } catch (ignored: IllegalArgumentException) {
@@ -79,19 +80,22 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
 
     fun openImageFile(filename: String?, directory: String?, mode: String?): Boolean {
         if (filename != null) {
-            val res = mContext.resources.getIdentifier(
-            if (filename.lastIndexOf('.') == -1) filename else filename.substring(0, filename.lastIndexOf('.')),
+            val res =
+                mContext.resources.getIdentifier(
+                    if (filename.lastIndexOf('.') == -1) filename
+                    else filename.substring(0, filename.lastIndexOf('.')),
                     "drawable",
                     mContext.packageName
-            )
+                )
             val bitmapOptions = BitmapFactory.Options()
             val originalFilepath = getOriginalFilepath(filename)
             val file = File(originalFilepath, directory ?: "")
-            var bitmap = if (res == 0) {
-                BitmapFactory.decodeFile(file.toString(), bitmapOptions)
-            } else {
-                BitmapFactory.decodeResource(mContext.resources, res)
-            }
+            var bitmap =
+                if (res == 0) {
+                    BitmapFactory.decodeFile(file.toString(), bitmapOptions)
+                } else {
+                    BitmapFactory.decodeResource(mContext.resources, res)
+                }
             try {
                 val exif = ExifInterface(file.absolutePath)
                 val matrix = Matrix()
@@ -101,7 +105,8 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
                     ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
                     ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
                 }
-                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                bitmap =
+                    Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
             } catch (e: Exception) {
             }
             if (bitmap != null) {
@@ -130,32 +135,54 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
                     val lines = property.getString("text")!!.split("\n").toTypedArray()
                     val textSet = ArrayList<CanvasText>(lines.size)
                     for (line in lines) {
-                        val arr = if (property.hasKey("overlay") && "TextOnSketch" == property.getString("overlay")) mArrTextOnSketch else mArrSketchOnText
+                        val arr =
+                            if (property.hasKey("overlay") &&
+                                "TextOnSketch" == property.getString("overlay")
+                            )
+                                mArrTextOnSketch
+                            else mArrSketchOnText
                         val text = CanvasText()
                         val p = Paint(Paint.ANTI_ALIAS_FLAG)
                         p.textAlign = Paint.Align.LEFT
                         text.text = line
                         if (property.hasKey("font")) {
-                            val font: Typeface = try {
-                                Typeface.createFromAsset(mContext.assets, property.getString("font"))
-                            } catch (ex: Exception) {
-                                Typeface.create(property.getString("font"), Typeface.NORMAL)
-                            }
+                            val font: Typeface =
+                                try {
+                                    Typeface.createFromAsset(
+                                        mContext.assets,
+                                        property.getString("font")
+                                    )
+                                } catch (ex: Exception) {
+                                    Typeface.create(property.getString("font"), Typeface.NORMAL)
+                                }
                             p.typeface = font
                         }
 
                         p.textSize = property.getDouble("fontSize").toFloat()
                         p.color = property.getInt("fontColor")
-                        text.anchor = PointF(property.getMap("anchor")?.getDouble("x")?.toFloat() ?: 0f, property.getMap("anchor")?.getDouble("y")?.toFloat() ?: 0f)
-                        text.position = PointF(property.getMap("position")?.getDouble("x")?.toFloat() ?: 0f, property.getMap("position")?.getDouble("y")?.toFloat() ?: 0f)
+                        text.anchor =
+                            PointF(
+                                property.getMap("anchor")?.getDouble("x")?.toFloat() ?: 0f,
+                                property.getMap("anchor")?.getDouble("y")?.toFloat() ?: 0f
+                            )
+                        text.position =
+                            PointF(
+                                property.getMap("position")?.getDouble("x")?.toFloat() ?: 0f,
+                                property.getMap("position")?.getDouble("y")?.toFloat() ?: 0f
+                            )
                         text.paint = p
-                        text.isAbsoluteCoordinate = !(property.hasKey("coordinate") && "Ratio" == property.getString("coordinate"))
+                        text.isAbsoluteCoordinate =
+                            !(property.hasKey("coordinate") && "Ratio" == property.getString("coordinate"))
                         text.textBounds = Rect()
                         p.getTextBounds(text.text, 0, text.text!!.length, text.textBounds)
                         text.lineOffset = PointF(0f, lineOffset.toFloat())
 
                         if (property.hasKey("lineHeightMultiple")) {
-                            lineOffset += (text.textBounds!!.height() * 1.5 * (property.getDouble("lineHeightMultiple"))).toInt()
+                            lineOffset +=
+                                (text.textBounds!!.height() *
+                                        1.5 *
+                                        (property.getDouble("lineHeightMultiple")))
+                                    .toInt()
                         }
 
                         maxTextWidth = maxTextWidth.coerceAtLeast(text.textBounds!!.width())
@@ -190,8 +217,13 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
                         for (text in textSet) {
                             when (alignment) {
                                 "Left" -> {}
-                                "Right" -> text.lineOffset!!.x = (maxTextWidth - text.textBounds!!.width()).toFloat()
-                                "Center" -> text.lineOffset!!.x = ((maxTextWidth - text.textBounds!!.width()) / 2).toFloat()
+                                "Right" ->
+                                    text.lineOffset!!.x =
+                                        (maxTextWidth - text.textBounds!!.width()).toFloat()
+
+                                "Center" ->
+                                    text.lineOffset!!.x =
+                                        ((maxTextWidth - text.textBounds!!.width()) / 2).toFloat()
                             }
                         }
                     }
@@ -278,23 +310,57 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
 
     fun onSaved(success: Boolean, path: String?) {
         val surfaceId = UIManagerHelper.getSurfaceId(mContext)
-        UIManagerHelper.getEventDispatcherForReactTag(mContext, getParentViewId())?.dispatchEvent(
-            OnChangeEvent(surfaceId, getParentViewId(), success, path ?: "", 0)
-        )
+        UIManagerHelper.getEventDispatcherForReactTag(mContext, getParentViewId())
+            ?.dispatchEvent(
+                OnChangeEvent(
+                    surfaceId,
+                    getParentViewId(),
+                    "save",
+                    success,
+                    path ?: "",
+                    0
+                )
+            )
     }
 
-    fun save(format: String, folder: String, filename: String, transparent: Boolean, includeImage: Boolean, includeText: Boolean, cropToImageSize: Boolean) {
-        val f = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString() + File.separator + folder)
+    fun save(
+        format: String,
+        folder: String,
+        filename: String,
+        transparent: Boolean,
+        includeImage: Boolean,
+        includeText: Boolean,
+        cropToImageSize: Boolean
+    ) {
+        val f =
+            File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                    .toString() + File.separator + folder
+            )
         val success = if (f.exists()) true else f.mkdirs()
         if (success) {
-            val bitmap = createImage(format == "png" && transparent, includeImage, includeText, cropToImageSize)
-            val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString() +
-                    File.separator + folder + File.separator + filename + if (format == "png") ".png" else ".jpg")
+            val bitmap =
+                createImage(
+                    format == "png" && transparent,
+                    includeImage,
+                    includeText,
+                    cropToImageSize
+                )
+            val file =
+                File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                        .toString() +
+                            File.separator +
+                            folder +
+                            File.separator +
+                            filename +
+                            if (format == "png") ".png" else ".jpg"
+                )
             try {
                 bitmap.compress(
-                if (format == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG,
-                if (format == "png") 100 else 90,
-                        FileOutputStream(file)
+                    if (format == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG,
+                    if (format == "png") 100 else 90,
+                    FileOutputStream(file)
                 )
                 onSaved(true, file.path)
             } catch (e: Exception) {
@@ -307,22 +373,30 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         }
     }
 
-    fun getBase64(format: String, transparent: Boolean, includeImage: Boolean, includeText: Boolean, cropToImageSize: Boolean) {
-        val bitmap = createImage(format == "png" && transparent, includeImage, includeText, cropToImageSize)
+    fun getBase64(
+        format: String,
+        transparent: Boolean,
+        includeImage: Boolean,
+        includeText: Boolean,
+        cropToImageSize: Boolean
+    ) {
+        val bitmap =
+            createImage(format == "png" && transparent, includeImage, includeText, cropToImageSize)
         val byteArrayOS = ByteArrayOutputStream()
         bitmap.compress(
-        if (format == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG,
-        if (format == "png") 100 else 90,
-                byteArrayOS
+            if (format == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG,
+            if (format == "png") 100 else 90,
+            byteArrayOS
         )
 
-        UIManagerHelper.getEventDispatcherForReactTag(mContext, getParentViewId())?.dispatchEvent(
-            OnGenerateBase64Event(
-                UIManagerHelper.getSurfaceId(mContext),
-                getParentViewId(),
-                Base64.encodeToString(byteArrayOS.toByteArray(), Base64.DEFAULT)
+        UIManagerHelper.getEventDispatcherForReactTag(mContext, getParentViewId())
+            ?.dispatchEvent(
+                OnGenerateBase64Event(
+                    UIManagerHelper.getSurfaceId(mContext),
+                    getParentViewId(),
+                    Base64.encodeToString(byteArrayOS.toByteArray(), Base64.DEFAULT)
+                )
             )
-        )
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -361,14 +435,26 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         if (mBackgroundImage != null) {
             val dstRect = Rect()
             canvas.getClipBounds(dstRect)
-            canvas.drawBitmap(mBackgroundImage!!, null,
-                    Utility.fillImage(mBackgroundImage!!.width.toFloat(),
-                        mBackgroundImage!!.height.toFloat(),
-                        dstRect.width().toFloat(), dstRect.height().toFloat(), mContentMode!!),
-            null)
+            canvas.drawBitmap(
+                mBackgroundImage!!,
+                null,
+                Utility.fillImage(
+                    mBackgroundImage!!.width.toFloat(),
+                    mBackgroundImage!!.height.toFloat(),
+                    dstRect.width().toFloat(),
+                    dstRect.height().toFloat(),
+                    mContentMode!!
+                ),
+                null
+            )
         }
         for (text in mArrSketchOnText) {
-            canvas.drawText(text.text!!, text.drawPosition!!.x + text.lineOffset!!.x, text.drawPosition!!.y + text.lineOffset!!.y, text.paint!!)
+            canvas.drawText(
+                text.text!!,
+                text.drawPosition!!.x + text.lineOffset!!.x,
+                text.drawPosition!!.y + text.lineOffset!!.y,
+                text.paint!!
+            )
         }
         if (mDrawingBitmap != null) {
             canvas.drawBitmap(mDrawingBitmap!!, 0f, 0f, mPaint)
@@ -377,7 +463,12 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
             canvas.drawBitmap(mTranslucentDrawingBitmap!!, 0f, 0f, mPaint)
         }
         for (text in mArrTextOnSketch) {
-            canvas.drawText(text.text!!, text.drawPosition!!.x + text.lineOffset!!.x, text.drawPosition!!.y + text.lineOffset!!.y, text.paint!!)
+            canvas.drawText(
+                text.text!!,
+                text.drawPosition!!.x + text.lineOffset!!.x,
+                text.drawPosition!!.y + text.lineOffset!!.y,
+                text.paint!!
+            )
         }
     }
 
@@ -385,41 +476,79 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         if (shouldDispatchEvent) {
             val surfaceId = UIManagerHelper.getSurfaceId(mContext)
 
-            UIManagerHelper.getEventDispatcherForReactTag(mContext, getParentViewId())?.dispatchEvent(
-                OnChangeEvent(surfaceId, getParentViewId(), false, "", mPaths.size)
-            )
+            UIManagerHelper.getEventDispatcherForReactTag(mContext, getParentViewId())
+                ?.dispatchEvent(
+                    OnChangeEvent(
+                        surfaceId,
+                        getParentViewId(),
+                        "pathsUpdate",
+                        false,
+                        "",
+                        mPaths.size
+                    )
+                )
         }
         invalidate()
     }
 
-    private fun createImage(transparent: Boolean, includeImage: Boolean, includeText: Boolean, cropToImageSize: Boolean): Bitmap {
-        val bitmap = Bitmap.createBitmap(
-        if (mBackgroundImage != null && cropToImageSize) mOriginalWidth else width,
-        if (mBackgroundImage != null && cropToImageSize) mOriginalHeight else height,
+    private fun createImage(
+        transparent: Boolean,
+        includeImage: Boolean,
+        includeText: Boolean,
+        cropToImageSize: Boolean
+    ): Bitmap {
+        val bitmap =
+            Bitmap.createBitmap(
+                if (mBackgroundImage != null && cropToImageSize) mOriginalWidth else width,
+                if (mBackgroundImage != null && cropToImageSize) mOriginalHeight else height,
                 Bitmap.Config.ARGB_8888
-        )
+            )
         val canvas = Canvas(bitmap)
         canvas.drawARGB(if (transparent) 0 else 255, 255, 255, 255)
         if (mBackgroundImage != null && includeImage) {
             val targetRect = Rect()
-            Utility.fillImage(mBackgroundImage!!.width.toFloat(), mBackgroundImage!!.height.toFloat(), bitmap.width.toFloat(), bitmap.height.toFloat(), "AspectFit").roundOut(targetRect)
+            Utility.fillImage(
+                mBackgroundImage!!.width.toFloat(),
+                mBackgroundImage!!.height.toFloat(),
+                bitmap.width.toFloat(),
+                bitmap.height.toFloat(),
+                "AspectFit"
+            )
+                .roundOut(targetRect)
             canvas.drawBitmap(mBackgroundImage!!, null, targetRect, null)
         }
         if (includeText) {
             for (text in mArrSketchOnText) {
-                canvas.drawText(text.text!!, text.drawPosition!!.x + text.lineOffset!!.x, text.drawPosition!!.y + text.lineOffset!!.y, text.paint!!)
+                canvas.drawText(
+                    text.text!!,
+                    text.drawPosition!!.x + text.lineOffset!!.x,
+                    text.drawPosition!!.y + text.lineOffset!!.y,
+                    text.paint!!
+                )
             }
         }
         if (mBackgroundImage != null && cropToImageSize) {
             val targetRect = Rect()
-            Utility.fillImage(mDrawingBitmap!!.width.toFloat(), mDrawingBitmap!!.height.toFloat(), bitmap.width.toFloat(), bitmap.height.toFloat(), "AspectFill").roundOut(targetRect)
+            Utility.fillImage(
+                mDrawingBitmap!!.width.toFloat(),
+                mDrawingBitmap!!.height.toFloat(),
+                bitmap.width.toFloat(),
+                bitmap.height.toFloat(),
+                "AspectFill"
+            )
+                .roundOut(targetRect)
             canvas.drawBitmap(mDrawingBitmap!!, null, targetRect, mPaint)
         } else {
             canvas.drawBitmap(mDrawingBitmap!!, 0f, 0f, mPaint)
         }
         if (includeText) {
             for (text in mArrTextOnSketch) {
-                canvas.drawText(text.text!!, text.drawPosition!!.x + text.lineOffset!!.x, text.drawPosition!!.y + text.lineOffset!!.y, text.paint!!)
+                canvas.drawText(
+                    text.text!!,
+                    text.drawPosition!!.x + text.lineOffset!!.x,
+                    text.drawPosition!!.y + text.lineOffset!!.y,
+                    text.paint!!
+                )
             }
         }
         return bitmap

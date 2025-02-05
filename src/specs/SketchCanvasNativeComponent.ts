@@ -41,7 +41,7 @@ type CanvasChangeEvent = {
 
 type ComponentType = HostComponent<NativeProps>;
 
-interface NativeProps extends ViewProps {
+export interface NativeProps extends ViewProps {
   /**
    * Local source image to load into the canvas
    */
@@ -56,7 +56,7 @@ interface NativeProps extends ViewProps {
   onGenerateBase64?: DirectEventHandler<{ base64: string }> | null;
 }
 
-interface NativeCommands {
+export interface NativeCommands {
   save: (
     viewRef: React.ElementRef<ComponentType>,
     imageType: string,

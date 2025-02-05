@@ -7,6 +7,7 @@ import com.facebook.react.uimanager.events.Event
 class OnChangeEvent(
   surfaceId: Int,
   viewId: Int,
+  private val eventType: String,
   private val success: Boolean,
   private val path: String,
   private val pathsUpdate: Int
@@ -18,7 +19,7 @@ class OnChangeEvent(
   override fun getEventData(): WritableMap {
     val eventData = Arguments.createMap()
 
-    if (pathsUpdate > 0) {
+    if (eventType == "pathsUpdate") {
         eventData.putInt("pathsUpdate", pathsUpdate);
     } else {
       eventData.putBoolean("success", success);
