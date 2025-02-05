@@ -159,7 +159,7 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
                         }
 
                         p.textSize = property.getDouble("fontSize").toFloat()
-                        p.color = property.getInt("fontColor")
+                        p.color = if (property.hasKey("fontColor")) property.getInt("fontColor") else Color.BLACK
                         text.anchor =
                             PointF(
                                 property.getMap("anchor")?.getDouble("x")?.toFloat() ?: 0f,
