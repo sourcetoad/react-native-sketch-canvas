@@ -236,11 +236,21 @@ using namespace facebook::react;
     UIColor *strokeColor = [RCTConvert UIColor:args[1]];
     int strokeWidth = [(NSNumber *)args[2] intValue];
     NSArray *points = (NSArray *)args[3];
+
+    NSMutableArray *cgPoints = [[NSMutableArray alloc] initWithCapacity:points.count];
+            
+    for (NSString *coor in points) {
+        @autoreleasepool {
+            NSArray *coorInNumber = [coor componentsSeparatedByString:@","];
+            CGPoint point = CGPointMake([coorInNumber[0] floatValue], [coorInNumber[1] floatValue]);
+            [cgPoints addObject:[NSValue valueWithCGPoint:point]];
+        }
+    }
     
     [(RNSketchCanvas *)_view addPath:pathId
                          strokeColor:strokeColor
                          strokeWidth:strokeWidth
-                              points:points];
+                              points:cgPoints];
 }
 
 - (void)deletePath:(int) pathId {

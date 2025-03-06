@@ -109,7 +109,7 @@ export default class example extends Component<any, ExampleState> {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
-                this.setState({ example: 4 });
+                Alert.alert('TODO: will be implemented in the future');
               }}
             >
               <Text
