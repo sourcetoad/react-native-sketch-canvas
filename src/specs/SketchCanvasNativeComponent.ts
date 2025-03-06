@@ -34,6 +34,7 @@ type CanvasText = {
 };
 
 type CanvasChangeEvent = {
+  eventType: string;
   pathsUpdate?: Int32;
   success?: boolean;
   path?: string;

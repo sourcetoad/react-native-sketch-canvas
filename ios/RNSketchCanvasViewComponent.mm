@@ -177,14 +177,16 @@ using namespace facebook::react;
 
 #pragma mark - Sketch Native Event Emitters
 - (void)handleEvent:(NSDictionary *)eventData {
-  if (eventData[@"pathsUpdate"]) {
+  if ([eventData[@"eventType"] isEqualToString:@"pathsUpdate"]) {
     RNTSketchCanvasEventEmitter::OnChange result{
+      .eventType = std::string([eventData[@"eventType"] UTF8String]),
       .pathsUpdate = [eventData[@"pathsUpdate"] intValue]
     };
 
     self.eventEmitter.onChange(result);
   } else {
     RNTSketchCanvasEventEmitter::OnChange result{
+      .eventType = std::string("save"),
       .success = [eventData[@"success"] boolValue],
       .path = eventData[@"path"] ? std::string([eventData[@"path"] UTF8String]) : std::string()
     };
@@ -304,14 +306,6 @@ using namespace facebook::react;
     if (contextInfo != NULL) {
         contextInfo = nil;
     }
-}
-
-- (void)notifyPathsUpdate {
-    RNTSketchCanvasEventEmitter::OnChange result{
-        .pathsUpdate = @(_paths.count).intValue
-    };
-    
-    self.eventEmitter.onChange(result);
 }
 
 -(NSDictionary *)constantsToExport {

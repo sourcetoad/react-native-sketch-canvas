@@ -4,7 +4,13 @@ import memoize from 'memoize-one';
 import React from 'react';
 import { PanResponder, PixelRatio, Platform, processColor } from 'react-native';
 import { requestPermissions } from './handlePermissions';
-import type { SketchCanvasProps, CanvasText, PathData, Path } from './types';
+import {
+  type SketchCanvasProps,
+  type CanvasText,
+  type PathData,
+  type Path,
+  OnChangeEventType,
+} from './types';
 
 import ReactNativeSketchCanvasView, {
   Commands,
@@ -330,21 +336,18 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
         }}
         {...this.panResponder.panHandlers}
         onChange={(e: any) => {
-          const { pathsUpdate, success, path } = e.nativeEvent || {};
+          const { eventType, pathsUpdate, success, path } = e.nativeEvent || {};
 
           const isSuccess = success !== undefined;
-          const isSave = isSuccess && path !== undefined;
-          const isPathsUpdate = pathsUpdate !== undefined;
+          const isSave = eventType === OnChangeEventType.Save;
+          const isPathsUpdate = eventType === OnChangeEventType.PathsUpdate;
 
           if (!isSave && isPathsUpdate) {
             this.props.onPathsChange?.(pathsUpdate);
           } else if (isSave) {
-            this.props.onSketchSaved?.(
-              e.nativeEvent.success,
-              e.nativeEvent.path
-            );
+            this.props.onSketchSaved?.(success, path);
           } else if (isSuccess) {
-            this.props.onSketchSaved?.(e.nativeEvent.success, '');
+            this.props.onSketchSaved?.(success, '');
           }
         }}
         onGenerateBase64={(e: any) => {

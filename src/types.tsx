@@ -2,6 +2,11 @@ import type { StyleProp, ViewStyle } from 'react-native';
 
 export type ImageType = 'png' | 'jpg';
 
+export enum OnChangeEventType {
+  PathsUpdate = 'pathsUpdate',
+  Save = 'save',
+}
+
 export type Size = {
   width: number;
   height: number;

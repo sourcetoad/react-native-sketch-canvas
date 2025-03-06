@@ -489,8 +489,11 @@
 }
 
 - (void)notifyPathsUpdate {
-    [self.eventDelegate handleEvent: @{ @"pathsUpdate": @(_paths.count) }];
     if ([self.eventDelegate respondsToSelector:@selector(handleEvent:)]) {
+        [self.eventDelegate handleEvent: @{
+            @"eventType": @"pathsUpdate",
+            @"pathsUpdate": @(_paths.count)
+        }];
     }
 }
 
