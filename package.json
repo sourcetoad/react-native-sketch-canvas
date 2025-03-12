@@ -133,7 +133,11 @@
   },
   "eslintIgnore": [
     "node_modules/",
-    "lib/"
+    "lib/",
+    "**/*/",
+    "!src/",
+    "!example/src/",
+    "react-native.config.js"
   ],
   "prettier": {
     "quoteProps": "consistent",

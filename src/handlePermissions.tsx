@@ -1,8 +1,8 @@
-import {PermissionsAndroid, Platform} from 'react-native';
+import { PermissionsAndroid, Platform } from 'react-native';
 
 export const requestPermissions = async (
   permissionDialogTitle: string,
-  permissionDialogMessage: string,
+  permissionDialogMessage: string
 ) => {
   if (Platform.OS === 'android') {
     const granted = await PermissionsAndroid.request(
@@ -11,7 +11,7 @@ export const requestPermissions = async (
         title: permissionDialogTitle,
         message: permissionDialogMessage,
         buttonPositive: 'OK',
-      },
+      }
     );
 
     return granted === PermissionsAndroid.RESULTS.GRANTED;

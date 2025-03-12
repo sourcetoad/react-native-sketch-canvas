@@ -1,8 +1,8 @@
-import {requestPermissions} from '../handlePermissions';
+import { requestPermissions } from '../handlePermissions';
 
 jest.mock('react-native/Libraries/Utilities/Platform', () => {
   const Platform = jest.requireActual(
-    'react-native/Libraries/Utilities/Platform',
+    'react-native/Libraries/Utilities/Platform'
   );
   Platform.OS = 'ios';
   return Platform;
@@ -15,7 +15,7 @@ describe('IOS Permission Requestion', () => {
 
     const granted = await requestPermissions(
       permissionDialogTitle,
-      permissionDialogMessage,
+      permissionDialogMessage
     );
 
     expect(granted).toBe(true);
