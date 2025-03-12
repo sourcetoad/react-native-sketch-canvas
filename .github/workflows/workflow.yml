@@ -7,22 +7,27 @@ jobs:
     name: Lint and Tests
     steps:
       - uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
       - uses: actions/setup-node@v3
         with:
           node-version: 18
-          cache: 'npm'
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
 
-      - name: NPM Install
-        run: npm ci
+      - name: Yarn Install
+        run: yarn install --immutable
 
       - name: Linting
-        run: npm run lint
+        run: yarn lint
 
       - name: Typing
-        run: npm run typescript
+        run: yarn typescript
 
       - name: Testing
-        run: npm run test --coverage
+        run: yarn test --coverage
 
       - name: Prepare Build
-        run: npm run build
+        run: yarn build
