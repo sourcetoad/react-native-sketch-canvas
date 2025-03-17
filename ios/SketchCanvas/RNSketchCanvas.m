@@ -35,7 +35,6 @@
 }
 
 - (void)invalidate {
-    NSLog(@"RNSketchCanvas invalidate called");
     if (_drawingContext) {
         CGContextRelease(_drawingContext);
         _drawingContext = nil;
@@ -67,7 +66,6 @@
 }
 
 - (void)dealloc {
-    NSLog(@"RNSketchCanvas dealloc called");
     [self invalidate];
 }
 

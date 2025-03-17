@@ -21,18 +21,7 @@ using namespace facebook::react;
 @implementation RNTSketchCanvas {
     RNSketchCanvas * _view;
     NSMutableArray *_paths;
-    RNSketchData *_currentPath;
-
-    CGSize _lastSize;
-
-    CGContextRef _drawingContext, _translucentDrawingContext;
-    CGImageRef _frozenImage, _translucentFrozenImage;
     BOOL _needsFullRedraw;
-
-    UIImage *_backgroundImage;
-    UIImage *_backgroundImageScaled;
-    NSString *_backgroundImageContentMode;
-    
     NSArray *_arrTextOnSketch, *_arrSketchOnText;
 }
 
@@ -79,7 +68,6 @@ using namespace facebook::react;
 
 -(void)prepareForRecycle {
     [super prepareForRecycle];
-    NSLog(@"RNTSketchCanvas prepareForRecycle called");
     
     if (_view) {
         [(RNSketchCanvas *)_view invalidate];
@@ -157,12 +145,9 @@ using namespace facebook::react;
         
         // Only proceed if we have a valid filename
         if (filename.length > 0) {
-            NSLog(@"openSketchFile: %@, %@, %@", filename, directory, mode);
             [(RNSketchCanvas *)_view openSketchFile:filename
                                         directory:directory
                                       contentMode:mode];
-        } else {
-            NSLog(@"Skipping openSketchFile due to empty filename");
         }
     }
 
