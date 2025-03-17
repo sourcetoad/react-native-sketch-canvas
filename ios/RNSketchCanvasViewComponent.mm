@@ -71,24 +71,6 @@ using namespace facebook::react;
   return self;
 }
 
-- (void)dealloc {
-    CGContextRelease(_drawingContext);
-    _drawingContext = nil;
-    CGContextRelease(_translucentDrawingContext);
-    _translucentDrawingContext = nil;
-    CGImageRelease(_frozenImage);
-    _frozenImage = nil;
-    CGImageRelease(_translucentFrozenImage);
-    _translucentFrozenImage = nil;
-    _backgroundImage = nil;
-    _backgroundImageScaled = nil;
-    
-    _arrTextOnSketch = nil;
-    _arrSketchOnText = nil;
-    _paths = nil;
-    _currentPath = nil;
-}
-
 #pragma mark - React API
 -(void)updateLayoutMetrics:(const facebook::react::LayoutMetrics &)layoutMetrics oldLayoutMetrics:(const facebook::react::LayoutMetrics &)oldLayoutMetrics {
     [super updateLayoutMetrics:layoutMetrics oldLayoutMetrics:_layoutMetrics];
@@ -97,6 +79,11 @@ using namespace facebook::react;
 
 -(void)prepareForRecycle {
     [super prepareForRecycle];
+    NSLog(@"RNTSketchCanvas prepareForRecycle called");
+    
+    if (_view) {
+        [(RNSketchCanvas *)_view invalidate];
+    }
 }
 
 - (NSDictionary*)RNTSketchCanvasTextStructToDict:(const RNTSketchCanvasTextStruct&)txt {
@@ -157,19 +144,26 @@ using namespace facebook::react;
          }
      }
     
-    if (oldViewProps.localSourceImage.filename != newViewProps.localSourceImage.filename ||
-        oldViewProps.localSourceImage.directory != newViewProps.localSourceImage.directory ||
-        oldViewProps.localSourceImage.mode != newViewProps.localSourceImage.mode) {
-        
+    // Check if we need to load/reload the image
+    bool shouldLoadImage = oldViewProps.localSourceImage.filename != newViewProps.localSourceImage.filename ||
+                         oldViewProps.localSourceImage.directory != newViewProps.localSourceImage.directory ||
+                         oldViewProps.localSourceImage.mode != newViewProps.localSourceImage.mode;
+    
+    // Also reload if the view was recently invalidated (background image is nil)
+    if (shouldLoadImage || [(RNSketchCanvas *)_view needsImageReload]) {
         NSString *filename = [NSString stringWithUTF8String:newViewProps.localSourceImage.filename.c_str()];
         NSString *directory = [NSString stringWithUTF8String:newViewProps.localSourceImage.directory.c_str()];
         NSString *mode = [NSString stringWithUTF8String:newViewProps.localSourceImage.mode.c_str()];
         
-        NSLog(@"openSketchFile: %@, %@, %@", filename, directory, mode);
-
-        [(RNSketchCanvas *)_view openSketchFile:filename
-                                      directory:directory
-                                    contentMode:mode];
+        // Only proceed if we have a valid filename
+        if (filename.length > 0) {
+            NSLog(@"openSketchFile: %@, %@, %@", filename, directory, mode);
+            [(RNSketchCanvas *)_view openSketchFile:filename
+                                        directory:directory
+                                      contentMode:mode];
+        } else {
+            NSLog(@"Skipping openSketchFile due to empty filename");
+        }
     }
 
     [super updateProps:props oldProps:oldProps];

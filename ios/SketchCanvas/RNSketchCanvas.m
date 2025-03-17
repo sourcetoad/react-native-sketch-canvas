@@ -34,22 +34,41 @@
     return self;
 }
 
-- (void)dealloc {
-    CGContextRelease(_drawingContext);
-    _drawingContext = nil;
-    CGContextRelease(_translucentDrawingContext);
-    _translucentDrawingContext = nil;
-    CGImageRelease(_frozenImage);
-    _frozenImage = nil;
-    CGImageRelease(_translucentFrozenImage);
-    _translucentFrozenImage = nil;
+- (void)invalidate {
+    NSLog(@"RNSketchCanvas invalidate called");
+    if (_drawingContext) {
+        CGContextRelease(_drawingContext);
+        _drawingContext = nil;
+    }
+    if (_translucentDrawingContext) {
+        CGContextRelease(_translucentDrawingContext);
+        _translucentDrawingContext = nil;
+    }
+    if (_frozenImage) {
+        CGImageRelease(_frozenImage);
+        _frozenImage = nil;
+    }
+    if (_translucentFrozenImage) {
+        CGImageRelease(_translucentFrozenImage);
+        _translucentFrozenImage = nil;
+    }
+    
     _backgroundImage = nil;
     _backgroundImageScaled = nil;
+    _backgroundImageContentMode = nil;
     
     _arrTextOnSketch = nil;
     _arrSketchOnText = nil;
+    [_paths removeAllObjects];
     _paths = nil;
     _currentPath = nil;
+    _lastSize = CGSizeZero;
+    _needsFullRedraw = YES;
+}
+
+- (void)dealloc {
+    NSLog(@"RNSketchCanvas dealloc called");
+    [self invalidate];
 }
 
 - (void)drawRect:(CGRect)rect {
@@ -110,10 +129,14 @@
 
     if (!CGSizeEqualToSize(self.bounds.size, _lastSize)) {
         _lastSize = self.bounds.size;
-        CGContextRelease(_drawingContext);
-        _drawingContext = nil;
-        CGContextRelease(_translucentDrawingContext);
-        _translucentDrawingContext = nil;
+        if (_drawingContext) {
+            CGContextRelease(_drawingContext);
+            _drawingContext = nil;
+        }
+        if (_translucentDrawingContext) {
+            CGContextRelease(_translucentDrawingContext);
+            _translucentDrawingContext = nil;
+        }
         [self createDrawingContext];
         _needsFullRedraw = YES;
         _backgroundImageScaled = nil;
@@ -132,22 +155,83 @@
         }
         
         [self setNeedsDisplay];
+    } else if (!_drawingContext || !_translucentDrawingContext) {
+        // Ensure contexts are recreated if they are nil (e.g. after invalidation)
+        [self createDrawingContext];
+        _needsFullRedraw = YES;
+        [self setNeedsDisplay];
     }
 }
 
 - (void)createDrawingContext {
+    if (!self.window) {
+        // Window not available yet, defer context creation
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (self.window) {
+                [self createDrawingContext];
+            }
+        });
+        return;
+    }
+    
     CGFloat scale = self.window.screen.scale;
     CGSize size = self.bounds.size;
+    
+    // Don't create contexts for zero-sized views
+    if (size.width == 0 || size.height == 0) {
+        return;
+    }
+    
     size.width *= scale;
     size.height *= scale;
+    
+    // Release existing contexts if they exist
+    if (_drawingContext) {
+        CGContextRelease(_drawingContext);
+        _drawingContext = nil;
+    }
+    if (_translucentDrawingContext) {
+        CGContextRelease(_translucentDrawingContext);
+        _translucentDrawingContext = nil;
+    }
+    
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    if (!colorSpace) {
+        NSLog(@"Failed to create color space");
+        return;
+    }
+    
     _drawingContext = CGBitmapContextCreate(nil, size.width, size.height, 8, 0, colorSpace, kCGImageAlphaPremultipliedLast);
     _translucentDrawingContext = CGBitmapContextCreate(nil, size.width, size.height, 8, 0, colorSpace, kCGImageAlphaPremultipliedLast);
+    
+    if (!_drawingContext || !_translucentDrawingContext) {
+        NSLog(@"Failed to create bitmap contexts");
+        if (_drawingContext) {
+            CGContextRelease(_drawingContext);
+            _drawingContext = nil;
+        }
+        if (_translucentDrawingContext) {
+            CGContextRelease(_translucentDrawingContext);
+            _translucentDrawingContext = nil;
+        }
+    } else {
+        CGContextConcatCTM(_drawingContext, CGAffineTransformMakeScale(scale, scale));
+        CGContextConcatCTM(_translucentDrawingContext, CGAffineTransformMakeScale(scale, scale));
+    }
+    
     CGColorSpaceRelease(colorSpace);
     colorSpace = nil;
+}
 
-    CGContextConcatCTM(_drawingContext, CGAffineTransformMakeScale(scale, scale));
-    CGContextConcatCTM(_translucentDrawingContext, CGAffineTransformMakeScale(scale, scale));
+- (void)didMoveToWindow {
+    [super didMoveToWindow];
+    
+    // Recreate contexts when window becomes available
+    if (self.window && (!_drawingContext || !_translucentDrawingContext)) {
+        [self createDrawingContext];
+        _needsFullRedraw = YES;
+        [self setNeedsDisplay];
+    }
 }
 
 - (void)setFrozenImageNeedsUpdate {
@@ -495,6 +579,10 @@
             @"pathsUpdate": @(_paths.count)
         }];
     }
+}
+
+- (BOOL)needsImageReload {
+    return _backgroundImage == nil;
 }
 
 @end
