@@ -42,12 +42,16 @@
     "!**/.*"
   ],
   "scripts": {
-    "example": "yarn workspace @sourcetoad/react-native-sketch-canvas-example",
+    "example": "cd example && npm",
+    "example:android": "cd example && npm run android",
+    "example:ios": "cd example && npm run ios",
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
-    "prepare": "bob build"
+    "build": "bob build",
+    "pods": "cd example/ios && bundle install && bundle exec pod install && cd ../..",
+    "prepare": "npm run build"
   },
   "keywords": [
     "react-native",
@@ -72,8 +76,8 @@
     "@react-native/eslint-config": "^0.73.1",
     "@testing-library/react-native": "^13.2.0",
     "@types/jest": "^29.5.5",
-    "@types/react": "^19.0.8",
-    "@types/react-dom": "^19.0.3",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
     "commitlint": "^17.0.2",
     "del-cli": "^5.1.0",
     "eslint": "^8.51.0",
@@ -95,10 +99,6 @@
     "react": "*",
     "react-native": "*"
   },
-  "workspaces": [
-    "example"
-  ],
-  "packageManager": "yarn@3.6.1",
   "jest": {
     "preset": "react-native",
     "modulePathIgnorePatterns": [
