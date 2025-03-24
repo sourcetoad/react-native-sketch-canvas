@@ -3,10 +3,10 @@
 
 #import <React/RCTConvert.h>
 
-#import "generated/RNSketchCanvasSpec/ComponentDescriptors.h"
-#import "generated/RNSketchCanvasSpec/EventEmitters.h"
-#import "generated/RNSketchCanvasSpec/Props.h"
-#import "generated/RNSketchCanvasSpec/RCTComponentViewHelpers.h"
+#import "react/renderer/components/RNSketchCanvasSpec/ComponentDescriptors.h"
+#import "react/renderer/components/RNSketchCanvasSpec/EventEmitters.h"
+#import "react/renderer/components/RNSketchCanvasSpec/Props.h"
+#import "react/renderer/components/RNSketchCanvasSpec/RCTComponentViewHelpers.h"
 #import "Utility.h"
 
 #import "RCTFabricComponentsPlugins.h"

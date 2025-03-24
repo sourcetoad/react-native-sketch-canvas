@@ -11,6 +11,7 @@
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": {
         "types": "./lib/typescript/module/index.d.ts",
@@ -30,6 +31,8 @@
     "cpp",
     "*.podspec",
     "react-native.config.js",
+    "!ios/generated",
+    "!android/generated",
     "!ios/build",
     "!android/build",
     "!android/gradle",
@@ -42,7 +45,7 @@
     "!**/.*"
   ],
   "scripts": {
-    "example": "cd example && npm",
+    "example": "cd example && npm i",
     "example:android": "cd example && npm run android",
     "example:ios": "cd example && npm run ios",
     "test": "jest",
@@ -190,7 +193,7 @@
     "android": {
       "javaPackageName": "com.sourcetoad.reactnativesketchcanvas"
     },
-    "includesGeneratedCode": true
+    "includesGeneratedCode": false
   },
   "create-react-native-library": {
     "languages": "kotlin-objc",

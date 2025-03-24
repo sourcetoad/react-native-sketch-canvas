@@ -1,5 +1,4 @@
-
-#import "generated/RNSketchCanvasSpec/RNSketchCanvasSpec.h"
+#import "RNSketchCanvasSpec/RNSketchCanvasSpec.h"
 
 @interface RNTSketchCanvasManager : NSObject <NativeSketchCanvasModuleSpec>
 
