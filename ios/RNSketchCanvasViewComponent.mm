@@ -20,9 +20,6 @@ using namespace facebook::react;
 
 @implementation RNTSketchCanvas {
     RNSketchCanvas * _view;
-    NSMutableArray *_paths;
-    BOOL _needsFullRedraw;
-    NSArray *_arrTextOnSketch, *_arrSketchOnText;
 }
 
 + (void)load
@@ -37,26 +34,21 @@ using namespace facebook::react;
     return concreteComponentDescriptorProvider<RNTSketchCanvasComponentDescriptor>();
 }
 
+- (void)setupView {
+    _view = [[RNSketchCanvas alloc] init];
+    self.contentView = _view;
+    _view.eventDelegate = self;
+    self.backgroundColor = [UIColor clearColor];
+    self.clearsContextBeforeDrawing = YES;
+}
+
 - (instancetype)initWithFrame:(CGRect)frame
 {
   if (self = [super initWithFrame:frame]) {
       static const auto defaultProps = std::make_shared<const RNTSketchCanvasProps>();
       _props = defaultProps;
-
-      _paths = [NSMutableArray new];
-      _needsFullRedraw = YES;
-
-      _view = [[RNSketchCanvas alloc] init];
-
-      self.contentView = _view;
-
-      _view.eventDelegate = self;
-
-      self.backgroundColor = [UIColor clearColor];
-      [self setBackgroundColor: [UIColor clearColor]];
-      self.clearsContextBeforeDrawing = YES;
+      [self setupView];
   }
-
   return self;
 }
 
@@ -71,6 +63,8 @@ using namespace facebook::react;
     
     if (_view) {
         [(RNSketchCanvas *)_view invalidate];
+        [_view removeFromSuperview];
+        [self setupView];
     }
 }
 
