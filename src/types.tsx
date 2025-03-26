@@ -86,6 +86,14 @@ export interface SketchCanvasProps {
   onSketchSaved?: (result: boolean, path: string) => void;
   onGenerateBase64?: (result: { base64: string }) => void;
   onPathsChange?: (pathsCount: number) => void;
+
+  getBase64?: (
+    imageType: ImageType,
+    transparent: boolean,
+    includeImage: boolean,
+    includeText: boolean,
+    cropToImageSize: boolean
+  ) => void;
 }
 
 export interface RNSketchCanvasProps {
