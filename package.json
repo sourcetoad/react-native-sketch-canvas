@@ -10,6 +10,7 @@
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
+  "types": "./lib/typescript/module/index.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
