@@ -298,6 +298,9 @@ export default class example extends Component<any, ExampleState> {
                 style={{ flex: 1 }}
                 strokeColor={this.state.color}
                 strokeWidth={this.state.thickness}
+                onGenerateBase64={(result) => {
+                  console.log('base64 result:', result);
+                }}
                 onStrokeStart={(x, y) => {
                   console.log('x: ', x, ', y: ', y);
                   this.setState({ message: 'Start' });
@@ -352,16 +355,7 @@ export default class example extends Component<any, ExampleState> {
                   onPress={() => {
                     console.log(this.canvas.getPaths());
                     Alert.alert(JSON.stringify(this.canvas.getPaths()));
-                    this.canvas.getBase64(
-                      'jpg',
-                      false,
-                      true,
-                      true,
-                      true,
-                      (err: any, result: any) => {
-                        console.log(result);
-                      }
-                    );
+                    this.canvas.getBase64('jpg', false, true, true, true);
                   }}
                 >
                   <Text style={{ color: 'white' }}>Get Paths</Text>

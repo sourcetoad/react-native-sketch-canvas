@@ -351,7 +351,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
           }
         }}
         onGenerateBase64={(e: any) => {
-          console.log(e.nativeEvent);
+          this.props.onGenerateBase64?.(e.nativeEvent || {});
         }}
         localSourceImage={this.props.localSourceImage}
         permissionDialogTitle={this.props.permissionDialogTitle}

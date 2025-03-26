@@ -264,6 +264,22 @@ using namespace facebook::react;
 }
 
 - (void) transferToBase64: (NSArray *)args {
+    NSString *type = (NSString *)args[0];
+    BOOL transparent = [(NSNumber *)args[1] boolValue];
+    BOOL includeImage = [(NSNumber *)args[2] boolValue];
+    BOOL includeText = [(NSNumber *)args[3] boolValue];
+    BOOL cropToImageSize = [(NSNumber *)args[4] boolValue];
+
+    NSString *base64 = [(RNSketchCanvas *)_view transferToBase64OfType:type
+                                                    withTransparentBackground:transparent
+                                                                 includeImage:includeImage
+                                                                  includeText:includeText
+                                                              cropToImageSize:cropToImageSize];
+    RNTSketchCanvasEventEmitter::OnGenerateBase64 result{
+        .base64 = std::string([base64 UTF8String])
+    };
+    
+    self.eventEmitter.onGenerateBase64(result);
 }
 
 - (NSData*)getImageData:(UIImage*)img type:(NSString*) type {

@@ -157,16 +157,14 @@ export default class RNSketchCanvas extends React.Component<
     transparent: boolean,
     includeImage: boolean,
     includeText: boolean,
-    cropToImageSize: boolean,
-    callback: () => void
+    cropToImageSize: boolean
   ) {
-    return this._sketchCanvas.getBase64(
+    this._sketchCanvas.getBase64(
       imageType,
       transparent,
       includeImage,
       includeText,
-      cropToImageSize,
-      callback
+      cropToImageSize
     );
   }
 
