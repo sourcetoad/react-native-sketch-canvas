@@ -16,6 +16,8 @@ import ReactNativeSketchCanvasView, {
   Commands,
 } from './specs/SketchCanvasNativeComponent';
 
+import RNSketchModule from './specs/NativeSketchCanvasModule';
+
 type CanvasState = {
   text: any;
 };
@@ -362,18 +364,9 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
   }
 }
 
-/**
- * TODO: see if there's a way to only create turbo module spec for iOS and skip android
- */
-
-// const ViewManager = UIManager.getViewManagerConfig(RNSketchCanvas) as any;
-// SketchCanvas.MAIN_BUNDLE =
-//   Platform.OS === 'ios' ? ViewManager.Constants.MainBundlePath : '';
-// SketchCanvas.DOCUMENT =
-//   Platform.OS === 'ios' ? ViewManager.Constants.NSDocumentDirectory : '';
-// SketchCanvas.LIBRARY =
-//   Platform.OS === 'ios' ? ViewManager.Constants.NSLibraryDirectory : '';
-// SketchCanvas.CACHES =
-//   Platform.OS === 'ios' ? ViewManager.Constants.NSCachesDirectory : '';
+SketchCanvas.MAIN_BUNDLE = RNSketchModule.getConstants().MainBundlePath;
+SketchCanvas.DOCUMENT = RNSketchModule.getConstants().NSDocumentDirectory;
+SketchCanvas.LIBRARY = RNSketchModule.getConstants().NSLibraryDirectory;
+SketchCanvas.CACHES = RNSketchModule.getConstants().NSCachesDirectory;
 
 export default SketchCanvas;

@@ -1,7 +1,7 @@
 #import "RNTSketchCanvasManager.h"
 
 @implementation RNTSketchCanvasManager
-RCT_EXPORT_MODULE()
+RCT_EXPORT_MODULE(SketchCanvasModule)
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params
