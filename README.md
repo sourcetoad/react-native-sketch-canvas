@@ -430,3 +430,35 @@ Check full example app in the [example](./example) folder
 ---
 
 Please refer [here](https://github.com/sourcetoad/react-native-sketch-canvas/wiki/Troubleshooting).
+
+### Jest Setup
+
+If you're using Jest in your project, you'll need to mock the TurboModule registry. Add the following to your Jest setup file:
+
+```javascript
+jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => {
+  const turboModuleRegistry = jest.requireActual(
+    'react-native/Libraries/TurboModule/TurboModuleRegistry'
+  );
+  return {
+    ...turboModuleRegistry,
+    getEnforcing: (name) => {
+      // List of TurboModules libraries to mock
+      const modulesToMock = ['SketchCanvasModule'];
+      if (modulesToMock.includes(name)) {
+        return {
+          getConstants: jest.fn(() => ({
+            MainBundlePath: 'test',
+            NSDocumentDirectory: 'test',
+            NSLibraryDirectory: 'test',
+            NSCachesDirectory: 'test',
+          })),
+        };
+      }
+      return turboModuleRegistry.getEnforcing(name);
+    },
+  };
+});
+```
+
+This mock ensures that the native module constants are available during testing.

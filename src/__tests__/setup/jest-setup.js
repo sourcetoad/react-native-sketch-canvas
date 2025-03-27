@@ -87,3 +87,30 @@ jest.mock('react-native/Libraries/Animated/createAnimatedComponent', () => {
     };
   };
 });
+
+/*
+ * Turbo modules mocks.
+ */
+jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => {
+  const turboModuleRegistry = jest.requireActual(
+    'react-native/Libraries/TurboModule/TurboModuleRegistry'
+  );
+  return {
+    ...turboModuleRegistry,
+    getEnforcing: (name) => {
+      // List of TurboModules libraries to mock.
+      const modulesToMock = ['SketchCanvasModule'];
+      if (modulesToMock.includes(name)) {
+        return {
+          getConstants: jest.fn(() => ({
+            MainBundlePath: 'test',
+            NSDocumentDirectory: 'test',
+            NSLibraryDirectory: 'test',
+            NSCachesDirectory: 'test',
+          })),
+        };
+      }
+      return turboModuleRegistry.getEnforcing(name);
+    },
+  };
+});
