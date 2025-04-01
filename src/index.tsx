@@ -1,7 +1,7 @@
 import React from 'react';
-import {View, TouchableOpacity, FlatList} from 'react-native';
+import { View, TouchableOpacity, FlatList } from 'react-native';
 import SketchCanvas from './SketchCanvas';
-import type {RNSketchCanvasProps, PathData} from './types';
+import type { RNSketchCanvasProps, PathData } from './types';
 
 type CanvasState = {
   color: any;
@@ -19,7 +19,7 @@ function generateUniqueFilename() {
       dt = Math.floor(dt / 16);
       // eslint-disable-next-line no-bitwise
       return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-    },
+    }
   );
   return uuid;
 }
@@ -50,24 +50,24 @@ export default class RNSketchCanvas extends React.Component<
     strokeWidthComponent: null,
 
     strokeColors: [
-      {color: '#000000'},
-      {color: '#FF0000'},
-      {color: '#00FFFF'},
-      {color: '#0000FF'},
-      {color: '#0000A0'},
-      {color: '#ADD8E6'},
-      {color: '#800080'},
-      {color: '#FFFF00'},
-      {color: '#00FF00'},
-      {color: '#FF00FF'},
-      {color: '#FFFFFF'},
-      {color: '#C0C0C0'},
-      {color: '#808080'},
-      {color: '#FFA500'},
-      {color: '#A52A2A'},
-      {color: '#800000'},
-      {color: '#008000'},
-      {color: '#808000'},
+      { color: '#000000' },
+      { color: '#FF0000' },
+      { color: '#00FFFF' },
+      { color: '#0000FF' },
+      { color: '#0000A0' },
+      { color: '#ADD8E6' },
+      { color: '#800080' },
+      { color: '#FFFF00' },
+      { color: '#00FF00' },
+      { color: '#FF00FF' },
+      { color: '#FFFFFF' },
+      { color: '#C0C0C0' },
+      { color: '#808080' },
+      { color: '#FFA500' },
+      { color: '#A52A2A' },
+      { color: '#800000' },
+      { color: '#008000' },
+      { color: '#808000' },
     ],
     alphlaValues: ['33', '77', 'AA', 'FF'],
     defaultStrokeIndex: 0,
@@ -79,6 +79,7 @@ export default class RNSketchCanvas extends React.Component<
 
     savePreference: null,
     onSketchSaved: () => {},
+    onGenerateBase64: () => {},
 
     text: null,
     localSourceImage: null,
@@ -136,7 +137,7 @@ export default class RNSketchCanvas extends React.Component<
         p.filename,
         p.includeImage !== false,
         p.includeText !== false,
-        p.cropToImageSize || false,
+        p.cropToImageSize || false
       );
     } else {
       this._sketchCanvas.save(
@@ -146,7 +147,7 @@ export default class RNSketchCanvas extends React.Component<
         generateUniqueFilename(),
         true,
         true,
-        false,
+        false
       );
     }
   }
@@ -156,16 +157,14 @@ export default class RNSketchCanvas extends React.Component<
     transparent: boolean,
     includeImage: boolean,
     includeText: boolean,
-    cropToImageSize: boolean,
-    callback: () => void,
+    cropToImageSize: boolean
   ) {
-    return this._sketchCanvas.getBase64(
+    this._sketchCanvas.getBase64(
       imageType,
       transparent,
       includeImage,
       includeText,
-      cropToImageSize,
-      callback,
+      cropToImageSize
     );
   }
 
@@ -183,9 +182,9 @@ export default class RNSketchCanvas extends React.Component<
     });
   }
 
-  _renderItem = ({item, index}: {item: any; index: any}) => (
+  _renderItem = ({ item, index }: { item: any; index: any }) => (
     <TouchableOpacity
-      style={{marginHorizontal: 2.5}}
+      style={{ marginHorizontal: 2.5 }}
       onPress={() => {
         if (this.state.color === item.color) {
           // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -203,10 +202,11 @@ export default class RNSketchCanvas extends React.Component<
             });
           }
         } else {
-          this.setState({color: item.color});
+          this.setState({ color: item.color });
           this._colorChanged = true;
         }
-      }}>
+      }}
+    >
       {this.state.color !== item.color &&
         this.props.strokeComponent &&
         this.props.strokeComponent(item.color)}
@@ -215,7 +215,7 @@ export default class RNSketchCanvas extends React.Component<
         this.props.strokeSelectedComponent(
           item.color + this.state.alpha,
           index,
-          this._colorChanged,
+          this._colorChanged
         )}
     </TouchableOpacity>
   );
@@ -227,18 +227,20 @@ export default class RNSketchCanvas extends React.Component<
   render() {
     return (
       <View style={this.props.containerStyle}>
-        <View style={{flexDirection: 'row'}}>
+        <View style={{ flexDirection: 'row' }}>
           <View
             style={{
               flexDirection: 'row',
               flex: 1,
               justifyContent: 'flex-start',
-            }}>
+            }}
+          >
             {this.props.closeComponent && (
               <TouchableOpacity
                 onPress={() => {
                   this.props.onClosePressed?.();
-                }}>
+                }}
+              >
                 {this.props.closeComponent}
               </TouchableOpacity>
             )}
@@ -246,19 +248,26 @@ export default class RNSketchCanvas extends React.Component<
             {this.props.eraseComponent && (
               <TouchableOpacity
                 onPress={() => {
-                  this.setState({color: '#00000000'});
-                }}>
+                  this.setState({ color: '#00000000' });
+                }}
+              >
                 {this.props.eraseComponent}
               </TouchableOpacity>
             )}
           </View>
           <View
-            style={{flexDirection: 'row', flex: 1, justifyContent: 'flex-end'}}>
+            style={{
+              flexDirection: 'row',
+              flex: 1,
+              justifyContent: 'flex-end',
+            }}
+          >
             {this.props.strokeWidthComponent && (
               <TouchableOpacity
                 onPress={() => {
                   this.nextStrokeWidth();
-                }}>
+                }}
+              >
                 {this.props.strokeWidthComponent(this.state.strokeWidth)}
               </TouchableOpacity>
             )}
@@ -267,7 +276,8 @@ export default class RNSketchCanvas extends React.Component<
               <TouchableOpacity
                 onPress={() => {
                   this.props.onUndoPressed?.(this.undo());
-                }}>
+                }}
+              >
                 {this.props.undoComponent}
               </TouchableOpacity>
             )}
@@ -277,7 +287,8 @@ export default class RNSketchCanvas extends React.Component<
                 onPress={() => {
                   this.clear();
                   this.props.onClearPressed?.();
-                }}>
+                }}
+              >
                 {this.props.clearComponent}
               </TouchableOpacity>
             )}
@@ -286,14 +297,15 @@ export default class RNSketchCanvas extends React.Component<
               <TouchableOpacity
                 onPress={() => {
                   this.save();
-                }}>
+                }}
+              >
                 {this.props.saveComponent}
               </TouchableOpacity>
             )}
           </View>
         </View>
         <SketchCanvas
-          ref={ref => (this._sketchCanvas = ref)}
+          ref={(ref) => (this._sketchCanvas = ref)}
           style={this.props.canvasStyle}
           strokeColor={
             this.state.color +
@@ -313,7 +325,7 @@ export default class RNSketchCanvas extends React.Component<
           permissionDialogTitle={this.props.permissionDialogTitle}
           permissionDialogMessage={this.props.permissionDialogMessage}
         />
-        <View style={{flexDirection: 'row'}}>
+        <View style={{ flexDirection: 'row' }}>
           <FlatList
             data={this.props.strokeColors}
             extraData={this.state}
@@ -333,4 +345,4 @@ RNSketchCanvas.DOCUMENT = SketchCanvas.DOCUMENT;
 RNSketchCanvas.LIBRARY = SketchCanvas.LIBRARY;
 RNSketchCanvas.CACHES = SketchCanvas.CACHES;
 
-export {SketchCanvas};
+export { SketchCanvas };

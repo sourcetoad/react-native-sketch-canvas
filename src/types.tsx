@@ -1,6 +1,11 @@
-import type {StyleProp, ViewStyle} from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 
 export type ImageType = 'png' | 'jpg';
+
+export enum OnChangeEventType {
+  PathsUpdate = 'pathsUpdate',
+  Save = 'save',
+}
 
 export type Size = {
   width: number;
@@ -26,8 +31,8 @@ export type CanvasText = {
   fontSize?: number;
   fontColor?: string;
   overlay?: 'TextOnSketch' | 'SketchOnText';
-  anchor?: {x: number; y: number};
-  position: {x: number; y: number};
+  anchor?: { x: number; y: number };
+  position: { x: number; y: number };
   coordinate?: 'Absolute' | 'Ratio';
   /**
    * If your text is multiline, `alignment` can align shorter lines with left/center/right.
@@ -79,7 +84,16 @@ export interface SketchCanvasProps {
   onStrokeChanged?: (x: number, y: number) => void;
   onStrokeEnd?: (path: Path) => void;
   onSketchSaved?: (result: boolean, path: string) => void;
+  onGenerateBase64?: (result: { base64: string }) => void;
   onPathsChange?: (pathsCount: number) => void;
+
+  getBase64?: (
+    imageType: ImageType,
+    transparent: boolean,
+    includeImage: boolean,
+    includeText: boolean,
+    cropToImageSize: boolean
+  ) => void;
 }
 
 export interface RNSketchCanvasProps {
@@ -103,11 +117,11 @@ export interface RNSketchCanvasProps {
   strokeSelectedComponent?: (
     color: string,
     index: number,
-    changed: boolean,
+    changed: boolean
   ) => JSX.Element;
   strokeWidthComponent?: (width: number) => JSX.Element;
 
-  strokeColors?: {color: string}[];
+  strokeColors?: { color: string }[];
   defaultStrokeIndex?: number;
   defaultStrokeWidth?: number;
 
@@ -132,6 +146,7 @@ export interface RNSketchCanvasProps {
     cropToImageSize?: boolean;
   };
   onSketchSaved?: (result: boolean, path: string) => void;
+  onGenerateBase64?: (result: { base64: string }) => void;
 
   text?: CanvasText[];
   /**

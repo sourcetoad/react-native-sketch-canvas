@@ -1,8 +1,8 @@
-import {requestPermissions} from '../handlePermissions';
+import { requestPermissions } from '../handlePermissions';
 
 jest.mock('react-native/Libraries/Utilities/Platform', () => {
   const Platform = jest.requireActual(
-    'react-native/Libraries/Utilities/Platform',
+    'react-native/Libraries/Utilities/Platform'
   );
   Platform.OS = 'android';
   return Platform;
@@ -13,11 +13,11 @@ jest.mock(
   () => {
     return {
       ...jest.requireActual(
-        'react-native//Libraries/PermissionsAndroid/PermissionsAndroid',
+        'react-native//Libraries/PermissionsAndroid/PermissionsAndroid'
       ),
-      request: jest.fn(() => new Promise(resolve => resolve('granted'))),
+      request: jest.fn(() => new Promise((resolve) => resolve('granted'))),
     };
-  },
+  }
 );
 
 describe('Permission Granted', () => {
@@ -27,7 +27,7 @@ describe('Permission Granted', () => {
 
     const granted = await requestPermissions(
       permissionDialogTitle,
-      permissionDialogMessage,
+      permissionDialogMessage
     );
 
     expect(granted).toBe(true);

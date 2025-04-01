@@ -1,4 +1,5 @@
-import React, {Component} from 'react';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { Component } from 'react';
 import {
   AppRegistry,
   StyleSheet,
@@ -11,7 +12,6 @@ import {
   SafeAreaView,
   TextInput,
 } from 'react-native';
-import {RNCamera} from 'react-native-camera';
 
 import RNSketchCanvas, {
   SketchCanvas,
@@ -48,7 +48,7 @@ export default class example extends Component<any, ExampleState> {
   takePicture = async () => {
     if (this.camera) {
       try {
-        const options = {quality: 0.5, base64: true};
+        const options = { quality: 0.5, base64: true };
         const data = await this.camera.takePictureAsync(options);
 
         this.setState({
@@ -69,66 +69,88 @@ export default class example extends Component<any, ExampleState> {
               justifyContent: 'center',
               alignItems: 'center',
               width: 340,
-            }}>
+            }}
+          >
             <TouchableOpacity
               onPress={() => {
-                this.setState({example: 1});
-              }}>
-              <Text style={{alignSelf: 'center', marginTop: 15, fontSize: 18}}>
+                this.setState({ example: 1 });
+              }}
+            >
+              <Text
+                style={{ alignSelf: 'center', marginTop: 15, fontSize: 18 }}
+              >
                 - Example 1 -
               </Text>
               <Text>Use build-in UI components</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
-                this.setState({example: 2});
-              }}>
-              <Text style={{alignSelf: 'center', marginTop: 15, fontSize: 18}}>
+                this.setState({ example: 2 });
+              }}
+            >
+              <Text
+                style={{ alignSelf: 'center', marginTop: 15, fontSize: 18 }}
+              >
                 - Example 2 -
               </Text>
               <Text>Use canvas only and customize UI components</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
-                this.setState({example: 3});
-              }}>
-              <Text style={{alignSelf: 'center', marginTop: 15, fontSize: 18}}>
+                this.setState({ example: 3 });
+              }}
+            >
+              <Text
+                style={{ alignSelf: 'center', marginTop: 15, fontSize: 18 }}
+              >
                 - Example 3 -
               </Text>
               <Text>Sync two canvases</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
-                this.setState({example: 4});
-              }}>
-              <Text style={{alignSelf: 'center', marginTop: 15, fontSize: 18}}>
+                Alert.alert('TODO: will be implemented in the future');
+              }}
+            >
+              <Text
+                style={{ alignSelf: 'center', marginTop: 15, fontSize: 18 }}
+              >
                 - Example 4 -
               </Text>
               <Text>Take a photo first</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
-                this.setState({example: 5});
-              }}>
-              <Text style={{alignSelf: 'center', marginTop: 15, fontSize: 18}}>
+                this.setState({ example: 5 });
+              }}
+            >
+              <Text
+                style={{ alignSelf: 'center', marginTop: 15, fontSize: 18 }}
+              >
                 - Example 5 -
               </Text>
               <Text>Load local image</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
-                this.setState({example: 6});
-              }}>
-              <Text style={{alignSelf: 'center', marginTop: 15, fontSize: 18}}>
+                this.setState({ example: 6 });
+              }}
+            >
+              <Text
+                style={{ alignSelf: 'center', marginTop: 15, fontSize: 18 }}
+              >
                 - Example 6 -
               </Text>
               <Text>Draw text on canvas</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
-                this.setState({example: 7});
-              }}>
-              <Text style={{alignSelf: 'center', marginTop: 15, fontSize: 18}}>
+                this.setState({ example: 7 });
+              }}
+            >
+              <Text
+                style={{ alignSelf: 'center', marginTop: 15, fontSize: 18 }}
+              >
                 - Example 7 -
               </Text>
               <Text>Multiple canvases in ScrollView</Text>
@@ -137,30 +159,30 @@ export default class example extends Component<any, ExampleState> {
         )}
 
         {this.state.example === 1 && (
-          <View style={{flex: 1, flexDirection: 'row'}}>
+          <View style={{ flex: 1, flexDirection: 'row' }}>
             <RNSketchCanvas
-              containerStyle={{backgroundColor: 'transparent', flex: 1}}
-              canvasStyle={{backgroundColor: 'transparent', flex: 1}}
-              onStrokeEnd={data => {}}
+              containerStyle={{ backgroundColor: 'transparent', flex: 1 }}
+              canvasStyle={{ backgroundColor: 'transparent', flex: 1 }}
+              onStrokeEnd={(data) => {}}
               closeComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Close</Text>
+                  <Text style={{ color: 'white' }}>Close</Text>
                 </View>
               }
               onClosePressed={() => {
-                this.setState({example: 0});
+                this.setState({ example: 0 });
               }}
               undoComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Undo</Text>
+                  <Text style={{ color: 'white' }}>Undo</Text>
                 </View>
               }
-              onUndoPressed={id => {
+              onUndoPressed={(id) => {
                 // Alert.alert('do something')
               }}
               clearComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Clear</Text>
+                  <Text style={{ color: 'white' }}>Clear</Text>
                 </View>
               }
               onClearPressed={() => {
@@ -168,25 +190,25 @@ export default class example extends Component<any, ExampleState> {
               }}
               eraseComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Eraser</Text>
+                  <Text style={{ color: 'white' }}>Eraser</Text>
                 </View>
               }
-              strokeComponent={color => (
+              strokeComponent={(color) => (
                 <View
-                  style={[{backgroundColor: color}, styles.strokeColorButton]}
+                  style={[{ backgroundColor: color }, styles.strokeColorButton]}
                 />
               )}
               strokeSelectedComponent={(color, index, changed) => {
                 return (
                   <View
                     style={[
-                      {backgroundColor: color, borderWidth: 2},
+                      { backgroundColor: color, borderWidth: 2 },
                       styles.strokeColorButton,
                     ]}
                   />
                 );
               }}
-              strokeWidthComponent={w => {
+              strokeWidthComponent={(w) => {
                 return (
                   <View style={styles.strokeWidthButton}>
                     <View
@@ -205,7 +227,7 @@ export default class example extends Component<any, ExampleState> {
               defaultStrokeWidth={5}
               saveComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Save</Text>
+                  <Text style={{ color: 'white' }}>Save</Text>
                 </View>
               }
               savePreference={() => {
@@ -219,10 +241,10 @@ export default class example extends Component<any, ExampleState> {
               onSketchSaved={(success, path) => {
                 Alert.alert(
                   success ? 'Image saved!' : 'Failed to save image!',
-                  path,
+                  path
                 );
               }}
-              onPathsChange={pathsCount => {
+              onPathsChange={(pathsCount) => {
                 console.log('pathsCount', pathsCount);
               }}
             />
@@ -230,31 +252,38 @@ export default class example extends Component<any, ExampleState> {
         )}
 
         {this.state.example === 2 && (
-          <View style={{flex: 1, flexDirection: 'row'}}>
-            <View style={{flex: 1, flexDirection: 'column'}}>
+          <View style={{ flex: 1, flexDirection: 'row' }}>
+            <View style={{ flex: 1, flexDirection: 'column' }}>
               <View
-                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                }}
+              >
                 <TouchableOpacity
                   style={styles.functionButton}
                   onPress={() => {
-                    this.setState({example: 0});
-                  }}>
-                  <Text style={{color: 'white'}}>Close</Text>
+                    this.setState({ example: 0 });
+                  }}
+                >
+                  <Text style={{ color: 'white' }}>Close</Text>
                 </TouchableOpacity>
-                <View style={{flexDirection: 'row'}}>
+                <View style={{ flexDirection: 'row' }}>
                   <TouchableOpacity
                     style={styles.functionButton}
                     onPress={() => {
-                      this.setState({thickness: 10});
-                    }}>
-                    <Text style={{color: 'white'}}>Thick</Text>
+                      this.setState({ thickness: 10 });
+                    }}
+                  >
+                    <Text style={{ color: 'white' }}>Thick</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.functionButton}
                     onPress={() => {
-                      this.setState({thickness: 5});
-                    }}>
-                    <Text style={{color: 'white'}}>Thin</Text>
+                      this.setState({ thickness: 5 });
+                    }}
+                  >
+                    <Text style={{ color: 'white' }}>Thin</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -265,22 +294,25 @@ export default class example extends Component<any, ExampleState> {
                   mode: 'AspectFit',
                 }}
                 // localSourceImage={{ filename: 'bulb.png', directory: RNSketchCanvas.MAIN_BUNDLE }}
-                ref={ref => (this.canvas = ref)}
-                style={{flex: 1}}
+                ref={(ref) => (this.canvas = ref)}
+                style={{ flex: 1 }}
                 strokeColor={this.state.color}
                 strokeWidth={this.state.thickness}
+                onGenerateBase64={(result) => {
+                  console.log('base64 result:', result);
+                }}
                 onStrokeStart={(x, y) => {
                   console.log('x: ', x, ', y: ', y);
-                  this.setState({message: 'Start'});
+                  this.setState({ message: 'Start' });
                 }}
                 onStrokeChanged={(x, y) => {
                   console.log('x: ', x, ', y: ', y);
-                  this.setState({message: 'Changed'});
+                  this.setState({ message: 'Changed' });
                 }}
                 onStrokeEnd={() => {
-                  this.setState({message: 'End'});
+                  this.setState({ message: 'End' });
                 }}
-                onPathsChange={pathsCount => {
+                onPathsChange={(pathsCount) => {
                   console.log('pathsCount', pathsCount);
                 }}
               />
@@ -289,46 +321,44 @@ export default class example extends Component<any, ExampleState> {
                   flexDirection: 'row',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                }}>
-                <View style={{flexDirection: 'row'}}>
+                }}
+              >
+                <View style={{ flexDirection: 'row' }}>
                   <TouchableOpacity
-                    style={[styles.functionButton, {backgroundColor: 'red'}]}
+                    style={[styles.functionButton, { backgroundColor: 'red' }]}
                     onPress={() => {
-                      this.setState({color: '#FF0000'});
-                    }}>
-                    <Text style={{color: 'white'}}>Red</Text>
+                      this.setState({ color: '#FF0000' });
+                    }}
+                  >
+                    <Text style={{ color: 'white' }}>Red</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.functionButton, {backgroundColor: 'black'}]}
+                    style={[
+                      styles.functionButton,
+                      { backgroundColor: 'black' },
+                    ]}
                     onPress={() => {
-                      this.setState({color: '#000000'});
-                    }}>
-                    <Text style={{color: 'white'}}>Black</Text>
+                      this.setState({ color: '#000000' });
+                    }}
+                  >
+                    <Text style={{ color: 'white' }}>Black</Text>
                   </TouchableOpacity>
                 </View>
-                <Text style={{marginRight: 8, fontSize: 20}}>
+                <Text style={{ marginRight: 8, fontSize: 20 }}>
                   {this.state.message}
                 </Text>
                 <TouchableOpacity
                   style={[
                     styles.functionButton,
-                    {backgroundColor: 'black', width: 90},
+                    { backgroundColor: 'black', width: 90 },
                   ]}
                   onPress={() => {
                     console.log(this.canvas.getPaths());
                     Alert.alert(JSON.stringify(this.canvas.getPaths()));
-                    this.canvas.getBase64(
-                      'jpg',
-                      false,
-                      true,
-                      true,
-                      true,
-                      (err: any, result: any) => {
-                        console.log(result);
-                      },
-                    );
-                  }}>
-                  <Text style={{color: 'white'}}>Get Paths</Text>
+                    this.canvas.getBase64('jpg', false, true, true, true);
+                  }}
+                >
+                  <Text style={{ color: 'white' }}>Get Paths</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -336,31 +366,31 @@ export default class example extends Component<any, ExampleState> {
         )}
 
         {this.state.example === 3 && (
-          <View style={{flex: 1, flexDirection: 'column'}}>
+          <View style={{ flex: 1, flexDirection: 'column' }}>
             <RNSketchCanvas
-              ref={ref => (this.canvas1 = ref)}
+              ref={(ref) => (this.canvas1 = ref)}
               user={'user1'}
-              containerStyle={{backgroundColor: 'transparent', flex: 1}}
-              canvasStyle={{backgroundColor: 'transparent', flex: 1}}
+              containerStyle={{ backgroundColor: 'transparent', flex: 1 }}
+              canvasStyle={{ backgroundColor: 'transparent', flex: 1 }}
               closeComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Close</Text>
+                  <Text style={{ color: 'white' }}>Close</Text>
                 </View>
               }
               onClosePressed={() => {
-                this.setState({example: 0});
+                this.setState({ example: 0 });
               }}
               undoComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Undo</Text>
+                  <Text style={{ color: 'white' }}>Undo</Text>
                 </View>
               }
-              onUndoPressed={id => {
+              onUndoPressed={(id) => {
                 this.canvas2.deletePath(id);
               }}
               clearComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Clear</Text>
+                  <Text style={{ color: 'white' }}>Clear</Text>
                 </View>
               }
               onClearPressed={() => {
@@ -368,25 +398,25 @@ export default class example extends Component<any, ExampleState> {
               }}
               eraseComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Eraser</Text>
+                  <Text style={{ color: 'white' }}>Eraser</Text>
                 </View>
               }
-              strokeComponent={color => (
+              strokeComponent={(color) => (
                 <View
-                  style={[{backgroundColor: color}, styles.strokeColorButton]}
+                  style={[{ backgroundColor: color }, styles.strokeColorButton]}
                 />
               )}
               strokeSelectedComponent={(color, index, changed) => {
                 return (
                   <View
                     style={[
-                      {backgroundColor: color, borderWidth: 2},
+                      { backgroundColor: color, borderWidth: 2 },
                       styles.strokeColorButton,
                     ]}
                   />
                 );
               }}
-              strokeWidthComponent={w => {
+              strokeWidthComponent={(w) => {
                 return (
                   <View style={styles.strokeWidthButton}>
                     <View
@@ -405,7 +435,7 @@ export default class example extends Component<any, ExampleState> {
               defaultStrokeWidth={5}
               saveComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Save</Text>
+                  <Text style={{ color: 'white' }}>Save</Text>
                 </View>
               }
               savePreference={() => {
@@ -419,32 +449,32 @@ export default class example extends Component<any, ExampleState> {
               onSketchSaved={(success, path) => {
                 Alert.alert(
                   success ? 'Image saved!' : 'Failed to save image!',
-                  path,
+                  path
                 );
               }}
-              onStrokeEnd={path => {
+              onStrokeEnd={(path) => {
                 this.canvas2.addPath(path);
               }}
-              onPathsChange={pathsCount => {
+              onPathsChange={(pathsCount) => {
                 console.log('pathsCount(user1)', pathsCount);
               }}
             />
             <RNSketchCanvas
-              ref={ref => (this.canvas2 = ref)}
+              ref={(ref) => (this.canvas2 = ref)}
               user={'user2'}
-              containerStyle={{backgroundColor: 'transparent', flex: 1}}
-              canvasStyle={{backgroundColor: 'transparent', flex: 1}}
+              containerStyle={{ backgroundColor: 'transparent', flex: 1 }}
+              canvasStyle={{ backgroundColor: 'transparent', flex: 1 }}
               undoComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Undo</Text>
+                  <Text style={{ color: 'white' }}>Undo</Text>
                 </View>
               }
-              onUndoPressed={id => {
+              onUndoPressed={(id) => {
                 this.canvas1.deletePath(id);
               }}
               clearComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Clear</Text>
+                  <Text style={{ color: 'white' }}>Clear</Text>
                 </View>
               }
               onClearPressed={() => {
@@ -452,25 +482,25 @@ export default class example extends Component<any, ExampleState> {
               }}
               eraseComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Eraser</Text>
+                  <Text style={{ color: 'white' }}>Eraser</Text>
                 </View>
               }
-              strokeComponent={color => (
+              strokeComponent={(color) => (
                 <View
-                  style={[{backgroundColor: color}, styles.strokeColorButton]}
+                  style={[{ backgroundColor: color }, styles.strokeColorButton]}
                 />
               )}
               strokeSelectedComponent={(color, index, changed) => {
                 return (
                   <View
                     style={[
-                      {backgroundColor: color, borderWidth: 2},
+                      { backgroundColor: color, borderWidth: 2 },
                       styles.strokeColorButton,
                     ]}
                   />
                 );
               }}
-              strokeWidthComponent={w => {
+              strokeWidthComponent={(w) => {
                 return (
                   <View style={styles.strokeWidthButton}>
                     <View
@@ -489,7 +519,7 @@ export default class example extends Component<any, ExampleState> {
               defaultStrokeWidth={5}
               saveComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Save</Text>
+                  <Text style={{ color: 'white' }}>Save</Text>
                 </View>
               }
               savePreference={() => {
@@ -503,13 +533,13 @@ export default class example extends Component<any, ExampleState> {
               onSketchSaved={(success, path) => {
                 Alert.alert(
                   success ? 'Image saved!' : 'Failed to save image!',
-                  path,
+                  path
                 );
               }}
-              onStrokeEnd={path => {
+              onStrokeEnd={(path) => {
                 this.canvas1.addPath(path);
               }}
-              onPathsChange={pathsCount => {
+              onPathsChange={(pathsCount) => {
                 console.log('pathsCount(user2)', pathsCount);
               }}
             />
@@ -519,65 +549,52 @@ export default class example extends Component<any, ExampleState> {
         {this.state.example === 4 &&
           (this.state.photoPath === null ? (
             <View style={styles.cameraContainer}>
-              <RNCamera
-                cameraId="1"
-                ref={(ref: any) => {
-                  this.camera = ref;
-                }}
-                style={styles.preview}
-                type={RNCamera.Constants.Type.back}
-                flashMode={RNCamera.Constants.FlashMode.on}
-                androidCameraPermissionOptions={{
-                  title: 'Permission to use camera',
-                  message: 'We need your permission to use your camera',
-                  buttonPositive: 'Ok',
-                  buttonNegative: 'Cancel',
-                }}
-                captureAudio={false}
-              />
+              {/* TODO: Implement camera component (vision-camera) */}
               <View
                 style={{
                   flex: 0,
                   flexDirection: 'row',
                   justifyContent: 'center',
-                }}>
+                }}
+              >
                 <TouchableOpacity
                   onPress={this.takePicture.bind(this)}
-                  style={styles.capture}>
-                  <Text style={{fontSize: 14}}> SNAP </Text>
+                  style={styles.capture}
+                >
+                  <Text style={{ fontSize: 14 }}> SNAP </Text>
                 </TouchableOpacity>
               </View>
             </View>
           ) : (
-            <View style={{flex: 1, flexDirection: 'row'}}>
+            <View style={{ flex: 1, flexDirection: 'row' }}>
               <RNSketchCanvas
                 localSourceImage={{
                   filename: this.state.photoPath,
                   directory: undefined,
                   mode: 'AspectFit',
                 }}
-                containerStyle={{backgroundColor: 'transparent', flex: 1}}
-                canvasStyle={{backgroundColor: 'transparent', flex: 1}}
-                onStrokeEnd={data => {}}
+                containerStyle={{ backgroundColor: 'transparent', flex: 1 }}
+                canvasStyle={{ backgroundColor: 'transparent', flex: 1 }}
+                onStrokeEnd={(data) => {}}
                 closeComponent={
                   <View style={styles.functionButton}>
-                    <Text style={{color: 'white'}}>Close</Text>
+                    <Text style={{ color: 'white' }}>Close</Text>
                   </View>
                 }
                 onClosePressed={() => {
-                  this.setState({example: 0});
+                  this.setState({ example: 0 });
                 }}
                 undoComponent={
                   <View style={styles.functionButton}>
-                    <Text style={{color: 'white'}}>Undo</Text>
+                    <Text style={{ color: 'white' }}>Undo</Text>
                   </View>
                 }
-                onUndoPressed={id => {
+                onUndoPressed={(id) => {
                   // Alert.alert('do something')
                 }}
                 clearComponent={
                   <View style={styles.functionButton}>
-                    <Text style={{color: 'white'}}>Clear</Text>
+                    <Text style={{ color: 'white' }}>Clear</Text>
                   </View>
                 }
                 onClearPressed={() => {
@@ -585,25 +602,28 @@ export default class example extends Component<any, ExampleState> {
                 }}
                 eraseComponent={
                   <View style={styles.functionButton}>
-                    <Text style={{color: 'white'}}>Eraser</Text>
+                    <Text style={{ color: 'white' }}>Eraser</Text>
                   </View>
                 }
-                strokeComponent={color => (
+                strokeComponent={(color) => (
                   <View
-                    style={[{backgroundColor: color}, styles.strokeColorButton]}
+                    style={[
+                      { backgroundColor: color },
+                      styles.strokeColorButton,
+                    ]}
                   />
                 )}
                 strokeSelectedComponent={(color, index, changed) => {
                   return (
                     <View
                       style={[
-                        {backgroundColor: color, borderWidth: 2},
+                        { backgroundColor: color, borderWidth: 2 },
                         styles.strokeColorButton,
                       ]}
                     />
                   );
                 }}
-                strokeWidthComponent={w => {
+                strokeWidthComponent={(w) => {
                   return (
                     <View style={styles.strokeWidthButton}>
                       <View
@@ -622,7 +642,7 @@ export default class example extends Component<any, ExampleState> {
                 defaultStrokeWidth={5}
                 saveComponent={
                   <View style={styles.functionButton}>
-                    <Text style={{color: 'white'}}>Save</Text>
+                    <Text style={{ color: 'white' }}>Save</Text>
                   </View>
                 }
                 savePreference={() => {
@@ -636,10 +656,10 @@ export default class example extends Component<any, ExampleState> {
                 onSketchSaved={(success, path) => {
                   Alert.alert(
                     success ? 'Image saved!' : 'Failed to save image!',
-                    path,
+                    path
                   );
                 }}
-                onPathsChange={pathsCount => {
+                onPathsChange={(pathsCount) => {
                   console.log('pathsCount', pathsCount);
                 }}
               />
@@ -647,7 +667,7 @@ export default class example extends Component<any, ExampleState> {
           ))}
 
         {this.state.example === 5 && (
-          <View style={{flex: 1, flexDirection: 'row'}}>
+          <View style={{ flex: 1, flexDirection: 'row' }}>
             <RNSketchCanvas
               localSourceImage={{
                 filename: 'bigimage.jpg',
@@ -655,28 +675,28 @@ export default class example extends Component<any, ExampleState> {
                 mode: 'AspectFit',
               }}
               // localSourceImage={{ filename: 'bulb.png', directory: RNSketchCanvas.MAIN_BUNDLE }}
-              containerStyle={{backgroundColor: 'transparent', flex: 1}}
-              canvasStyle={{backgroundColor: 'transparent', flex: 1}}
-              onStrokeEnd={data => {}}
+              containerStyle={{ backgroundColor: 'transparent', flex: 1 }}
+              canvasStyle={{ backgroundColor: 'transparent', flex: 1 }}
+              onStrokeEnd={(data) => {}}
               closeComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Close</Text>
+                  <Text style={{ color: 'white' }}>Close</Text>
                 </View>
               }
               onClosePressed={() => {
-                this.setState({example: 0});
+                this.setState({ example: 0 });
               }}
               undoComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Undo</Text>
+                  <Text style={{ color: 'white' }}>Undo</Text>
                 </View>
               }
-              onUndoPressed={id => {
+              onUndoPressed={(id) => {
                 // Alert.alert('do something')
               }}
               clearComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Clear</Text>
+                  <Text style={{ color: 'white' }}>Clear</Text>
                 </View>
               }
               onClearPressed={() => {
@@ -684,25 +704,25 @@ export default class example extends Component<any, ExampleState> {
               }}
               eraseComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Eraser</Text>
+                  <Text style={{ color: 'white' }}>Eraser</Text>
                 </View>
               }
-              strokeComponent={color => (
+              strokeComponent={(color) => (
                 <View
-                  style={[{backgroundColor: color}, styles.strokeColorButton]}
+                  style={[{ backgroundColor: color }, styles.strokeColorButton]}
                 />
               )}
               strokeSelectedComponent={(color, index, changed) => {
                 return (
                   <View
                     style={[
-                      {backgroundColor: color, borderWidth: 2},
+                      { backgroundColor: color, borderWidth: 2 },
                       styles.strokeColorButton,
                     ]}
                   />
                 );
               }}
-              strokeWidthComponent={w => {
+              strokeWidthComponent={(w) => {
                 return (
                   <View style={styles.strokeWidthButton}>
                     <View
@@ -721,7 +741,7 @@ export default class example extends Component<any, ExampleState> {
               defaultStrokeWidth={5}
               saveComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Save</Text>
+                  <Text style={{ color: 'white' }}>Save</Text>
                 </View>
               }
               savePreference={() => {
@@ -737,10 +757,10 @@ export default class example extends Component<any, ExampleState> {
               onSketchSaved={(success, path) => {
                 Alert.alert(
                   success ? 'Image saved!' : 'Failed to save image!',
-                  path,
+                  path
                 );
               }}
-              onPathsChange={pathsCount => {
+              onPathsChange={(pathsCount) => {
                 console.log('pathsCount', pathsCount);
               }}
             />
@@ -748,18 +768,18 @@ export default class example extends Component<any, ExampleState> {
         )}
 
         {this.state.example === 6 && (
-          <View style={{flex: 1, flexDirection: 'column'}}>
+          <View style={{ flex: 1, flexDirection: 'column' }}>
             <TextInput
               value={this.state.message}
-              onChangeText={text => this.setState({message: text})}
+              onChangeText={(text) => this.setState({ message: text })}
             />
             <RNSketchCanvas
               text={[
                 {
                   text: this.state.message,
                   fontSize: 25,
-                  position: {x: 0, y: 0.25},
-                  anchor: {x: 0, y: 0},
+                  position: { x: 0, y: 0.25 },
+                  anchor: { x: 0, y: 0 },
                   coordinate: 'Ratio',
                   fontColor: 'green',
                 },
@@ -767,16 +787,16 @@ export default class example extends Component<any, ExampleState> {
                   text: 'Welcome to my GitHub',
                   font: 'fonts/IndieFlower.ttf',
                   fontSize: 30,
-                  position: {x: 0, y: 0},
-                  anchor: {x: 0, y: 0},
+                  position: { x: 0, y: 0 },
+                  anchor: { x: 0, y: 0 },
                   coordinate: 'Absolute',
                   fontColor: 'red',
                 },
                 {
                   text: 'Center\nMULTILINE',
                   fontSize: 25,
-                  position: {x: 0.5, y: 0.5},
-                  anchor: {x: 0.5, y: 0.5},
+                  position: { x: 0.5, y: 0.5 },
+                  anchor: { x: 0.5, y: 0.5 },
                   coordinate: 'Ratio',
                   overlay: 'SketchOnText',
                   fontColor: 'black',
@@ -786,8 +806,8 @@ export default class example extends Component<any, ExampleState> {
                 {
                   text: 'Right\nMULTILINE',
                   fontSize: 25,
-                  position: {x: 1, y: 0.25},
-                  anchor: {x: 1, y: 0.5},
+                  position: { x: 1, y: 0.25 },
+                  anchor: { x: 1, y: 0.5 },
                   coordinate: 'Ratio',
                   overlay: 'TextOnSketch',
                   fontColor: 'black',
@@ -798,35 +818,35 @@ export default class example extends Component<any, ExampleState> {
                   text: 'Signature',
                   font: 'Zapfino',
                   fontSize: 40,
-                  position: {x: 0, y: 1},
-                  anchor: {x: 0, y: 1},
+                  position: { x: 0, y: 1 },
+                  anchor: { x: 0, y: 1 },
                   coordinate: 'Ratio',
                   overlay: 'TextOnSketch',
                   fontColor: '#444444',
                 },
               ]}
-              containerStyle={{backgroundColor: 'transparent', flex: 1}}
-              canvasStyle={{backgroundColor: 'transparent', flex: 1}}
-              onStrokeEnd={data => {}}
+              containerStyle={{ backgroundColor: 'transparent', flex: 1 }}
+              canvasStyle={{ backgroundColor: 'transparent', flex: 1 }}
+              onStrokeEnd={(data) => {}}
               closeComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Close</Text>
+                  <Text style={{ color: 'white' }}>Close</Text>
                 </View>
               }
               onClosePressed={() => {
-                this.setState({example: 0});
+                this.setState({ example: 0 });
               }}
               undoComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Undo</Text>
+                  <Text style={{ color: 'white' }}>Undo</Text>
                 </View>
               }
-              onUndoPressed={id => {
+              onUndoPressed={(id) => {
                 // Alert.alert('do something')
               }}
               clearComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Clear</Text>
+                  <Text style={{ color: 'white' }}>Clear</Text>
                 </View>
               }
               onClearPressed={() => {
@@ -834,25 +854,25 @@ export default class example extends Component<any, ExampleState> {
               }}
               eraseComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Eraser</Text>
+                  <Text style={{ color: 'white' }}>Eraser</Text>
                 </View>
               }
-              strokeComponent={color => (
+              strokeComponent={(color) => (
                 <View
-                  style={[{backgroundColor: color}, styles.strokeColorButton]}
+                  style={[{ backgroundColor: color }, styles.strokeColorButton]}
                 />
               )}
               strokeSelectedComponent={(color, index, changed) => {
                 return (
                   <View
                     style={[
-                      {backgroundColor: color, borderWidth: 2},
+                      { backgroundColor: color, borderWidth: 2 },
                       styles.strokeColorButton,
                     ]}
                   />
                 );
               }}
-              strokeWidthComponent={w => {
+              strokeWidthComponent={(w) => {
                 return (
                   <View style={styles.strokeWidthButton}>
                     <View
@@ -871,7 +891,7 @@ export default class example extends Component<any, ExampleState> {
               defaultStrokeWidth={5}
               saveComponent={
                 <View style={styles.functionButton}>
-                  <Text style={{color: 'white'}}>Save</Text>
+                  <Text style={{ color: 'white' }}>Save</Text>
                 </View>
               }
               savePreference={() => {
@@ -888,10 +908,10 @@ export default class example extends Component<any, ExampleState> {
               onSketchSaved={(success, path) => {
                 Alert.alert(
                   success ? 'Image saved!' : 'Failed to save image!',
-                  path,
+                  path
                 );
               }}
-              onPathsChange={pathsCount => {
+              onPathsChange={(pathsCount) => {
                 console.log('pathsCount', pathsCount);
               }}
             />
@@ -899,20 +919,21 @@ export default class example extends Component<any, ExampleState> {
         )}
 
         {this.state.example === 7 && (
-          <View style={{flex: 1, flexDirection: 'row'}}>
+          <View style={{ flex: 1, flexDirection: 'row' }}>
             <ScrollView
-              style={{flex: 1}}
-              contentContainerStyle={{padding: 36}}
-              scrollEnabled={this.state.scrollEnabled}>
-              <TouchableOpacity onPress={() => this.setState({example: 0})}>
+              style={{ flex: 1 }}
+              contentContainerStyle={{ padding: 36 }}
+              scrollEnabled={this.state.scrollEnabled}
+            >
+              <TouchableOpacity onPress={() => this.setState({ example: 0 })}>
                 <Text>Close</Text>
               </TouchableOpacity>
               <SketchCanvas
                 text={[
                   {
                     text: 'Page 1',
-                    position: {x: 20, y: 20},
-                    fontSize: Platform.select({ios: 24, android: 48}),
+                    position: { x: 20, y: 20 },
+                    fontSize: Platform.select({ ios: 24, android: 48 }),
                   },
                   {
                     text: 'Signature',
@@ -920,8 +941,8 @@ export default class example extends Component<any, ExampleState> {
                       ios: 'Zapfino',
                       android: 'fonts/IndieFlower.ttf',
                     }),
-                    position: {x: 20, y: 220},
-                    fontSize: Platform.select({ios: 24, android: 48}),
+                    position: { x: 20, y: 220 },
+                    fontSize: Platform.select({ ios: 24, android: 48 }),
                     fontColor: 'red',
                   },
                 ]}
@@ -931,48 +952,48 @@ export default class example extends Component<any, ExampleState> {
                   mode: 'AspectFit',
                 }}
                 style={styles.page}
-                onStrokeStart={() => this.setState({scrollEnabled: false})}
-                onStrokeEnd={() => this.setState({scrollEnabled: true})}
+                onStrokeStart={() => this.setState({ scrollEnabled: false })}
+                onStrokeEnd={() => this.setState({ scrollEnabled: true })}
               />
               <SketchCanvas
                 text={[
                   {
                     text: 'Page 2',
-                    position: {x: 0.95, y: 0.05},
-                    anchor: {x: 1, y: 0},
+                    position: { x: 0.95, y: 0.05 },
+                    anchor: { x: 1, y: 0 },
                     coordinate: 'Ratio',
-                    fontSize: Platform.select({ios: 24, android: 48}),
+                    fontSize: Platform.select({ ios: 24, android: 48 }),
                   },
                 ]}
                 style={styles.page}
-                onStrokeStart={() => this.setState({scrollEnabled: false})}
-                onStrokeEnd={() => this.setState({scrollEnabled: true})}
+                onStrokeStart={() => this.setState({ scrollEnabled: false })}
+                onStrokeEnd={() => this.setState({ scrollEnabled: true })}
               />
               <SketchCanvas
                 text={[
                   {
                     text: 'Page 3',
-                    position: {x: 0.5, y: 0.95},
-                    anchor: {x: 0.5, y: 1},
+                    position: { x: 0.5, y: 0.95 },
+                    anchor: { x: 0.5, y: 1 },
                     coordinate: 'Ratio',
-                    fontSize: Platform.select({ios: 24, android: 48}),
+                    fontSize: Platform.select({ ios: 24, android: 48 }),
                   },
                 ]}
                 style={styles.page}
-                onStrokeStart={() => this.setState({scrollEnabled: false})}
-                onStrokeEnd={() => this.setState({scrollEnabled: true})}
+                onStrokeStart={() => this.setState({ scrollEnabled: false })}
+                onStrokeEnd={() => this.setState({ scrollEnabled: true })}
               />
               <SketchCanvas
                 text={[
                   {
                     text: 'Page 4',
-                    position: {x: 20, y: 20},
-                    fontSize: Platform.select({ios: 24, android: 48}),
+                    position: { x: 20, y: 20 },
+                    fontSize: Platform.select({ ios: 24, android: 48 }),
                   },
                 ]}
                 style={styles.page}
-                onStrokeStart={() => this.setState({scrollEnabled: false})}
-                onStrokeEnd={() => this.setState({scrollEnabled: true})}
+                onStrokeStart={() => this.setState({ scrollEnabled: false })}
+                onStrokeEnd={() => this.setState({ scrollEnabled: true })}
               />
             </ScrollView>
           </View>
@@ -1041,7 +1062,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     marginVertical: 8,
     backgroundColor: 'white',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.75,
     shadowRadius: 2,
   },
