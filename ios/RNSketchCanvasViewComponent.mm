@@ -20,6 +20,7 @@ using namespace facebook::react;
 
 @implementation RNTSketchCanvas {
     RNSketchCanvas * _view;
+    BOOL _isInitialValueSet;
 }
 
 + (void)load
@@ -38,8 +39,6 @@ using namespace facebook::react;
     _view = [[RNSketchCanvas alloc] init];
     self.contentView = _view;
     _view.eventDelegate = self;
-    self.backgroundColor = [UIColor clearColor];
-    self.clearsContextBeforeDrawing = YES;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
@@ -60,12 +59,15 @@ using namespace facebook::react;
 
 -(void)prepareForRecycle {
     [super prepareForRecycle];
-    
+  
     if (_view) {
         [(RNSketchCanvas *)_view invalidate];
         [_view removeFromSuperview];
+
         [self setupView];
     }
+  
+    _isInitialValueSet = NO;
 }
 
 - (NSDictionary*)RNTSketchCanvasTextStructToDict:(const RNTSketchCanvasTextStruct&)txt {
@@ -94,7 +96,7 @@ using namespace facebook::react;
     const auto &oldViewProps = *std::static_pointer_cast<RNTSketchCanvasProps const>(_props);
     const auto &newViewProps = *std::static_pointer_cast<RNTSketchCanvasProps const>(props);
     
-     if (oldViewProps.text.size() != newViewProps.text.size()) {
+     if (!_isInitialValueSet || oldViewProps.text.size() != newViewProps.text.size()) {
          NSMutableArray *textArray = [NSMutableArray array];
          for (const auto& txt : newViewProps.text) {
              NSDictionary *textDict = [self RNTSketchCanvasTextStructToDict:txt];
@@ -144,6 +146,8 @@ using namespace facebook::react;
                                       contentMode:mode];
         }
     }
+  
+    _isInitialValueSet = YES;
 
     [super updateProps:props oldProps:oldProps];
 }
