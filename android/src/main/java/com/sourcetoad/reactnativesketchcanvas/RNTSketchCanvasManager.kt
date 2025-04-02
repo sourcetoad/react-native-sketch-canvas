@@ -36,7 +36,11 @@ class RNTSketchCanvasViewManager :
         commandId: String?,
         args: ReadableArray?
     ) {
-        mDelegate.receiveCommand(root, commandId, args)
+        if (root.getSketchCanvas().isCanvasReady()) {
+            mDelegate.receiveCommand(root, commandId, args)
+        } else {
+            Log.i("RNTSketchCanvas", "canvas is not ready")
+        }
     }
 
     override fun getExportedCustomBubblingEventTypeConstants(): MutableMap<String, Any> {

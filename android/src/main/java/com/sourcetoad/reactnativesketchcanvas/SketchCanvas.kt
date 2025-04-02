@@ -53,6 +53,10 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         return parentView.id
     }
 
+    fun isCanvasReady(): Boolean {
+        return mDrawingCanvas != null
+    }
+
     private fun getFileUri(filepath: String): Uri {
         var uri = Uri.parse(filepath)
         if (uri.scheme == null) {
