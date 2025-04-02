@@ -10,6 +10,7 @@ A React Native component for drawing by touching on both iOS and Android, with T
 
 ## Features
 
+- Supports New Architecture
 - Support iOS and Android
 - Full TypeScript support
 - Stroke thickness and color are changeable while drawing
@@ -19,7 +20,7 @@ A React Native component for drawing by touching on both iOS and Android, with T
 - Use vector concept - sketches won't be cropped in different sizes of canvas
 - Support translucent colors and eraser
 - Support drawing on an image
-- High performance (See [below](#Performance))
+- High performance
 - Can draw multiple canvases in the same screen
 - Can draw multiple multiline text on canvas
 - Support for custom UI components
@@ -41,7 +42,7 @@ yarn install @sourcetoad/react-native-sketch-canvas
 
 ### ● Using without UI component (for customizing UI)
 
-```typescript
+```tsx
 import React from 'react';
 import {
   AppRegistry,
@@ -82,7 +83,7 @@ AppRegistry.registerComponent('example', () => Example);
 ---
 
 | Prop                    |    Type    | Description                                                                                                                                                                                                                                                                                                                                 |
-| :---------------------- | :--------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|:------------------------|:----------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | style                   |  `object`  | Styles to be applied on canvas component                                                                                                                                                                                                                                                                                                    |
 | strokeColor             |  `string`  | Set the color of stroke, which can be #RRGGBB or #RRGGBBAA. If strokeColor is set to #00000000, it will automatically become an eraser. <br/>NOTE: Once an eraser path is sent to Android, Android View will disable hardware acceleration automatically. It might reduce the canvas performance afterward.                                 |
 | strokeWidth             |  `number`  | The thickness of stroke                                                                                                                                                                                                                                                                                                                     |
@@ -103,7 +104,7 @@ AppRegistry.registerComponent('example', () => Example);
 ---
 
 | Method                                                                        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| :---------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|:------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | clear()                                                                       | Clear all the paths                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | undo()                                                                        | Delete the latest path. Can undo multiple times.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | addPath(path)                                                                 | Add a path (see [below](#objects)) to canvas.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
@@ -117,7 +118,7 @@ AppRegistry.registerComponent('example', () => Example);
 ---
 
 | Constant    | Description                                                                          |
-| :---------- | :----------------------------------------------------------------------------------- |
+|:------------|:-------------------------------------------------------------------------------------|
 | MAIN_BUNDLE | Android: empty string, '' <br/>iOS: equivalent to [[NSBundle mainBundle] bundlePath] |
 | DOCUMENT    | Android: empty string, '' <br/>iOS: equivalent to NSDocumentDirectory                |
 | LIBRARY     | Android: empty string, '' <br/>iOS: equivalent to NSLibraryDirectory                 |
@@ -127,7 +128,7 @@ AppRegistry.registerComponent('example', () => Example);
 
 <img src="https://i.imgur.com/O0vVdD6.png" height="400" />
 
-```typescript
+```tsx
 import React from 'react';
 import {
   AppRegistry,
@@ -226,7 +227,7 @@ AppRegistry.registerComponent('example', () => Example);
 ---
 
 | Prop                    |    Type     | Description                                                                                                                                                                                                                                                                                                                                       |
-| :---------------------- | :---------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|:------------------------|:-----------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | containerStyle          |  `object`   | Styles to be applied on container                                                                                                                                                                                                                                                                                                                 |
 | canvasStyle             |  `object`   | Styles to be applied on canvas component                                                                                                                                                                                                                                                                                                          |
 | onStrokeStart           | `function`  | See [above](#properties)                                                                                                                                                                                                                                                                                                                          |
@@ -259,7 +260,7 @@ AppRegistry.registerComponent('example', () => Example);
 ---
 
 | Method         | Description           |
-| :------------- | :-------------------- |
+|:---------------|:----------------------|
 | clear()        | See [above](#methods) |
 | undo()         | See [above](#methods) |
 | addPath(path)  | See [above](#methods) |
@@ -271,7 +272,7 @@ AppRegistry.registerComponent('example', () => Example);
 ---
 
 | Constant    | Description             |
-| :---------- | :---------------------- |
+|:------------|:------------------------|
 | MAIN_BUNDLE | See [above](#constants) |
 | DOCUMENT    | See [above](#constants) |
 | LIBRARY     | See [above](#constants) |
@@ -315,7 +316,7 @@ Note: Because native module cannot read the file in JS bundle, file path cannot 
 
 ### SavePreference object
 
-```typescript
+```json5
 {
   folder: 'RNSketchCanvas',
   filename: 'image',
@@ -328,7 +329,7 @@ Note: Because native module cannot read the file in JS bundle, file path cannot 
 ```
 
 | Property         | Type    | Description                                                                                                                                                                                  |
-| :--------------- | :------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|:-----------------|:--------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | folder?          | string  | Android: the folder name in `Pictures` directory<br/>iOS: if `filename` is not null, image will save to temporary directory with folder and filename, otherwise, it will save to camera roll |
 | filename?        | string  | the file name of image<br/>iOS: Set to `null` to save image to camera roll.                                                                                                                  |
 | transparent      | boolean | save canvas with transparent background, ignored if imageType is `jpg`                                                                                                                       |
@@ -339,7 +340,7 @@ Note: Because native module cannot read the file in JS bundle, file path cannot 
 
 ### Path object
 
-```typescript
+```json5
 {
   drawer: 'user1',
   size: { // the size of drawer's canvas
@@ -361,7 +362,7 @@ Note: Because native module cannot read the file in JS bundle, file path cannot 
 
 ### LocalSourceImage object
 
-```typescript
+```json5
 {
   filename: 'image.png',  // e.g. 'image.png' or '/storage/sdcard0/Pictures/image.png'
   directory: '', // e.g. SketchCanvas.MAIN_BUNDLE or '/storage/sdcard0/Pictures/'
@@ -370,14 +371,14 @@ Note: Because native module cannot read the file in JS bundle, file path cannot 
 ```
 
 | Property   | Type    | Description                                                                                                                      | Default     |
-| :--------- | :------ | :------------------------------------------------------------------------------------------------------------------------------- | :---------- |
+|:-----------|:--------|:---------------------------------------------------------------------------------------------------------------------------------|:------------|
 | filename   | string  | the fold name of the background image file (can be a full path)                                                                  |             |
 | directory? | string  | the directory of the background image file (usually used with [constants](#constants))                                           | ''          |
 | mode?      | boolean | Specify how the background image resizes itself to fit or fill the canvas.<br/>Options: `AspectFill`, `AspectFit`, `ScaleToFill` | `AspectFit` |
 
 ### CanvasText object
 
-```typescript
+```json5
 {
   text: 'TEXT',
   font: '',
@@ -393,7 +394,7 @@ Note: Because native module cannot read the file in JS bundle, file path cannot 
 ```
 
 | Property            | Type   | Description                                                                                                                                                                   | Default        |
-| :------------------ | :----- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------- |
+|:--------------------|:-------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------------|
 | text                | string | the text to display (can be multiline by `\n`)                                                                                                                                |                |
 | font?               | string | Android: You can set `font` to `fonts/[filename].ttf` to load font in `android/app/src/main/assets/fonts/` in your Android project<br/>iOS: Set `font` that included with iOS |                |
 | fontSize?           | number | font size                                                                                                                                                                     | 12             |
@@ -405,31 +406,13 @@ Note: Because native module cannot read the file in JS bundle, file path cannot 
 | alignment?          | string | Specify how the text aligns inside container. Only work when `text` is multiline text.                                                                                        | Left           |
 | lineHeightMultiple? | number | Multiply line height by this factor. Only work when `text` is multiline text.                                                                                                 | 1.0            |
 
-## Performance
-
----
-
-1. For non-transparent path, both Android and iOS performances are good. Because when drawing non-transparent path, only last segment is drawn on canvas, no matter how long the path is, CPU usage is stable at about 20% and 15% in Android and iOS respectively.
-2. For transparent path, CPU usage stays at around 25% in Android, however, in iOS, CPU usage grows to 100%.
-
-- Android (https://youtu.be/gXdCEN6Enmk)<br/>
-  <img src="https://i.imgur.com/YQ2wVMc.jpg" height="400" />&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://i.imgur.com/CuIar4h.jpg" height="400" />
-- iOS (https://youtu.be/_jO4ky400Eo)<br/>
-  <img src="https://i.imgur.com/AwkFu94.png" height="400" />&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://i.imgur.com/UDcaiaz.png" height="400" />
-
 ## Example
 
 ---
 
-The source code includes 3 examples, using build-in UI components, using with only canvas, and sync between two canvases.
+The source code includes 7 examples, using build-in UI components, using with only canvas, and sync between two canvases.
 
 Check full example app in the [example](./example) folder
-
-## Troubleshooting
-
----
-
-Please refer [here](https://github.com/sourcetoad/react-native-sketch-canvas/wiki/Troubleshooting).
 
 ### Jest Setup
 
