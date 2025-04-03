@@ -26,6 +26,102 @@ type ExampleState = {
   scrollEnabled: boolean;
 };
 
+const testPath1 = [
+  {
+    path: {
+      id: 48034205,
+      color: '#FF0000',
+      width: 5,
+      data: [
+        '565.47,259.47',
+        '565.47,254',
+        '564.45,238.63',
+        '559.84,216.66',
+        '552.9,191.47',
+        '541.21,161.56',
+        '523.7,133.11',
+        '508.1,114.47',
+        '497.58,105.88',
+        '482.46,98.99',
+        '467.64,97.48',
+        '459.36,100.76',
+        '454.79,107.44',
+        '447.61,134.91',
+        '444.44,166.78',
+        '442.97,203.28',
+        '442.97,220.49',
+        '456.83,260.94',
+        '479.03,291.37',
+        '503.71,316.47',
+        '535.02,345.02',
+        '585.24,388.53',
+        '606.96,406.27',
+        '624.82,419.17',
+        '633.8,427.67',
+        '634.96,428.95',
+        '634.96,429.48',
+        '630.39,420.75',
+        '628.48,418.48',
+      ],
+    },
+    size: { width: 1280, height: 652 },
+    drawer: null,
+  },
+  {
+    path: {
+      id: 50223646,
+      color: '#FF0000',
+      width: 5,
+      data: [
+        '567.97,256.49',
+        '565.82,252.94',
+        '566.45,252.48',
+        '565.47,247.71',
+        '563.95,238.16',
+        '563.95,224.89',
+        '563.95,214.86',
+        '568.62,201.67',
+        '578.46,182.59',
+        '592.39,163.97',
+        '609.14,148.3',
+        '625.33,139.49',
+        '647.67,131.57',
+        '663.59,127.37',
+        '682.97,123.97',
+        '703.48,123.97',
+        '721.17,123.97',
+        '735.32,123.97',
+        '746.95,134.1',
+        '753.79,145.92',
+        '756.45,161.81',
+        '756.45,184.47',
+        '754.51,209.8',
+        '747.82,230.05',
+        '736.97,251.61',
+        '721.58,275.1',
+        '700.22,300.01',
+        '685.44,318.33',
+        '673.64,333.23',
+        '661.29,349.32',
+        '655.36,358.3',
+        '652.93,364.94',
+        '649.45,371.52',
+        '647.35,385.27',
+        '645.57,397.08',
+        '641.91,410.31',
+        '640.93,418.06',
+        '639.97,421.95',
+        '637.97,425.87',
+        '637.97,427.81',
+        '637.97,428.7',
+        '637.97,428.97',
+      ],
+    },
+    size: { width: 1280, height: 652 },
+    drawer: null,
+  },
+];
+
 export default class example extends Component<any, ExampleState> {
   constructor(props: any) {
     super(props);
@@ -86,6 +182,13 @@ export default class example extends Component<any, ExampleState> {
             <TouchableOpacity
               onPress={() => {
                 this.setState({ example: 2 });
+
+                if (this.canvas) {
+                  // debug path #1
+                  testPath1.forEach((path) => {
+                    this.canvas.addPath(path);
+                  });
+                }
               }}
             >
               <Text
@@ -163,6 +266,9 @@ export default class example extends Component<any, ExampleState> {
             <RNSketchCanvas
               containerStyle={{ backgroundColor: 'transparent', flex: 1 }}
               canvasStyle={{ backgroundColor: 'transparent', flex: 1 }}
+              onCanvasReady={() => {
+                console.log('onCanvasReady');
+              }}
               onStrokeEnd={(data) => {}}
               closeComponent={
                 <View style={styles.functionButton}>
@@ -239,6 +345,7 @@ export default class example extends Component<any, ExampleState> {
                 };
               }}
               onSketchSaved={(success, path) => {
+                console.log('onSketchSaved', success, path);
                 Alert.alert(
                   success ? 'Image saved!' : 'Failed to save image!',
                   path
@@ -292,6 +399,14 @@ export default class example extends Component<any, ExampleState> {
                   filename: 'whale.png',
                   directory: SketchCanvas.MAIN_BUNDLE,
                   mode: 'AspectFit',
+                }}
+                onCanvasReady={() => {
+                  console.log('onCanvasReady #2');
+
+                  // debug path #2
+                  testPath1.forEach((path) => {
+                    this.canvas.addPath(path);
+                  });
                 }}
                 // localSourceImage={{ filename: 'bulb.png', directory: RNSketchCanvas.MAIN_BUNDLE }}
                 ref={(ref) => (this.canvas = ref)}
@@ -353,7 +468,7 @@ export default class example extends Component<any, ExampleState> {
                     { backgroundColor: 'black', width: 90 },
                   ]}
                   onPress={() => {
-                    console.log(this.canvas.getPaths());
+                    console.log(JSON.stringify(this.canvas.getPaths()));
                     Alert.alert(JSON.stringify(this.canvas.getPaths()));
                     this.canvas.getBase64('jpg', false, true, true, true);
                   }}

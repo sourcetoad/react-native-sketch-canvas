@@ -67,6 +67,7 @@ using namespace facebook::react;
         [self setupView];
     }
   
+  
     _isInitialValueSet = NO;
 }
 
@@ -161,6 +162,10 @@ using namespace facebook::react;
     };
 
     self.eventEmitter.onChange(result);
+  } else if ([eventData[@"eventType"] isEqualToString:@"onCanvasReady"]) {
+    RNTSketchCanvasEventEmitter::OnCanvasReady result{};
+
+    self.eventEmitter.onCanvasReady(result);
   } else {
     RNTSketchCanvasEventEmitter::OnChange result{
       .eventType = std::string("save"),

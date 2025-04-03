@@ -1,6 +1,7 @@
 package com.sourcetoad.reactnativesketchcanvas
 
 import android.graphics.PointF
+import android.util.Log
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.MapBuilder
@@ -39,7 +40,7 @@ class RNTSketchCanvasViewManager :
         if (root.getSketchCanvas().isCanvasReady()) {
             mDelegate.receiveCommand(root, commandId, args)
         } else {
-            Log.i("RNTSketchCanvas", "canvas is not ready")
+            Log.i("RNTSketchCanvas", "Canvas is not ready")
         }
     }
 
@@ -62,6 +63,11 @@ class RNTSketchCanvasViewManager :
             MapBuilder.of(
                 "registrationName",
                 "onGenerateBase64"
+            ),
+            OnCanvasReadyEvent.EVENT_NAME,
+            MapBuilder.of(
+                "registrationName",
+                "onCanvasReady"
             )
         )
     }

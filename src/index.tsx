@@ -320,6 +320,7 @@ export default class RNSketchCanvas extends React.Component<
             this.props.onSketchSaved?.(success, path)
           }
           onPathsChange={this.props.onPathsChange}
+          onCanvasReady={this.props.onCanvasReady}
           text={this.props.text}
           localSourceImage={this.props.localSourceImage}
           permissionDialogTitle={this.props.permissionDialogTitle}
