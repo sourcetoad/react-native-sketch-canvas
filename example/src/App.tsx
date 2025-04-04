@@ -184,7 +184,7 @@ export default class example extends Component<any, ExampleState> {
                 this.setState({ example: 2 });
 
                 if (this.canvas) {
-                  // debug path #1
+                  // debug: attempt to load paths immediately without waiting for onCanvasReady
                   testPath1.forEach((path) => {
                     this.canvas.addPath(path);
                   });
@@ -468,7 +468,6 @@ export default class example extends Component<any, ExampleState> {
                     { backgroundColor: 'black', width: 90 },
                   ]}
                   onPress={() => {
-                    console.log(JSON.stringify(this.canvas.getPaths()));
                     Alert.alert(JSON.stringify(this.canvas.getPaths()));
                     this.canvas.getBase64('jpg', false, true, true, true);
                   }}
