@@ -15,6 +15,7 @@
     CGContextRef _drawingContext, _translucentDrawingContext;
     CGImageRef _frozenImage, _translucentFrozenImage;
     BOOL _needsFullRedraw;
+    BOOL _canvasIsReady;
 
     UIImage *_backgroundImage;
     UIImage *_backgroundImageScaled;
@@ -27,6 +28,7 @@
     if (self = [super initWithFrame:frame]) {
         _paths = [NSMutableArray new];
         _needsFullRedraw = YES;
+        _canvasIsReady = NO;
 
         self.backgroundColor = [UIColor clearColor];
         self.clearsContextBeforeDrawing = YES;
@@ -62,6 +64,7 @@
     _paths = nil;
     _currentPath = nil;
     _lastSize = CGSizeZero;
+    _canvasIsReady = NO;
     _needsFullRedraw = YES;
 }
 
@@ -187,10 +190,12 @@
     if (_drawingContext) {
         CGContextRelease(_drawingContext);
         _drawingContext = nil;
+        _canvasIsReady = NO;
     }
     if (_translucentDrawingContext) {
         CGContextRelease(_translucentDrawingContext);
         _translucentDrawingContext = nil;
+        _canvasIsReady = NO;
     }
     
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
@@ -212,9 +217,17 @@
             CGContextRelease(_translucentDrawingContext);
             _translucentDrawingContext = nil;
         }
+        _canvasIsReady = NO;
     } else {
         CGContextConcatCTM(_drawingContext, CGAffineTransformMakeScale(scale, scale));
         CGContextConcatCTM(_translucentDrawingContext, CGAffineTransformMakeScale(scale, scale));
+
+        if (!_canvasIsReady) {
+            if ([self.eventDelegate respondsToSelector:@selector(handleEvent:)]) {
+                 [self.eventDelegate handleEvent: @{ @"eventType": @"onCanvasReady" }];
+            }
+            _canvasIsReady = YES;
+        }
     }
     
     CGColorSpaceRelease(colorSpace);
