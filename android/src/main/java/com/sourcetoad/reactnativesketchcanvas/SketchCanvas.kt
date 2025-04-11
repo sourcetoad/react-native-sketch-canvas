@@ -47,10 +47,15 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
     private val mArrCanvasText = ArrayList<CanvasText>()
     private val mArrTextOnSketch = ArrayList<CanvasText>()
     private val mArrSketchOnText = ArrayList<CanvasText>()
+    private var mIsCanvasInitialized = false
 
     fun getParentViewId(): Int {
         val parentView = parent as View
         return parentView.id
+    }
+
+    fun isCanvasReady(): Boolean {
+        return mIsCanvasInitialized && mDrawingCanvas != null
     }
 
     private fun getFileUri(filepath: String): Uri {
@@ -420,6 +425,17 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
             }
             mNeedsFullRedraw = true
             invalidate()
+
+            if (!mIsCanvasInitialized) {
+                UIManagerHelper.getEventDispatcherForReactTag(mContext, getParentViewId())
+                    ?.dispatchEvent(
+                        OnCanvasReadyEvent(
+                            UIManagerHelper.getSurfaceId(mContext),
+                            getParentViewId()
+                        )
+                    )
+                mIsCanvasInitialized = true
+            }
         }
     }
 

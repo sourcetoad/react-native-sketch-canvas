@@ -53,6 +53,11 @@ export interface NativeProps extends ViewProps {
    */
   text?: CanvasText[];
 
+  /**
+   * Callback when the canvas has finished loading and is ready for interaction.
+   */
+  onCanvasReady?: DirectEventHandler<null>;
+
   onChange?: BubblingEventHandler<CanvasChangeEvent> | null;
   onGenerateBase64?: DirectEventHandler<{ base64: string }> | null;
 }

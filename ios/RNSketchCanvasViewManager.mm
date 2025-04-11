@@ -18,5 +18,6 @@ RCT_EXPORT_VIEW_PROPERTY(localSourceImage, NSDictionary)
 RCT_EXPORT_VIEW_PROPERTY(text, NSArray)
 RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onGenerateBase64, RCTDirectEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onCanvasReady, RCTDirectEventBlock)
 
 @end
