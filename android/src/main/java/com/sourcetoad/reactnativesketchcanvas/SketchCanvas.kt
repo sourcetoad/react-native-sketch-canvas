@@ -362,11 +362,13 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
                             if (format == "png") ".png" else ".jpg"
                 )
             try {
-                bitmap.compress(
-                    if (format == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG,
-                    if (format == "png") 100 else 90,
-                    FileOutputStream(file)
-                )
+                FileOutputStream(file).use { fos ->
+                    bitmap.compress(
+                        if (format == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG,
+                        if (format == "png") 100 else 90,
+                        fos
+                    )
+                }
                 onSaved(true, file.path)
             } catch (e: Exception) {
                 e.printStackTrace()
