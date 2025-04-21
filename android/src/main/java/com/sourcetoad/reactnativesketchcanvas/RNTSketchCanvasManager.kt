@@ -133,9 +133,9 @@ class RNTSketchCanvasViewManager :
         if (path != null) {
             for (i in 0 until path.size()) {
                 val coor =
-                    path.getString(i).split(",".toRegex()).dropLastWhile { it.isEmpty() }
-                        .toTypedArray()
-                if (pointPath != null) {
+                    path.getString(i)?.split(",".toRegex())?.dropLastWhile { it.isEmpty() }
+                        ?.toTypedArray()
+                if (coor != null && pointPath != null) {
                     pointPath.add(PointF(coor[0].toFloat(), coor[1].toFloat()))
                 }
             }

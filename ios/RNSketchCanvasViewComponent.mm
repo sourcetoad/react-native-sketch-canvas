@@ -73,7 +73,7 @@ using namespace facebook::react;
 
 - (NSDictionary*)RNTSketchCanvasTextStructToDict:(const RNTSketchCanvasTextStruct&)txt {
     return @{
-        @"text": RCTNSStringFromString(toString(txt.text)),
+        @"text": RCTNSStringFromString(txt.text),
         @"font": RCTNSStringFromString(txt.font),
         @"fontSize": @(txt.fontSize),
         @"fontColor": @(txt.fontColor),
