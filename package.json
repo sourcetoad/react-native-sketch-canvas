@@ -7,6 +7,7 @@
   "version": "2.1.2",
   "description": "react-native-sketch-canvas allows you to draw / sketch on both iOS and Android devices and sync the drawing data between users. Of course you can save as image.",
   "author": "Terry Lin",
+  "react-native": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
   "types": "./lib/typescript/module/index.d.ts",
@@ -14,12 +15,12 @@
     "./package.json": "./package.json",
     ".": {
       "import": {
-        "source": "./src/index.tsx",
+        "react-native": "./src/index.tsx",
         "types": "./lib/typescript/module/index.d.ts",
         "default": "./lib/module/index.js"
       },
       "require": {
-        "source": "./src/index.tsx",
+        "react-native": "./src/index.tsx",
         "types": "./lib/typescript/commonjs/index.d.ts",
         "default": "./lib/commonjs/index.js"
       }
