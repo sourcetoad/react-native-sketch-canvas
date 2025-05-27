@@ -34,7 +34,7 @@ class RNTSketchCanvasViewManager :
 
     override fun receiveCommand(
         root: RNTSketchCanvasView,
-        commandId: String?,
+        commandId: String,
         args: ReadableArray?
     ) {
         if (root.getSketchCanvas().isCanvasReady()) {
