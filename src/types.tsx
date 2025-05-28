@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
 export type ImageType = 'png' | 'jpg';
