@@ -305,7 +305,9 @@ export default class RNSketchCanvas extends React.Component<
           </View>
         </View>
         <SketchCanvas
-          ref={(ref) => (this._sketchCanvas = ref)}
+          ref={(ref) => {
+            this._sketchCanvas = ref;
+          }}
           style={this.props.canvasStyle}
           strokeColor={
             this.state.color +
