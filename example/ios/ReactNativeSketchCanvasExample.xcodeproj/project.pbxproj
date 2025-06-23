@@ -20,13 +20,10 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = ReactNativeSketchCanvasExample/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ReactNativeSketchCanvasExample/main.m; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = ReactNativeSketchCanvasExample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		19F6CBCC0A4E27FBF8BF4A61 /* libPods-ReactNativeSketchCanvasExample-ReactNativeSketchCanvasExampleTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ReactNativeSketchCanvasExample-ReactNativeSketchCanvasExampleTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4392A12AC88292D35C810B /* Pods-ReactNativeSketchCanvasExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeSketchCanvasExample.debug.xcconfig"; path = "Target Support Files/Pods-ReactNativeSketchCanvasExample/Pods-ReactNativeSketchCanvasExample.debug.xcconfig"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-ReactNativeSketchCanvasExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeSketchCanvasExample.release.xcconfig"; path = "Target Support Files/Pods-ReactNativeSketchCanvasExample/Pods-ReactNativeSketchCanvasExample.release.xcconfig"; sourceTree = "<group>"; };
-		5B7EB9410499542E8C5724F5 /* Pods-ReactNativeSketchCanvasExample-ReactNativeSketchCanvasExampleTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeSketchCanvasExample-ReactNativeSketchCanvasExampleTests.debug.xcconfig"; path = "Target Support Files/Pods-ReactNativeSketchCanvasExample-ReactNativeSketchCanvasExampleTests/Pods-ReactNativeSketchCanvasExample-ReactNativeSketchCanvasExampleTests.debug.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-ReactNativeSketchCanvasExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ReactNativeSketchCanvasExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ReactNativeSketchCanvasExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		89C6BE57DB24E9ADA2F236DE /* Pods-ReactNativeSketchCanvasExample-ReactNativeSketchCanvasExampleTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeSketchCanvasExample-ReactNativeSketchCanvasExampleTests.release.xcconfig"; path = "Target Support Files/Pods-ReactNativeSketchCanvasExample-ReactNativeSketchCanvasExampleTests/Pods-ReactNativeSketchCanvasExample-ReactNativeSketchCanvasExampleTests.release.xcconfig"; sourceTree = "<group>"; };
 		ABAC10212DFCA3BD000E0B02 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -60,7 +57,6 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				5DCACB8F33CDC322A6C60F78 /* libPods-ReactNativeSketchCanvasExample.a */,
-				19F6CBCC0A4E27FBF8BF4A61 /* libPods-ReactNativeSketchCanvasExample-ReactNativeSketchCanvasExampleTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -99,8 +95,6 @@
 			children = (
 				3B4392A12AC88292D35C810B /* Pods-ReactNativeSketchCanvasExample.debug.xcconfig */,
 				5709B34CF0A7D63546082F79 /* Pods-ReactNativeSketchCanvasExample.release.xcconfig */,
-				5B7EB9410499542E8C5724F5 /* Pods-ReactNativeSketchCanvasExample-ReactNativeSketchCanvasExampleTests.debug.xcconfig */,
-				89C6BE57DB24E9ADA2F236DE /* Pods-ReactNativeSketchCanvasExample-ReactNativeSketchCanvasExampleTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
