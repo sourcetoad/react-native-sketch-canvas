@@ -188,6 +188,11 @@
     "android": {
       "javaPackageName": "com.sourcetoad.reactnativesketchcanvas"
     },
+    "ios": {
+      "componentProvider": {
+        "RNTSketchCanvas": "RNTSketchCanvas"
+      }
+    },
     "includesGeneratedCode": false
   },
   "create-react-native-library": {
