@@ -376,11 +376,6 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
           };
           this._initialized = true;
 
-          // Handle initial paths prop using batch operation
-          if (this.props.initialPaths && this.props.initialPaths.length > 0) {
-            this.setInitialPaths(this.props.initialPaths);
-          }
-
           // Handle any queued paths using individual operations
           this._pathsToProcess.length > 0 &&
             this._pathsToProcess.forEach((p) => this.addPath(p));
@@ -406,6 +401,11 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
         }}
         onCanvasReady={() => {
           this.props.onCanvasReady?.();
+
+          // Handle initial paths prop using batch operation
+          if (this.props.initialPaths && this.props.initialPaths.length > 0) {
+            this.setInitialPaths(this.props.initialPaths);
+          }
         }}
         onInitialPathsLoaded={(e: any) => {
           this.props.onInitialPathsLoaded?.(e.nativeEvent || {});
