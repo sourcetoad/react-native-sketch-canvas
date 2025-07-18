@@ -36,6 +36,7 @@ class CanvasText {
 
 class SketchCanvas(context: ThemedReactContext) : View(context) {
     private val mPaths = ArrayList<SketchData>()
+    private val mPathIds = HashSet<Int>()
     private var mCurrentPath: SketchData? = null
     private val mContext: ThemedReactContext = context
     private var mDisableHardwareAccelerated = false
@@ -246,6 +247,7 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
 
     fun clear() {
         mPaths.clear()
+        mPathIds.clear()
         mCurrentPath = null
         mNeedsFullRedraw = true
         invalidateCanvas(true)
@@ -254,6 +256,7 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
     fun newPath(id: Int, strokeColor: Int, strokeWidth: Float) {
         mCurrentPath = SketchData(id, strokeColor, strokeWidth)
         mPaths.add(mCurrentPath!!)
+        mPathIds.add(id)
         val isErase = strokeColor == Color.TRANSPARENT
         if (isErase && !mDisableHardwareAccelerated) {
             mDisableHardwareAccelerated = true
@@ -274,16 +277,10 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
     }
 
     fun addPath(id: Int, strokeColor: Int, strokeWidth: Float, points: ArrayList<PointF>) {
-        var exist = false
-        for (data in mPaths) {
-            if (data.id == id) {
-                exist = true
-                break
-            }
-        }
-        if (!exist) {
+        if (!mPathIds.contains(id)) {
             val newPath = SketchData(id, strokeColor, strokeWidth, points)
             mPaths.add(newPath)
+            mPathIds.add(id)
             val isErase = strokeColor == Color.TRANSPARENT
             if (isErase && !mDisableHardwareAccelerated) {
                 mDisableHardwareAccelerated = true
@@ -295,6 +292,7 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
     }
 
     fun addInitialPaths(pathsArray: ReadableArray?) {
+        val startTime = System.currentTimeMillis()
         Log.d("SketchCanvas", "addInitialPaths called with pathsArray: ${pathsArray?.size()} paths")
         if (pathsArray == null) {
             Log.d("SketchCanvas", "pathsArray is null, returning early")
@@ -310,15 +308,8 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
             if (pathData != null) {
                 val sketchData = convertReadableMapToSketchData(pathData)
                 if (sketchData != null) {
-                    // Check if this path already exists
-                    var exist = false
-                    for (data in mPaths) {
-                        if (data.id == sketchData.id) {
-                            exist = true
-                            break
-                        }
-                    }
-                    if (!exist) {
+                    // Check if this path already exists using O(1) HashSet lookup
+                    if (!mPathIds.contains(sketchData.id)) {
                         pathsToAdd.add(sketchData)
                         if (sketchData.strokeColor == Color.TRANSPARENT) {
                             hasErasePaths = true
@@ -334,25 +325,26 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
             setLayerType(LAYER_TYPE_SOFTWARE, null)
         }
 
-        // Add all valid paths to the collection
+        // Add all valid paths to the collection and update HashSet
         mPaths.addAll(pathsToAdd)
-
-        // Draw all new paths to the canvas
         for (path in pathsToAdd) {
-            path.draw(mDrawingCanvas!!)
+            mPathIds.add(path.id)
         }
 
         // Single canvas invalidation after all paths are processed
+        // Using mNeedsFullRedraw flag to batch all canvas operations
         if (pathsToAdd.isNotEmpty()) {
+            mNeedsFullRedraw = true
             invalidateCanvas(true)
         }
 
         // Dispatch onInitialPathsLoaded event with the count of successfully loaded paths
         val surfaceId = UIManagerHelper.getSurfaceId(mContext)
         val parentViewId = getParentViewId()
+        val processingTime = System.currentTimeMillis() - startTime
         Log.d(
             "SketchCanvas",
-            "Dispatching onInitialPathsLoaded event: surfaceId=$surfaceId, viewId=$parentViewId, loadedCount=${pathsToAdd.size}"
+            "✅ addInitialPaths completed: ${pathsToAdd.size} paths processed in ${processingTime}ms (avg ${processingTime.toDouble() / pathsToAdd.size.coerceAtLeast(1)}ms per path)"
         )
         UIManagerHelper.getEventDispatcherForReactTag(mContext, parentViewId)
             ?.dispatchEvent(
@@ -421,6 +413,7 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         }
         if (index > -1) {
             mPaths.removeAt(index)
+            mPathIds.remove(id)
             mNeedsFullRedraw = true
             invalidateCanvas(true)
         }

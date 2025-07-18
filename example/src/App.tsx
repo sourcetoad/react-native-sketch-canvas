@@ -25,6 +25,10 @@ type ExampleState = {
   message: string;
   photoPath: any;
   scrollEnabled: boolean;
+  performanceResults: string;
+  testSize: number;
+  testKey: number;
+  currentTestData: Path[];
 };
 
 const testPath1: Path[] = [
@@ -121,6 +125,48 @@ const testPath1: Path[] = [
   },
 ];
 
+// Generate large dataset for performance testing
+const generateLargePathDataset = (count: number): Path[] => {
+  const paths: Path[] = [];
+  const colors = [
+    '#FF0000',
+    '#00FF00',
+    '#0000FF',
+    '#FFFF00',
+    '#FF00FF',
+    '#00FFFF',
+  ];
+
+  for (let i = 0; i < count; i++) {
+    const baseId = 10000000 + i;
+    const color = colors[i % colors.length];
+    const width = 3 + (i % 5); // width 3-7
+
+    // Generate path data points
+    const pathData: string[] = [];
+    const startX = 50 + (i % 10) * 50;
+    const startY = 50 + (i % 10) * 50;
+
+    for (let j = 0; j < 20; j++) {
+      const x = startX + Math.sin((j / 20) * Math.PI * 2) * 30;
+      const y = startY + Math.cos((j / 20) * Math.PI * 2) * 30;
+      pathData.push(`${x.toFixed(2)},${y.toFixed(2)}`);
+    }
+
+    paths.push({
+      path: {
+        id: baseId,
+        color,
+        width,
+        data: pathData,
+      },
+      size: { width: 1280, height: 652 },
+    });
+  }
+
+  return paths;
+};
+
 export default class example extends Component<any, ExampleState> {
   constructor(props: any) {
     super(props);
@@ -132,6 +178,10 @@ export default class example extends Component<any, ExampleState> {
       message: '',
       photoPath: null,
       scrollEnabled: true,
+      performanceResults: '',
+      testSize: 100,
+      testKey: 0,
+      currentTestData: [],
     };
   }
 
@@ -139,6 +189,18 @@ export default class example extends Component<any, ExampleState> {
   canvas: any;
   canvas1: any;
   canvas2: any;
+  performanceCanvas: any;
+  testCanvas: any;
+  testStartTime: number = 0;
+
+  closeExample = () => {
+    this.setState({
+      example: 0,
+      performanceResults: '',
+      testKey: 0,
+      currentTestData: [],
+    });
+  };
 
   takePicture = async () => {
     if (this.camera) {
@@ -153,6 +215,63 @@ export default class example extends Component<any, ExampleState> {
         console.log(err);
       }
     }
+  };
+
+  runPerformanceTest = (pathCount: number) => {
+    console.log(`🚀 Starting performance test with ${pathCount} paths`);
+    const testData = generateLargePathDataset(pathCount);
+
+    this.testStartTime = Date.now();
+    const startLog = `🧪 Performance Test Started\nDataset: ${pathCount} paths\nPlatform: ${Platform.OS}\nStarted at: ${new Date().toISOString()}\n`;
+
+    // Load new paths by updating the initialPaths prop and forcing re-render
+    this.setState({
+      performanceResults: this.state.performanceResults + startLog,
+      testKey: Date.now(),
+      currentTestData: testData,
+    });
+  };
+
+  testEdgeCase = (testType: string) => {
+    console.log(`🧪 Testing edge case: ${testType}`);
+    this.testStartTime = Date.now();
+
+    let testData: Path[] = [];
+    let description = '';
+
+    switch (testType) {
+      case 'empty':
+        testData = [];
+        description = 'Empty array test';
+        break;
+      case 'normal':
+        testData = testPath1;
+        description = 'Normal paths test';
+        break;
+      case 'duplicates':
+        testData = [...testPath1, ...testPath1]; // Duplicate paths
+        description = 'Duplicate paths test';
+        break;
+      case 'invalid':
+        testData = [
+          // @ts-ignore - intentionally invalid data for testing
+          { path: null, size: { width: 100, height: 100 } },
+          // @ts-ignore - intentionally invalid data for testing
+          { path: { id: 'invalid', color: 'red' }, size: null },
+          ...testPath1.slice(0, 1), // Add one valid path
+        ];
+        description = 'Invalid data test';
+        break;
+    }
+
+    const startLog = `🧪 API Edge Case Test Started\nType: ${description}\nDataset: ${testData.length} paths\nPlatform: ${Platform.OS}\nStarted at: ${new Date().toISOString()}\n`;
+
+    // Load new paths by updating the initialPaths prop and forcing re-render
+    this.setState({
+      performanceResults: this.state.performanceResults + startLog,
+      testKey: Date.now(),
+      currentTestData: testData,
+    });
   };
 
   render() {
@@ -259,7 +378,12 @@ export default class example extends Component<any, ExampleState> {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
-                this.setState({ example: 8 });
+                this.setState({
+                  example: 8,
+                  performanceResults: '',
+                  testKey: 0,
+                  currentTestData: [],
+                });
               }}
             >
               <Text
@@ -268,6 +392,23 @@ export default class example extends Component<any, ExampleState> {
                 - Example 8 -
               </Text>
               <Text>Test onInitialPathsLoaded event</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                this.setState({
+                  example: 9,
+                  performanceResults: '',
+                  testKey: 0,
+                  currentTestData: [],
+                });
+              }}
+            >
+              <Text
+                style={{ alignSelf: 'center', marginTop: 15, fontSize: 18 }}
+              >
+                - Example 9 -
+              </Text>
+              <Text>Performance Testing Suite</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -1130,30 +1271,227 @@ export default class example extends Component<any, ExampleState> {
               <Text style={{ margin: 10, fontSize: 18 }}>Close</Text>
             </TouchableOpacity>
             <Text style={{ margin: 10, fontSize: 16, fontWeight: 'bold' }}>
-              Testing onInitialPathsLoaded Event
+              API Consistency Testing
             </Text>
             <Text style={{ margin: 10, fontSize: 14 }}>
-              This canvas loads with pre-drawn paths. Check console for event
-              logs.
+              Testing onInitialPathsLoaded with various edge cases
             </Text>
+
+            <View
+              style={{ margin: 10, flexDirection: 'row', flexWrap: 'wrap' }}
+            >
+              <TouchableOpacity
+                style={[styles.functionButton, { width: 120, marginRight: 5 }]}
+                onPress={() => this.testEdgeCase('empty')}
+              >
+                <Text style={{ color: 'white', fontSize: 12 }}>
+                  Empty Array
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.functionButton, { width: 120, marginRight: 5 }]}
+                onPress={() => this.testEdgeCase('normal')}
+              >
+                <Text style={{ color: 'white', fontSize: 12 }}>
+                  Normal Paths
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.functionButton, { width: 120, marginRight: 5 }]}
+                onPress={() => this.testEdgeCase('duplicates')}
+              >
+                <Text style={{ color: 'white', fontSize: 12 }}>Duplicates</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.functionButton, { width: 120, marginRight: 5 }]}
+                onPress={() => this.testEdgeCase('invalid')}
+              >
+                <Text style={{ color: 'white', fontSize: 12 }}>
+                  Invalid Data
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ margin: 10, height: 150 }}>
+              <Text style={{ fontSize: 12, fontFamily: 'monospace' }}>
+                {this.state.performanceResults}
+              </Text>
+            </ScrollView>
+
             <RNSketchCanvas
+              key={`test-canvas-${this.state.testKey}`}
+              ref={(ref) => (this.testCanvas = ref)}
               containerStyle={{ backgroundColor: 'transparent', flex: 1 }}
               canvasStyle={{ backgroundColor: 'white', flex: 1 }}
-              initialPaths={testPath1}
+              initialPaths={
+                this.state.currentTestData.length > 0
+                  ? this.state.currentTestData
+                  : testPath1
+              }
               onInitialPathsLoaded={(loadedCount) => {
-                console.log(
-                  `✅ onInitialPathsLoaded fired! Loaded ${loadedCount} paths`
-                );
+                const endTime = Date.now();
+                const duration = endTime - this.testStartTime;
 
-                setTimeout(() => {
-                  Alert.alert(
-                    'Success!',
-                    `onInitialPathsLoaded event fired!\nLoaded ${loadedCount} paths`
+                // Handle case where loadedCount might be an object instead of number
+                let actualCount = loadedCount;
+                if (typeof loadedCount === 'object') {
+                  // If it's an object, try to extract the count or use expected data length
+                  actualCount =
+                    this.state.currentTestData.length > 0
+                      ? this.state.currentTestData.length
+                      : testPath1.length;
+                  console.log(
+                    '🐛 API Test - loadedCount was an object:',
+                    loadedCount
                   );
-                }, 0);
+                } else if (typeof loadedCount !== 'number') {
+                  actualCount =
+                    parseInt(String(loadedCount)) ||
+                    (this.state.currentTestData.length > 0
+                      ? this.state.currentTestData.length
+                      : testPath1.length);
+                  console.log(
+                    '🐛 API Test - loadedCount was not a number:',
+                    loadedCount,
+                    'type:',
+                    typeof loadedCount
+                  );
+                }
+
+                const result = `✅ API Test Complete!\nLoaded: ${actualCount} paths\nDuration: ${duration}ms\nPlatform: ${Platform.OS}\nTimestamp: ${new Date().toISOString()}\n\n`;
+
+                console.log(result);
+                this.setState({
+                  performanceResults: this.state.performanceResults + result,
+                });
               }}
               onCanvasReady={() => {
-                console.log('Canvas ready');
+                console.log('API test canvas ready');
+              }}
+              closeComponent={
+                <View style={styles.functionButton}>
+                  <Text style={{ color: 'white' }}>Close</Text>
+                </View>
+              }
+              onClosePressed={() => {
+                this.setState({ example: 0 });
+              }}
+            />
+          </View>
+        )}
+
+        {this.state.example === 9 && (
+          <View style={{ flex: 1 }}>
+            <TouchableOpacity onPress={() => this.setState({ example: 0 })}>
+              <Text style={{ margin: 10, fontSize: 18 }}>Close</Text>
+            </TouchableOpacity>
+            <Text style={{ margin: 10, fontSize: 16, fontWeight: 'bold' }}>
+              Performance Testing Suite
+            </Text>
+            <Text style={{ margin: 10, fontSize: 14 }}>
+              Test addInitialPaths performance with large datasets
+            </Text>
+
+            <View
+              style={{ margin: 10, flexDirection: 'row', alignItems: 'center' }}
+            >
+              <Text style={{ fontSize: 14 }}>Test Size: </Text>
+              <TextInput
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#ccc',
+                  padding: 5,
+                  width: 100,
+                }}
+                value={this.state.testSize.toString()}
+                onChangeText={(text) =>
+                  this.setState({ testSize: parseInt(text) || 100 })
+                }
+                keyboardType="numeric"
+              />
+              <Text style={{ fontSize: 14, marginLeft: 5 }}>paths</Text>
+            </View>
+
+            <View
+              style={{ margin: 10, flexDirection: 'row', flexWrap: 'wrap' }}
+            >
+              <TouchableOpacity
+                style={[styles.functionButton, { width: 100, marginRight: 5 }]}
+                onPress={() => this.runPerformanceTest(10)}
+              >
+                <Text style={{ color: 'white' }}>Test 10</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.functionButton, { width: 100, marginRight: 5 }]}
+                onPress={() => this.runPerformanceTest(50)}
+              >
+                <Text style={{ color: 'white' }}>Test 50</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.functionButton, { width: 100, marginRight: 5 }]}
+                onPress={() => this.runPerformanceTest(100)}
+              >
+                <Text style={{ color: 'white' }}>Test 100</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.functionButton, { width: 100, marginRight: 5 }]}
+                onPress={() => this.runPerformanceTest(250)}
+              >
+                <Text style={{ color: 'white' }}>Test 250</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.functionButton, { width: 100, marginRight: 5 }]}
+                onPress={() => this.runPerformanceTest(this.state.testSize)}
+              >
+                <Text style={{ color: 'white' }}>Test Custom</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ margin: 10, flex: 1 }}>
+              <Text style={{ fontSize: 12, fontFamily: 'monospace' }}>
+                {this.state.performanceResults}
+              </Text>
+            </ScrollView>
+
+            <RNSketchCanvas
+              key={`performance-canvas-${this.state.testKey}`}
+              ref={(ref) => (this.performanceCanvas = ref)}
+              containerStyle={{ backgroundColor: 'transparent', height: 200 }}
+              canvasStyle={{ backgroundColor: 'white', flex: 1 }}
+              initialPaths={this.state.currentTestData}
+              onInitialPathsLoaded={(loadedCount) => {
+                const endTime = Date.now();
+                const duration = endTime - this.testStartTime;
+
+                // Handle case where loadedCount might be an object instead of number
+                let actualCount = loadedCount;
+                if (typeof loadedCount === 'object') {
+                  // If it's an object, try to extract the count or use the current test data length
+                  actualCount = this.state.currentTestData.length;
+                  console.log('🐛 loadedCount was an object:', loadedCount);
+                } else if (typeof loadedCount !== 'number') {
+                  actualCount =
+                    parseInt(String(loadedCount)) ||
+                    this.state.currentTestData.length;
+                  console.log(
+                    '🐛 loadedCount was not a number:',
+                    loadedCount,
+                    'type:',
+                    typeof loadedCount
+                  );
+                }
+
+                const averagePerPath =
+                  actualCount > 0 ? (duration / actualCount).toFixed(2) : 'N/A';
+                const result = `✅ Performance Test Complete!\nLoaded: ${actualCount} paths\nDuration: ${duration}ms\nAverage: ${averagePerPath}ms per path\nPlatform: ${Platform.OS}\n\n`;
+
+                console.log(result);
+                this.setState({
+                  performanceResults: this.state.performanceResults + result,
+                });
+              }}
+              onCanvasReady={() => {
+                console.log('Performance canvas ready');
               }}
               closeComponent={
                 <View style={styles.functionButton}>

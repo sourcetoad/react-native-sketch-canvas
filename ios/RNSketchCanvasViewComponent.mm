@@ -249,7 +249,9 @@ using namespace facebook::react;
         return;
     }
     
-    int loadedCount = 0;
+    NSDate *startTime = [NSDate date];
+    
+    NSMutableArray *validPaths = [NSMutableArray new];
     
     for (NSDictionary *pathData in pathsArray) {
         @autoreleasepool {
@@ -289,18 +291,27 @@ using namespace facebook::react;
             }
             
             if (cgPoints.count > 0) {
-                [(RNSketchCanvas *)_view addPath:pathId
-                                     strokeColor:strokeColor
-                                     strokeWidth:strokeWidth
-                                          points:cgPoints];
-                loadedCount++;
+                RNSketchData *data = [[RNSketchData alloc] initWithId:pathId
+                                                          strokeColor:strokeColor
+                                                          strokeWidth:strokeWidth
+                                                               points:cgPoints];
+                [validPaths addObject:data];
             }
         }
     }
     
+    NSTimeInterval parsingTime = [[NSDate date] timeIntervalSinceDate:startTime] * 1000.0;
+    
+    // Use batch method to add all paths at once
+    [(RNSketchCanvas *)_view addPaths:validPaths];
+    
+    NSTimeInterval totalTime = [[NSDate date] timeIntervalSinceDate:startTime] * 1000.0;
+    NSLog(@"[iOS Performance] addInitialPaths processed %lu paths in %.2fms (parsing: %.2fms, batch: %.2fms)",
+          (unsigned long)pathsArray.count, totalTime, parsingTime, totalTime - parsingTime);
+    
     // Emit onInitialPathsLoaded event with the count of successfully loaded paths
     RNTSketchCanvasEventEmitter::OnInitialPathsLoaded result{
-        .loadedCount = loadedCount
+        .loadedCount = (int)validPaths.count
     };
     self.eventEmitter.onInitialPathsLoaded(result);
 }
