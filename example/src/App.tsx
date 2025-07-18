@@ -16,6 +16,7 @@ import {
 import RNSketchCanvas, {
   SketchCanvas,
 } from '@sourcetoad/react-native-sketch-canvas';
+import type { Path } from '@sourcetoad/react-native-sketch-canvas';
 
 type ExampleState = {
   example: number;
@@ -26,7 +27,7 @@ type ExampleState = {
   scrollEnabled: boolean;
 };
 
-const testPath1 = [
+const testPath1: Path[] = [
   {
     path: {
       id: 48034205,
@@ -65,7 +66,6 @@ const testPath1 = [
       ],
     },
     size: { width: 1280, height: 652 },
-    drawer: null,
   },
   {
     path: {
@@ -118,7 +118,6 @@ const testPath1 = [
       ],
     },
     size: { width: 1280, height: 652 },
-    drawer: null,
   },
 ];
 
@@ -257,6 +256,18 @@ export default class example extends Component<any, ExampleState> {
                 - Example 7 -
               </Text>
               <Text>Multiple canvases in ScrollView</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                this.setState({ example: 8 });
+              }}
+            >
+              <Text
+                style={{ alignSelf: 'center', marginTop: 15, fontSize: 18 }}
+              >
+                - Example 8 -
+              </Text>
+              <Text>Test onInitialPathsLoaded event</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -1110,6 +1121,49 @@ export default class example extends Component<any, ExampleState> {
                 onStrokeEnd={() => this.setState({ scrollEnabled: true })}
               />
             </ScrollView>
+          </View>
+        )}
+
+        {this.state.example === 8 && (
+          <View style={{ flex: 1 }}>
+            <TouchableOpacity onPress={() => this.setState({ example: 0 })}>
+              <Text style={{ margin: 10, fontSize: 18 }}>Close</Text>
+            </TouchableOpacity>
+            <Text style={{ margin: 10, fontSize: 16, fontWeight: 'bold' }}>
+              Testing onInitialPathsLoaded Event
+            </Text>
+            <Text style={{ margin: 10, fontSize: 14 }}>
+              This canvas loads with pre-drawn paths. Check console for event
+              logs.
+            </Text>
+            <RNSketchCanvas
+              containerStyle={{ backgroundColor: 'transparent', flex: 1 }}
+              canvasStyle={{ backgroundColor: 'white', flex: 1 }}
+              initialPaths={testPath1}
+              onInitialPathsLoaded={(loadedCount) => {
+                console.log(
+                  `✅ onInitialPathsLoaded fired! Loaded ${loadedCount} paths`
+                );
+
+                setTimeout(() => {
+                  Alert.alert(
+                    'Success!',
+                    `onInitialPathsLoaded event fired!\nLoaded ${loadedCount} paths`
+                  );
+                }, 0);
+              }}
+              onCanvasReady={() => {
+                console.log('Canvas ready');
+              }}
+              closeComponent={
+                <View style={styles.functionButton}>
+                  <Text style={{ color: 'white' }}>Close</Text>
+                </View>
+              }
+              onClosePressed={() => {
+                this.setState({ example: 0 });
+              }}
+            />
           </View>
         )}
       </SafeAreaView>

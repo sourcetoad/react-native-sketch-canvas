@@ -184,6 +184,8 @@ using namespace facebook::react;
      [self newPath: (NSArray *)args];
    } else if ([commandName isEqualToString:@"addPath"]) {
      [self addPath: (NSArray *)args];
+   } else if ([commandName isEqualToString:@"addInitialPaths"]) {
+     [self addInitialPaths: (NSArray *)args];
    } else if ([commandName isEqualToString:@"deletePath"]) {
      [self deletePath: [(NSNumber *)args[0] intValue]];
    } else if ([commandName isEqualToString:@"endPath"]) {
@@ -233,6 +235,74 @@ using namespace facebook::react;
                          strokeColor:strokeColor
                          strokeWidth:strokeWidth
                               points:cgPoints];
+}
+
+- (void)addInitialPaths:(NSArray *)args {
+    NSArray *pathsArray = (NSArray *)args[0];
+    
+    if (!pathsArray || ![pathsArray isKindOfClass:[NSArray class]]) {
+        // Emit event with 0 loaded count for empty/invalid arrays
+        RNTSketchCanvasEventEmitter::OnInitialPathsLoaded result{
+            .loadedCount = 0
+        };
+        self.eventEmitter.onInitialPathsLoaded(result);
+        return;
+    }
+    
+    int loadedCount = 0;
+    
+    for (NSDictionary *pathData in pathsArray) {
+        @autoreleasepool {
+            if (![pathData isKindOfClass:[NSDictionary class]]) {
+                continue;
+            }
+            
+            NSNumber *pathIdNumber = pathData[@"pathId"];
+            NSNumber *colorNumber = pathData[@"color"];
+            NSNumber *widthNumber = pathData[@"width"];
+            NSArray *points = pathData[@"points"];
+            
+            if (!pathIdNumber || !colorNumber || !widthNumber || !points) {
+                continue;
+            }
+            
+            int pathId = [pathIdNumber intValue];
+            UIColor *strokeColor = [RCTConvert UIColor:colorNumber];
+            int strokeWidth = [widthNumber intValue];
+            
+            if (![points isKindOfClass:[NSArray class]]) {
+                continue;
+            }
+            
+            NSMutableArray *cgPoints = [[NSMutableArray alloc] initWithCapacity:points.count];
+            
+            for (NSString *coor in points) {
+                if (![coor isKindOfClass:[NSString class]]) {
+                    continue;
+                }
+                
+                NSArray *coorInNumber = [coor componentsSeparatedByString:@","];
+                if (coorInNumber.count >= 2) {
+                    CGPoint point = CGPointMake([coorInNumber[0] floatValue], [coorInNumber[1] floatValue]);
+                    [cgPoints addObject:[NSValue valueWithCGPoint:point]];
+                }
+            }
+            
+            if (cgPoints.count > 0) {
+                [(RNSketchCanvas *)_view addPath:pathId
+                                     strokeColor:strokeColor
+                                     strokeWidth:strokeWidth
+                                          points:cgPoints];
+                loadedCount++;
+            }
+        }
+    }
+    
+    // Emit onInitialPathsLoaded event with the count of successfully loaded paths
+    RNTSketchCanvasEventEmitter::OnInitialPathsLoaded result{
+        .loadedCount = loadedCount
+    };
+    self.eventEmitter.onInitialPathsLoaded(result);
 }
 
 - (void)deletePath:(int) pathId {

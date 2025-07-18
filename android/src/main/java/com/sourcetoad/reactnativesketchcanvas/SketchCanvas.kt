@@ -10,8 +10,13 @@ import android.util.Log
 import android.view.View
 import androidx.exifinterface.media.ExifInterface
 import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerHelper
+import com.sourcetoad.reactnativesketchcanvas.event.OnCanvasReadyEvent
+import com.sourcetoad.reactnativesketchcanvas.event.OnChangeEvent
+import com.sourcetoad.reactnativesketchcanvas.event.OnGenerateBase64Event
+import com.sourcetoad.reactnativesketchcanvas.event.OnInitialPathsLoadedEvent
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -164,7 +169,8 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
                         }
 
                         p.textSize = property.getDouble("fontSize").toFloat()
-                        p.color = if (property.hasKey("fontColor")) property.getInt("fontColor") else Color.BLACK
+                        p.color =
+                            if (property.hasKey("fontColor")) property.getInt("fontColor") else Color.BLACK
                         text.anchor =
                             PointF(
                                 property.getMap("anchor")?.getDouble("x")?.toFloat() ?: 0f,
@@ -288,6 +294,123 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         }
     }
 
+    fun addInitialPaths(pathsArray: ReadableArray?) {
+        Log.d("SketchCanvas", "addInitialPaths called with pathsArray: ${pathsArray?.size()} paths")
+        if (pathsArray == null) {
+            Log.d("SketchCanvas", "pathsArray is null, returning early")
+            return
+        }
+
+        var hasErasePaths = false
+        val pathsToAdd = ArrayList<SketchData>()
+
+        // Process all paths first, validating and converting data
+        for (i in 0 until pathsArray.size()) {
+            val pathData = pathsArray.getMap(i)
+            if (pathData != null) {
+                val sketchData = convertReadableMapToSketchData(pathData)
+                if (sketchData != null) {
+                    // Check if this path already exists
+                    var exist = false
+                    for (data in mPaths) {
+                        if (data.id == sketchData.id) {
+                            exist = true
+                            break
+                        }
+                    }
+                    if (!exist) {
+                        pathsToAdd.add(sketchData)
+                        if (sketchData.strokeColor == Color.TRANSPARENT) {
+                            hasErasePaths = true
+                        }
+                    }
+                }
+            }
+        }
+
+        // Configure hardware acceleration if needed for erase paths
+        if (hasErasePaths && !mDisableHardwareAccelerated) {
+            mDisableHardwareAccelerated = true
+            setLayerType(LAYER_TYPE_SOFTWARE, null)
+        }
+
+        // Add all valid paths to the collection
+        mPaths.addAll(pathsToAdd)
+
+        // Draw all new paths to the canvas
+        for (path in pathsToAdd) {
+            path.draw(mDrawingCanvas!!)
+        }
+
+        // Single canvas invalidation after all paths are processed
+        if (pathsToAdd.isNotEmpty()) {
+            invalidateCanvas(true)
+        }
+
+        // Dispatch onInitialPathsLoaded event with the count of successfully loaded paths
+        val surfaceId = UIManagerHelper.getSurfaceId(mContext)
+        val parentViewId = getParentViewId()
+        Log.d(
+            "SketchCanvas",
+            "Dispatching onInitialPathsLoaded event: surfaceId=$surfaceId, viewId=$parentViewId, loadedCount=${pathsToAdd.size}"
+        )
+        UIManagerHelper.getEventDispatcherForReactTag(mContext, parentViewId)
+            ?.dispatchEvent(
+                OnInitialPathsLoadedEvent(surfaceId, parentViewId, pathsToAdd.size)
+            )
+    }
+
+    private fun convertReadableMapToSketchData(pathData: ReadableMap): SketchData? {
+        try {
+            // Extract and validate required fields
+            if (!pathData.hasKey("pathId") ||
+                !pathData.hasKey("color") ||
+                !pathData.hasKey("width") ||
+                !pathData.hasKey("points")
+            ) {
+                return null
+            }
+
+            val pathId = pathData.getInt("pathId")
+            val color = pathData.getInt("color")
+            val width = pathData.getDouble("width").toFloat()
+            val pointsArray = pathData.getArray("points")
+
+            if (pointsArray == null) {
+                return null
+            }
+
+            // Convert points array to ArrayList<PointF>
+            val points = ArrayList<PointF>(pointsArray.size())
+            for (i in 0 until pointsArray.size()) {
+                val pointString = pointsArray.getString(i)
+                if (pointString != null) {
+                    val coordinates = pointString.split(",")
+                    if (coordinates.size >= 2) {
+                        try {
+                            val x = coordinates[0].toFloat()
+                            val y = coordinates[1].toFloat()
+                            points.add(PointF(x, y))
+                        } catch (e: NumberFormatException) {
+                            // Skip invalid coordinate, continue processing other points
+                            continue
+                        }
+                    }
+                }
+            }
+
+            // Only create SketchData if we have valid points
+            return if (points.isNotEmpty()) {
+                SketchData(pathId, color, width, points)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            // Return null for any malformed path data
+            return null
+        }
+    }
+
     fun deletePath(id: Int) {
         var index = -1
         for (i in mPaths.indices) {
@@ -317,14 +440,7 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         val surfaceId = UIManagerHelper.getSurfaceId(mContext)
         UIManagerHelper.getEventDispatcherForReactTag(mContext, getParentViewId())
             ?.dispatchEvent(
-                OnChangeEvent(
-                    surfaceId,
-                    getParentViewId(),
-                    "save",
-                    success,
-                    path ?: "",
-                    0
-                )
+                OnChangeEvent(surfaceId, getParentViewId(), "save", success, path ?: "", 0)
             )
     }
 

@@ -1,4 +1,4 @@
-package com.sourcetoad.reactnativesketchcanvas
+package com.sourcetoad.reactnativesketchcanvas.event
 
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap

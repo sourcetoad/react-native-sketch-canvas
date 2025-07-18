@@ -33,6 +33,13 @@ type CanvasText = {
   lineHeightMultiple?: Double;
 };
 
+type InitialPathData = {
+  pathId: Int32;
+  color: Int32;
+  width: Double;
+  points: Array<string>;
+};
+
 type CanvasChangeEvent = {
   eventType: string;
   pathsUpdate?: Int32;
@@ -60,6 +67,7 @@ export interface NativeProps extends ViewProps {
 
   onChange?: BubblingEventHandler<CanvasChangeEvent> | null;
   onGenerateBase64?: DirectEventHandler<{ base64: string }> | null;
+  onInitialPathsLoaded?: DirectEventHandler<{ loadedCount: Int32 }> | null;
 }
 
 export interface NativeCommands {
@@ -84,6 +92,10 @@ export interface NativeCommands {
     color: Int32,
     width: Double,
     points: Array<string>
+  ) => void;
+  addInitialPaths: (
+    viewRef: React.ElementRef<ComponentType>,
+    pathsArray: Array<InitialPathData>
   ) => void;
   newPath: (
     viewRef: React.ElementRef<ComponentType>,
@@ -113,6 +125,7 @@ export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
     'save',
     'addPoint',
     'addPath',
+    'addInitialPaths',
     'newPath',
     'deletePath',
     'endPath',
