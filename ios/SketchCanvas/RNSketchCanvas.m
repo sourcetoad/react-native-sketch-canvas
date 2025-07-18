@@ -8,7 +8,7 @@
 @implementation RNSketchCanvas
 {
     NSMutableArray *_paths;
-    NSMutableSet<NSNumber *> *_pathIds;
+    NSMutableSet<NSNumber *> *_pathIds; // O(1) lookup for duplicate detection optimization
     RNSketchData *_currentPath;
 
     CGSize _lastSize;
@@ -374,6 +374,7 @@
     }
 }
 
+// Performance optimization: Batch path addition with O(1) duplicate detection
 - (void) addPaths:(NSArray<RNSketchData *> *) pathsToAdd {
     if (!pathsToAdd || pathsToAdd.count == 0) {
         return;
@@ -395,14 +396,12 @@
     if (validPaths.count > 0) {
         [_paths addObjectsFromArray:validPaths];
         
+        // Performance optimization: Single UI update after batch processing
         _needsFullRedraw = YES;
         [self setNeedsDisplay];
         [self notifyPathsUpdate];
     }
     
-    NSTimeInterval processingTime = [[NSDate date] timeIntervalSinceDate:startTime] * 1000.0;
-    NSLog(@"[iOS Performance] addPaths processed %lu paths in %.2fms (%.2fms per path)",
-          (unsigned long)pathsToAdd.count, processingTime, processingTime / pathsToAdd.count);
 }
 
 - (void)deletePath:(int) pathId {

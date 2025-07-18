@@ -36,7 +36,7 @@ class CanvasText {
 
 class SketchCanvas(context: ThemedReactContext) : View(context) {
     private val mPaths = ArrayList<SketchData>()
-    private val mPathIds = HashSet<Int>()
+    private val mPathIds = HashSet<Int>() // O(1) lookup for duplicate detection optimization
     private var mCurrentPath: SketchData? = null
     private val mContext: ThemedReactContext = context
     private var mDisableHardwareAccelerated = false
@@ -292,10 +292,7 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
     }
 
     fun addInitialPaths(pathsArray: ReadableArray?) {
-        val startTime = System.currentTimeMillis()
-        Log.d("SketchCanvas", "addInitialPaths called with pathsArray: ${pathsArray?.size()} paths")
         if (pathsArray == null) {
-            Log.d("SketchCanvas", "pathsArray is null, returning early")
             return
         }
 
@@ -308,7 +305,7 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
             if (pathData != null) {
                 val sketchData = convertReadableMapToSketchData(pathData)
                 if (sketchData != null) {
-                    // Check if this path already exists using O(1) HashSet lookup
+                    // Performance optimization: O(1) duplicate detection instead of O(n) linear search
                     if (!mPathIds.contains(sketchData.id)) {
                         pathsToAdd.add(sketchData)
                         if (sketchData.strokeColor == Color.TRANSPARENT) {
@@ -331,8 +328,8 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
             mPathIds.add(path.id)
         }
 
-        // Single canvas invalidation after all paths are processed
-        // Using mNeedsFullRedraw flag to batch all canvas operations
+        // Performance optimization: Batch canvas operations instead of individual draws
+        // Single invalidation with mNeedsFullRedraw flag reduces GPU operations
         if (pathsToAdd.isNotEmpty()) {
             mNeedsFullRedraw = true
             invalidateCanvas(true)
@@ -341,11 +338,6 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         // Dispatch onInitialPathsLoaded event with the count of successfully loaded paths
         val surfaceId = UIManagerHelper.getSurfaceId(mContext)
         val parentViewId = getParentViewId()
-        val processingTime = System.currentTimeMillis() - startTime
-        Log.d(
-            "SketchCanvas",
-            "✅ addInitialPaths completed: ${pathsToAdd.size} paths processed in ${processingTime}ms (avg ${processingTime.toDouble() / pathsToAdd.size.coerceAtLeast(1)}ms per path)"
-        )
         UIManagerHelper.getEventDispatcherForReactTag(mContext, parentViewId)
             ?.dispatchEvent(
                 OnInitialPathsLoadedEvent(surfaceId, parentViewId, pathsToAdd.size)

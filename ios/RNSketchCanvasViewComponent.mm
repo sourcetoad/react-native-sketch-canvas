@@ -302,12 +302,9 @@ using namespace facebook::react;
     
     NSTimeInterval parsingTime = [[NSDate date] timeIntervalSinceDate:startTime] * 1000.0;
     
-    // Use batch method to add all paths at once
+    // Performance optimization: Use batch method instead of individual addPath calls
     [(RNSketchCanvas *)_view addPaths:validPaths];
     
-    NSTimeInterval totalTime = [[NSDate date] timeIntervalSinceDate:startTime] * 1000.0;
-    NSLog(@"[iOS Performance] addInitialPaths processed %lu paths in %.2fms (parsing: %.2fms, batch: %.2fms)",
-          (unsigned long)pathsArray.count, totalTime, parsingTime, totalTime - parsingTime);
     
     // Emit onInitialPathsLoaded event with the count of successfully loaded paths
     RNTSketchCanvasEventEmitter::OnInitialPathsLoaded result{

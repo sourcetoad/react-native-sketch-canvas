@@ -252,16 +252,6 @@ export default class example extends Component<any, ExampleState> {
         testData = [...testPath1, ...testPath1]; // Duplicate paths
         description = 'Duplicate paths test';
         break;
-      case 'invalid':
-        testData = [
-          // @ts-ignore - intentionally invalid data for testing
-          { path: null, size: { width: 100, height: 100 } },
-          // @ts-ignore - intentionally invalid data for testing
-          { path: { id: 'invalid', color: 'red' }, size: null },
-          ...testPath1.slice(0, 1), // Add one valid path
-        ];
-        description = 'Invalid data test';
-        break;
     }
 
     const startLog = `🧪 API Edge Case Test Started\nType: ${description}\nDataset: ${testData.length} paths\nPlatform: ${Platform.OS}\nStarted at: ${new Date().toISOString()}\n`;
@@ -1301,14 +1291,6 @@ export default class example extends Component<any, ExampleState> {
                 onPress={() => this.testEdgeCase('duplicates')}
               >
                 <Text style={{ color: 'white', fontSize: 12 }}>Duplicates</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.functionButton, { width: 120, marginRight: 5 }]}
-                onPress={() => this.testEdgeCase('invalid')}
-              >
-                <Text style={{ color: 'white', fontSize: 12 }}>
-                  Invalid Data
-                </Text>
               </TouchableOpacity>
             </View>
 
