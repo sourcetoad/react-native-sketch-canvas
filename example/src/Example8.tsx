@@ -12,6 +12,7 @@ import RNSketchCanvas from '@sourcetoad/react-native-sketch-canvas';
 import type { Path } from '@sourcetoad/react-native-sketch-canvas';
 
 type Example8State = {
+  shouldRenderCanvas: boolean;
   performanceResults: string;
   testKey: number;
   currentTestData: Path[];
@@ -120,6 +121,7 @@ export default class Example8 extends Component<Example8Props, Example8State> {
     super(props);
 
     this.state = {
+      shouldRenderCanvas: true,
       performanceResults: '',
       testKey: 0,
       currentTestData: [],
@@ -153,12 +155,18 @@ export default class Example8 extends Component<Example8Props, Example8State> {
 
     const startLog = `🧪 API Edge Case Test Started\nType: ${description}\nDataset: ${testData.length} paths\nPlatform: ${Platform.OS}\nStarted at: ${new Date().toISOString()}\n`;
 
-    // Force complete re-render by updating state
     this.setState({
-      performanceResults: this.state.performanceResults + startLog,
-      testKey: Date.now(),
-      currentTestData: testData,
+      shouldRenderCanvas: false,
     });
+
+    setTimeout(() => {
+      this.setState({
+        shouldRenderCanvas: true,
+        performanceResults: this.state.performanceResults + startLog,
+        testKey: Date.now(),
+        currentTestData: testData,
+      });
+    }, 0);
   };
 
   render() {
