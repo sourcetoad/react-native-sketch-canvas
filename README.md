@@ -25,14 +25,14 @@ A React Native component for drawing by touching on both iOS and Android, with T
 - Can draw multiple multiline text on canvas
 - Support for custom UI components
 - Permission handling for Android image saving
-- **Initial paths loading with native batch processing for optimal performance**
-- **Real-time path loading feedback with onInitialPathsLoaded callback**
+- Initial paths loading with native batch processing for optimal performance
+- Real-time path loading feedback with onInitialPathsLoaded callback
 
 ## Installation
 
 ---
 
-Install from `yarn` (only support RN >= 0.40)
+Install from `yarn` (RN >= 0.79)
 
 ```bash
 yarn install @sourcetoad/react-native-sketch-canvas
@@ -101,8 +101,8 @@ AppRegistry.registerComponent('example', () => Example);
 | permissionDialogMessage |  `string`  | Android Only: Provide a Dialog Message for the Image Saving PermissionDialog. Defaults to empty string if not set                                                                                                                                                                                                                           |
 | onGenerateBase64        | `function` | An optional function which accepts 1 argument `result` containing the base64 string of the canvas. Called when `getBase64()` is invoked.                                                                                                                                                                                                    |
 | onCanvasReady           | `function` | An optional function called when the canvas is ready for interaction.                                                                                                                                                                                                                                                                       |
-| initialPaths            |  `array`   | Array of paths to load into the canvas when it becomes ready. Uses native batch processing for optimal performance. Each path should follow the [Path object](#objects) format.                                                                                                                                                            |
-| onInitialPathsLoaded    | `function` | An optional function which accepts 1 argument `eventData`. Called when `initialPaths` have been processed and loaded into the canvas. `eventData` is an object with `{ loadedCount: number }` property containing the number of paths successfully loaded. |
+| initialPaths            |  `array`   | Array of paths to load into the canvas when it becomes ready. Uses native batch processing for optimal performance. Each path should follow the [Path object](#objects) format.                                                                                                                                                             |
+| onInitialPathsLoaded    | `function` | An optional function which accepts 1 argument `eventData`. Called when `initialPaths` have been processed and loaded into the canvas. `eventData` is an object with `{ loadedCount: number }` property containing the number of paths successfully loaded.                                                                                  |
 
 #### Methods
 
@@ -117,7 +117,7 @@ AppRegistry.registerComponent('example', () => Example);
 | save(imageType, transparent, folder, filename, includeImage, cropToImageSize) | Save image to camera roll or filesystem. If `localSourceImage` is set and a background image is loaded successfully, set `includeImage` to true to include background image and set `cropToImageSize` to true to crop output image to background image.<br/>Android: Save image in `imageType` format with transparent background (if `transparent` sets to True) to **/sdcard/Pictures/`folder`/`filename`** (which is Environment.DIRECTORY_PICTURES).<br/>iOS: Save image in `imageType` format with transparent background (if `transparent` sets to True) to camera roll or file system. If `folder` and `filename` are set, image will save to **temporary directory/`folder`/`filename`** (which is NSTemporaryDirectory()) |
 | getPaths()                                                                    | Get the paths that drawn on the canvas                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | getBase64(imageType, transparent, includeImage, includeText, cropToImageSize) | Get the base64 string of the canvas. The result will be sent through the `onGenerateBase64` event handler. Parameters:<br/>- `imageType`: "png" or "jpg"<br/>- `transparent`: whether to include transparency<br/>- `includeImage`: whether to include background image<br/>- `includeText`: whether to include text<br/>- `cropToImageSize`: whether to crop to background image size                                                                                                                                                                                                                                                                                                                                             |
-| setInitialPaths(initialPaths) | Set initial paths to the canvas using native batch processing. This method is called automatically when the `initialPaths` prop is provided, but can also be called manually for dynamic path loading.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| setInitialPaths(initialPaths)                                                 | Set initial paths to the canvas using native batch processing. This method is called automatically when the `initialPaths` prop is provided, but can also be called manually for dynamic path loading.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 #### Constants
 
@@ -261,8 +261,8 @@ AppRegistry.registerComponent('example', () => Example);
 | savePreference          | `function`  | A function which is called when saving image and should return an object (see [below](#objects)).                                                                                                                                                                                                                                                 |
 | onSketchSaved           | `function`  | See [above](#properties)                                                                                                                                                                                                                                                                                                                          |
 | onCanvasReady           | `function`  | An optional function called when the canvas is ready for interaction.                                                                                                                                                                                                                                                                             |
-| initialPaths            |  `array`   | Array of paths to load into the canvas when it becomes ready. Uses native batch processing for optimal performance. Each path should follow the [Path object](#objects) format.                                                                                                                                                            |
-| onInitialPathsLoaded    | `function` | An optional function which accepts 1 argument `eventData`. Called when `initialPaths` have been processed and loaded into the canvas. `eventData` is an object with `{ loadedCount: number }` property containing the number of paths successfully loaded. |
+| initialPaths            |   `array`   | Array of paths to load into the canvas when it becomes ready. Uses native batch processing for optimal performance. Each path should follow the [Path object](#objects) format.                                                                                                                                                                   |
+| onInitialPathsLoaded    | `function`  | An optional function which accepts 1 argument `eventData`. Called when `initialPaths` have been processed and loaded into the canvas. `eventData` is an object with `{ loadedCount: number }` property containing the number of paths successfully loaded.                                                                                        |
 
 #### Methods
 
@@ -291,7 +291,7 @@ AppRegistry.registerComponent('example', () => Example);
 
 ---
 
-To use an image as background, `localSourceImage`(see [below](#background-image)) reqires an object, which consists of `filename`, `directory`(optional) and `mode`(optional). <br/>
+To use an image as background, `localSourceImage`(see [below](#background-image)) requires an object, which consists of `filename`, `directory`(optional) and `mode`(optional). <br/>
 Note: Because native module cannot read the file in JS bundle, file path cannot be relative to JS side. For example, '../assets/image/image.png' will fail to load image.
 
 ### Typical Usage
@@ -323,7 +323,7 @@ Note: Because native module cannot read the file in JS bundle, file path cannot 
 
 ---
 
-The `initialPaths` prop allows you to pre-load paths into the canvas when it becomes ready. This feature uses native batch processing for optimal performance, making it ideal for loading saved sketches or collaborative drawing sessions.
+The `initialPaths` prop allows you to preload paths into the canvas when it becomes ready. This feature uses native batch processing for optimal performance, making it ideal for loading saved sketches or collaborative drawing sessions.
 
 ### Usage
 
@@ -368,19 +368,6 @@ export default function Example() {
 }
 ```
 
-### Performance Benefits
-
-- **Batch Processing**: Paths are loaded in a single native operation instead of individual calls
-- **Optimized Rendering**: Native layer handles path scaling and coordinate conversion efficiently
-- **Memory Efficient**: Reduces JavaScript bridge overhead for large path datasets
-
-### Use Cases
-
-- **Saved Sketches**: Restore previously saved drawings
-- **Collaborative Drawing**: Load paths from other users in real-time
-- **Template Loading**: Pre-populate canvas with template drawings
-- **Undo/Redo**: Efficiently restore canvas state
-
 ### Event Handling
 
 The `onInitialPathsLoaded` callback provides feedback when initial paths have been processed:
@@ -388,7 +375,7 @@ The `onInitialPathsLoaded` callback provides feedback when initial paths have be
 ```tsx
 onInitialPathsLoaded={(eventData) => {
   const loadedCount = eventData.loadedCount || 0;
-  
+
   if (loadedCount > 0) {
     console.log(`Successfully loaded ${loadedCount} paths`);
   } else {
@@ -500,11 +487,6 @@ onInitialPathsLoaded={(eventData) => {
 The source code includes 9 examples, using built-in UI components, using with only canvas, sync between two canvases, and performance testing with initial paths loading.
 
 Check full example app in the [example](./example) folder
-
-### New Examples
-
-- **Example 8**: API consistency testing for initial paths loading with various edge cases
-- **Example 9**: Performance testing suite for large datasets using the new `initialPaths` feature
 
 ### Jest Setup
 
