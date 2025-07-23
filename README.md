@@ -130,7 +130,7 @@ AppRegistry.registerComponent('example', () => Example);
 | LIBRARY     | Android: empty string, '' <br/>iOS: equivalent to NSLibraryDirectory                 |
 | CACHES      | Android: empty string, '' <br/>iOS: equivalent to NSCachesDirectory                  |
 
-### ● Using with build-in UI components
+### ● Using with built-in UI components
 
 <img src="https://i.imgur.com/O0vVdD6.png" height="400" />
 
@@ -497,7 +497,7 @@ onInitialPathsLoaded={(eventData) => {
 
 ---
 
-The source code includes 9 examples, using build-in UI components, using with only canvas, sync between two canvases, and performance testing with initial paths loading.
+The source code includes 9 examples, using built-in UI components, using with only canvas, sync between two canvases, and performance testing with initial paths loading.
 
 Check full example app in the [example](./example) folder
 
