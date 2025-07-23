@@ -8,6 +8,7 @@
 @implementation RNSketchCanvas
 {
     NSMutableArray *_paths;
+    NSMutableSet<NSNumber *> *_pathIds; // O(1) lookup for duplicate detection optimization
     RNSketchData *_currentPath;
 
     CGSize _lastSize;
@@ -27,6 +28,7 @@
 - (instancetype)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
         _paths = [NSMutableArray new];
+        _pathIds = [NSMutableSet new];
         _needsFullRedraw = YES;
         _canvasIsReady = NO;
 
@@ -61,7 +63,9 @@
     _arrTextOnSketch = nil;
     _arrSketchOnText = nil;
     [_paths removeAllObjects];
+    [_pathIds removeAllObjects];
     _paths = nil;
+    _pathIds = nil;
     _currentPath = nil;
     _lastSize = CGSizeZero;
     _canvasIsReady = NO;
@@ -352,28 +356,52 @@
                     strokeColor: strokeColor
                     strokeWidth: strokeWidth];
     [_paths addObject: _currentPath];
+    [_pathIds addObject:@(pathId)];
 }
 
 - (void) addPath:(int) pathId strokeColor:(UIColor*) strokeColor strokeWidth:(int) strokeWidth points:(NSArray*) points {
-    bool exist = false;
-    for(int i=0; i<_paths.count; i++) {
-        if (((RNSketchData*)_paths[i]).pathId == pathId) {
-            exist = true;
-            break;
-        }
-    }
-    
-    if (!exist) {
+    if (![_pathIds containsObject:@(pathId)]) {
         RNSketchData *data = [[RNSketchData alloc] initWithId: pathId
                                                   strokeColor: strokeColor
                                                   strokeWidth: strokeWidth
                                                        points: points];
         [_paths addObject: data];
+        [_pathIds addObject:@(pathId)];
         [data drawInContext:_drawingContext];
         [self setFrozenImageNeedsUpdate];
         [self setNeedsDisplay];
         [self notifyPathsUpdate];
     }
+}
+
+// Performance optimization: Batch path addition with O(1) duplicate detection
+- (void) addPaths:(NSArray<RNSketchData *> *) pathsToAdd {
+    if (!pathsToAdd || pathsToAdd.count == 0) {
+        return;
+    }
+    
+    NSDate *startTime = [NSDate date];
+    
+    NSMutableArray *validPaths = [NSMutableArray new];
+    
+    for (RNSketchData *data in pathsToAdd) {
+        @autoreleasepool {
+            if (![_pathIds containsObject:@(data.pathId)]) {
+                [validPaths addObject:data];
+                [_pathIds addObject:@(data.pathId)];
+            }
+        }
+    }
+    
+    if (validPaths.count > 0) {
+        [_paths addObjectsFromArray:validPaths];
+        
+        // Performance optimization: Single UI update after batch processing
+        _needsFullRedraw = YES;
+        [self setNeedsDisplay];
+        [self notifyPathsUpdate];
+    }
+    
 }
 
 - (void)deletePath:(int) pathId {
@@ -387,6 +415,7 @@
     
     if (index > -1) {
         [_paths removeObjectAtIndex: index];
+        [_pathIds removeObject:@(pathId)];
         _needsFullRedraw = YES;
         [self setNeedsDisplay];
         [self notifyPathsUpdate];
@@ -417,6 +446,7 @@
 
 - (void) clear {
     [_paths removeAllObjects];
+    [_pathIds removeAllObjects];
     _currentPath = nil;
     _needsFullRedraw = YES;
     [self setNeedsDisplay];

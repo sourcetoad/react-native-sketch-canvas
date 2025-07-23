@@ -72,6 +72,12 @@ export interface SketchCanvasProps {
   touchEnabled?: boolean;
 
   /**
+   * Array of paths to load into the canvas when it becomes ready.
+   * Uses native batch processing for optimal performance.
+   */
+  initialPaths?: Path[];
+
+  /**
    * Android Only: Provide a Dialog Title for the Image Saving PermissionDialog. Defaults to empty string if not set
    */
   permissionDialogTitle?: string;
@@ -88,6 +94,11 @@ export interface SketchCanvasProps {
   onGenerateBase64?: (result: { base64: string }) => void;
   onPathsChange?: (pathsCount: number) => void;
   onCanvasReady?: () => void;
+  /**
+   * Callback fired when initial paths have been loaded into the canvas.
+   * @param loadedCount Number of paths successfully loaded
+   */
+  onInitialPathsLoaded?: (loadedCount: number) => void;
 
   getBase64?: (
     imageType: ImageType,
@@ -134,6 +145,12 @@ export interface RNSketchCanvasProps {
   alphlaValues: string[];
 
   /**
+   * Array of paths to load into the canvas when it becomes ready.
+   * Uses native batch processing for optimal performance.
+   */
+  initialPaths?: Path[];
+
+  /**
    * @param imageType "png" or "jpg"
    * @param includeImage default true
    * @param cropToImageSize default false
@@ -150,6 +167,11 @@ export interface RNSketchCanvasProps {
   onSketchSaved?: (result: boolean, path: string) => void;
   onGenerateBase64?: (result: { base64: string }) => void;
   onCanvasReady?: () => void;
+  /**
+   * Callback fired when initial paths have been loaded into the canvas.
+   * @param loadedCount Number of paths successfully loaded
+   */
+  onInitialPathsLoaded?: (loadedCount: number) => void;
 
   text?: CanvasText[];
   /**

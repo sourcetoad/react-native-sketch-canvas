@@ -1,5 +1,7 @@
 #import <UIKit/UIKit.h>
 
+@class RNSketchData;
+
 @protocol RNSketchCanvasEventDelegate <NSObject>
 - (void)handleEvent:(NSDictionary *)eventData;
 @end
@@ -11,6 +13,7 @@
 - (void)setCanvasText:(NSArray *)text;
 - (void)newPath:(int) pathId strokeColor:(UIColor*) strokeColor strokeWidth:(int) strokeWidth;
 - (void)addPath:(int) pathId strokeColor:(UIColor*) strokeColor strokeWidth:(int) strokeWidth points:(NSArray*) points;
+- (void)addPaths:(NSArray<RNSketchData *> *) pathsToAdd;
 - (void)deletePath:(int) pathId;
 - (void)addPointX: (float)x Y: (float)y;
 - (void)endPath;

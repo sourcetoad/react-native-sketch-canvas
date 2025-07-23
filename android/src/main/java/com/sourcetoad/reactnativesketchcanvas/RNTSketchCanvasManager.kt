@@ -12,6 +12,10 @@ import com.facebook.react.uimanager.ViewManagerDelegate
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.RNTSketchCanvasManagerDelegate
 import com.facebook.react.viewmanagers.RNTSketchCanvasManagerInterface
+import com.sourcetoad.reactnativesketchcanvas.event.OnCanvasReadyEvent
+import com.sourcetoad.reactnativesketchcanvas.event.OnChangeEvent
+import com.sourcetoad.reactnativesketchcanvas.event.OnGenerateBase64Event
+import com.sourcetoad.reactnativesketchcanvas.event.OnInitialPathsLoadedEvent
 
 
 @ReactModule(name = RNTSketchCanvasViewManager.NAME)
@@ -68,6 +72,11 @@ class RNTSketchCanvasViewManager :
             MapBuilder.of(
                 "registrationName",
                 "onCanvasReady"
+            ),
+            OnInitialPathsLoadedEvent.EVENT_NAME,
+            MapBuilder.of(
+                "registrationName",
+                "onInitialPathsLoaded"
             )
         )
     }
@@ -172,5 +181,9 @@ class RNTSketchCanvasViewManager :
     ) {
         view?.getSketchCanvas()
             ?.getBase64(imageType, transparent, includeImage, includeText, cropToImageSize)
+    }
+
+    override fun addInitialPaths(view: RNTSketchCanvasView?, pathsArray: ReadableArray?) {
+        view?.getSketchCanvas()?.addInitialPaths(pathsArray)
     }
 }

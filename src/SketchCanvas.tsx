@@ -248,6 +248,48 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     }
   }
 
+  setInitialPaths(initialPaths: Path[]) {
+    if (
+      !this._initialized ||
+      !this.ref.current ||
+      !initialPaths ||
+      initialPaths.length === 0
+    ) {
+      return;
+    }
+
+    // Convert paths to the format expected by native addInitialPaths command
+    const pathsArray = initialPaths.map((data: Path) => {
+      const pathData = data.path.data.map((p: any) => {
+        const coor = p.split(',').map((pp: any) => parseFloat(pp).toFixed(2));
+        return `${
+          (coor[0] * this._screenScale * this._size.width) / data.size.width
+        },${
+          (coor[1] * this._screenScale * this._size.height) / data.size.height
+        }`;
+      });
+
+      return {
+        pathId: data.path.id,
+        color: processColor(data.path.color) as number,
+        width: data.path.width ? data.path.width * this._screenScale : 0,
+        points: pathData,
+      };
+    });
+
+    // Add valid paths to internal tracking
+    initialPaths.forEach((data: Path) => {
+      if (
+        this._paths.filter((p: Path) => p.path.id === data.path.id).length === 0
+      ) {
+        this._paths.push(data);
+      }
+    });
+
+    // Call native batch operation
+    Commands.addInitialPaths(this.ref.current, pathsArray);
+  }
+
   deletePath(id: any) {
     this._paths = this._paths.filter((p) => p.path.id !== id);
 
@@ -333,6 +375,8 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
             height: e.nativeEvent.layout.height,
           };
           this._initialized = true;
+
+          // Handle any queued paths using individual operations
           this._pathsToProcess.length > 0 &&
             this._pathsToProcess.forEach((p) => this.addPath(p));
         }}
@@ -357,6 +401,14 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
         }}
         onCanvasReady={() => {
           this.props.onCanvasReady?.();
+
+          // Handle initial paths prop using batch operation
+          if (this.props.initialPaths && this.props.initialPaths.length > 0) {
+            this.setInitialPaths(this.props.initialPaths);
+          }
+        }}
+        onInitialPathsLoaded={(e: any) => {
+          this.props.onInitialPathsLoaded?.(e.nativeEvent || {});
         }}
         localSourceImage={this.props.localSourceImage}
         permissionDialogTitle={this.props.permissionDialogTitle}

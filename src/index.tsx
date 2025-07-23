@@ -323,6 +323,8 @@ export default class RNSketchCanvas extends React.Component<
           }
           onPathsChange={this.props.onPathsChange}
           onCanvasReady={this.props.onCanvasReady}
+          onInitialPathsLoaded={this.props.onInitialPathsLoaded}
+          initialPaths={this.props.initialPaths}
           text={this.props.text}
           localSourceImage={this.props.localSourceImage}
           permissionDialogTitle={this.props.permissionDialogTitle}
@@ -349,3 +351,17 @@ RNSketchCanvas.LIBRARY = SketchCanvas.LIBRARY;
 RNSketchCanvas.CACHES = SketchCanvas.CACHES;
 
 export { SketchCanvas };
+
+// Export all types for TypeScript consumers
+export type {
+  ImageType,
+  OnChangeEventType,
+  Size,
+  PathData,
+  Path,
+  CanvasText,
+  SavePreference,
+  LocalSourceImage,
+  SketchCanvasProps,
+  RNSketchCanvasProps,
+} from './types';
