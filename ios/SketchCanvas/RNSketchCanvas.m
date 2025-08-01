@@ -478,6 +478,11 @@
         CGContextDrawImage(context, targetRect, _frozenImage);
         CGContextDrawImage(context, targetRect, _translucentFrozenImage);
         
+        // Include current incomplete path in saved image
+        if (_currentPath) {
+            [_currentPath drawInContext:context];
+        }
+        
         if (includeText) {
             @autoreleasepool {
                 for (CanvasText *text in _arrTextOnSketch) {
@@ -513,6 +518,11 @@
         
         CGContextDrawImage(context, rect, _frozenImage);
         CGContextDrawImage(context, rect, _translucentFrozenImage);
+        
+        // Include current incomplete path in saved image
+        if (_currentPath) {
+            [_currentPath drawInContext:context];
+        }
         
         if (includeText) {
             for (CanvasText *text in _arrTextOnSketch) {
