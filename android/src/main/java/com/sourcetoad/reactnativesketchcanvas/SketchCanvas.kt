@@ -56,6 +56,7 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
     private val mArrTextOnSketch = ArrayList<CanvasText>()
     private val mArrSketchOnText = ArrayList<CanvasText>()
     private var mIsCanvasInitialized = false
+    private var mPendingImageLoad: java.util.concurrent.Future<*>? = null
 
     companion object {
         private const val MAX_BITMAP_WIDTH = 4096
@@ -69,32 +70,36 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         return parentView.id
     }
 
-    private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+    private fun calculateInSampleSize(
+        options: BitmapFactory.Options,
+        reqWidth: Int,
+        reqHeight: Int
+    ): Int {
         val height = options.outHeight
         val width = options.outWidth
-        
+
         if (height <= reqHeight && width <= reqWidth) {
             return 1
         }
-        
+
         // More efficient calculation - use the larger scale factor to ensure we stay within bounds
         val heightRatio = height / reqHeight
         val widthRatio = width / reqWidth
         val ratio = maxOf(heightRatio, widthRatio)
-        
+
         // Find the largest power of 2 that is <= ratio
         var inSampleSize = 1
         while (inSampleSize < ratio) {
             inSampleSize *= 2
         }
-        
+
         return inSampleSize
     }
 
     private fun isValidBitmapSize(width: Int, height: Int): Boolean {
         if (width <= 0 || height <= 0) return false
         if (width > MAX_BITMAP_WIDTH || height > MAX_BITMAP_HEIGHT) return false
-        
+
         val memoryBytes = width.toLong() * height.toLong() * 4 // ARGB_8888 = 4 bytes per pixel
         return memoryBytes <= MAX_BITMAP_MEMORY_BYTES
     }
@@ -165,26 +170,33 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
 
     fun openImageFile(filename: String?, directory: String?, mode: String?): Boolean {
         if (filename == null) return false
-        
-        // Start async loading immediately and return true to indicate loading started
-        imageLoadExecutor.execute {
+
+        // Cancel any existing pending load
+        mPendingImageLoad?.cancel(true)
+
+        // Start async loading and store the Future for cancellation
+        mPendingImageLoad = imageLoadExecutor.submit {
             loadImageAsync(filename, directory, mode)
         }
         return true
     }
-    
+
     private fun loadImageAsync(filename: String, directory: String?, mode: String?) {
         try {
-            val res = mContext.resources.getIdentifier(
-                if (filename.lastIndexOf('.') == -1) filename
-                else filename.substring(0, filename.lastIndexOf('.')),
-                "drawable",
-                mContext.packageName
-            )
-            
+            // Check if cancelled before starting expensive work
+            if (Thread.currentThread().isInterrupted) return
+
+            val res =
+                mContext.resources.getIdentifier(
+                    if (filename.lastIndexOf('.') == -1) filename
+                    else filename.substring(0, filename.lastIndexOf('.')),
+                    "drawable",
+                    mContext.packageName
+                )
+
             var bitmap: Bitmap? = null
             val startTime = System.currentTimeMillis()
-            
+
             if (res == 0) {
                 // Loading from file
                 bitmap = loadBitmapFromFile(filename, directory)
@@ -192,119 +204,149 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
                 // Loading from resources
                 bitmap = loadBitmapFromResource(res)
             }
-            
+
+            // Check cancellation again after bitmap loading
+            if (Thread.currentThread().isInterrupted) {
+                bitmap?.recycle()
+                return
+            }
+
             // Handle EXIF rotation if loading from file
             if (bitmap != null && res == 0) {
                 bitmap = applyExifRotation(bitmap, filename, directory)
             }
-            
+
+            // Final cancellation check before UI update
+            if (Thread.currentThread().isInterrupted) {
+                bitmap?.recycle()
+                return
+            }
+
             val loadTime = System.currentTimeMillis() - startTime
             Log.d("SketchCanvas", "Image loading completed in ${loadTime}ms")
-            
+
             // Update UI on main thread
             if (bitmap != null) {
                 post {
-                    mBackgroundImage = bitmap
-                    mOriginalHeight = bitmap.height
-                    mOriginalWidth = bitmap.width
-                    mContentMode = mode
-                    invalidateCanvas(true)
+                    // Double-check we weren't cancelled while posting to main thread
+                    if (mPendingImageLoad?.isCancelled != true) {
+                        mBackgroundImage = bitmap
+                        mOriginalHeight = bitmap.height
+                        mOriginalWidth = bitmap.width
+                        mContentMode = mode
+                        invalidateCanvas(true)
+                    } else {
+                        // Clean up if cancelled
+                        bitmap.recycle()
+                    }
                 }
             }
         } catch (e: Exception) {
             Log.e("SketchCanvas", "Failed to load image: ${e.message}")
         }
     }
-    
+
     private fun loadBitmapFromFile(filename: String, directory: String?): Bitmap? {
         val originalFilepath = getOriginalFilepath(filename)
         val file = File(originalFilepath, directory ?: "")
-        
+
         // First pass: get dimensions without loading full bitmap
         val bounds = BitmapFactory.Options()
         bounds.inJustDecodeBounds = true
         BitmapFactory.decodeFile(file.toString(), bounds)
-        
+
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
             return null
         }
-        
+
         // Calculate appropriate sample size
         val sampleSize = calculateInSampleSize(bounds, MAX_BITMAP_WIDTH, MAX_BITMAP_HEIGHT)
-        
+
         // Determine if image has alpha channel
-        val hasAlpha = bounds.outMimeType?.let { 
-            it.equals("image/png", ignoreCase = true) || 
-            it.equals("image/gif", ignoreCase = true) 
-        } ?: false
-        
+        val hasAlpha =
+            bounds.outMimeType?.let {
+                it.equals("image/png", ignoreCase = true) || it.equals(
+                    "image/gif",
+                    ignoreCase = true
+                )
+            }
+                ?: false
+
         // Second pass: load the downsampled bitmap with optimal config
         val options = BitmapFactory.Options()
         options.inSampleSize = sampleSize
         options.inPreferredConfig = getOptimalBitmapConfig(hasAlpha)
         options.inTempStorage = ByteArray(16 * 1024) // 16KB temp storage for better performance
-        
+
         val bitmap = BitmapFactory.decodeFile(file.toString(), options)
-        
+
         if (bitmap != null) {
-            Log.d("SketchCanvas", "Loaded file bitmap: original=${bounds.outWidth}x${bounds.outHeight}, " +
-                "downsampled=${bitmap.width}x${bitmap.height}, sampleSize=$sampleSize, " +
-                "config=${bitmap.config}, memory=${bitmap.byteCount / 1024}KB")
+            Log.d(
+                "SketchCanvas",
+                "Loaded file bitmap: original=${bounds.outWidth}x${bounds.outHeight}, " +
+                        "downsampled=${bitmap.width}x${bitmap.height}, sampleSize=$sampleSize, " +
+                        "config=${bitmap.config}, memory=${bitmap.byteCount / 1024}KB"
+            )
         }
-        
+
         return bitmap
     }
-    
+
     private fun loadBitmapFromResource(resId: Int): Bitmap? {
         // First pass: get dimensions
         val bounds = BitmapFactory.Options()
         bounds.inJustDecodeBounds = true
         BitmapFactory.decodeResource(mContext.resources, resId, bounds)
-        
+
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
             return null
         }
-        
+
         val sampleSize = calculateInSampleSize(bounds, MAX_BITMAP_WIDTH, MAX_BITMAP_HEIGHT)
-        
+
         // Resources are typically PNG with alpha
         val options = BitmapFactory.Options()
         options.inSampleSize = sampleSize
         options.inPreferredConfig = getOptimalBitmapConfig(true)
         options.inTempStorage = ByteArray(16 * 1024)
-        
+
         val bitmap = BitmapFactory.decodeResource(mContext.resources, resId, options)
-        
+
         if (bitmap != null) {
-            Log.d("SketchCanvas", "Loaded resource bitmap: original=${bounds.outWidth}x${bounds.outHeight}, " +
-                "downsampled=${bitmap.width}x${bitmap.height}, sampleSize=$sampleSize, " +
-                "config=${bitmap.config}, memory=${bitmap.byteCount / 1024}KB")
+            Log.d(
+                "SketchCanvas",
+                "Loaded resource bitmap: original=${bounds.outWidth}x${bounds.outHeight}, " +
+                        "downsampled=${bitmap.width}x${bitmap.height}, sampleSize=$sampleSize, " +
+                        "config=${bitmap.config}, memory=${bitmap.byteCount / 1024}KB"
+            )
         }
-        
+
         return bitmap
     }
-    
+
     private fun applyExifRotation(bitmap: Bitmap, filename: String, directory: String?): Bitmap {
         return try {
             val originalFilepath = getOriginalFilepath(filename)
             val file = File(originalFilepath, directory ?: "")
             val exif = ExifInterface(file.absolutePath)
             val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1)
-            
+
             when (orientation) {
                 ExifInterface.ORIENTATION_ROTATE_90,
                 ExifInterface.ORIENTATION_ROTATE_180,
                 ExifInterface.ORIENTATION_ROTATE_270 -> {
                     val matrix = Matrix()
-                    val degrees = when (orientation) {
-                        ExifInterface.ORIENTATION_ROTATE_90 -> 90f
-                        ExifInterface.ORIENTATION_ROTATE_180 -> 180f
-                        ExifInterface.ORIENTATION_ROTATE_270 -> 270f
-                        else -> 0f
-                    }
+                    val degrees =
+                        when (orientation) {
+                            ExifInterface.ORIENTATION_ROTATE_90 -> 90f
+                            ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+                            ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+                            else -> 0f
+                        }
                     matrix.postRotate(degrees)
-                    
-                    val rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+
+                    val rotatedBitmap =
+                        Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
                     if (rotatedBitmap != bitmap) {
                         bitmap.recycle()
                         Log.d("SketchCanvas", "Applied EXIF rotation: ${degrees}°")
@@ -313,6 +355,7 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
                         bitmap
                     }
                 }
+
                 else -> bitmap
             }
         } catch (e: Exception) {
@@ -528,9 +571,7 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         val surfaceId = UIManagerHelper.getSurfaceId(mContext)
         val parentViewId = getParentViewId()
         UIManagerHelper.getEventDispatcherForReactTag(mContext, parentViewId)
-            ?.dispatchEvent(
-                OnInitialPathsLoadedEvent(surfaceId, parentViewId, pathsToAdd.size)
-            )
+            ?.dispatchEvent(OnInitialPathsLoadedEvent(surfaceId, parentViewId, pathsToAdd.size))
     }
 
     private fun convertReadableMapToSketchData(pathData: ReadableMap): SketchData? {
@@ -701,16 +742,21 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         if (width > 0 && height > 0) {
             // Validate and adjust dimensions to prevent oversized bitmaps
             val (validWidth, validHeight) = getValidatedDimensions(width, height)
-            
+
             if (validWidth != width || validHeight != height) {
-                Log.w("SketchCanvas", "Canvas size adjusted from ${width}x${height} to ${validWidth}x${validHeight} " +
-                    "to prevent memory issues")
+                Log.w(
+                    "SketchCanvas",
+                    "Canvas size adjusted from ${width}x${height} to ${validWidth}x${validHeight} " +
+                            "to prevent memory issues"
+                )
             }
-            
+
             try {
-                mDrawingBitmap = Bitmap.createBitmap(validWidth, validHeight, Bitmap.Config.ARGB_8888)
+                mDrawingBitmap =
+                    Bitmap.createBitmap(validWidth, validHeight, Bitmap.Config.ARGB_8888)
                 mDrawingCanvas = Canvas(mDrawingBitmap!!)
-                mTranslucentDrawingBitmap = Bitmap.createBitmap(validWidth, validHeight, Bitmap.Config.ARGB_8888)
+                mTranslucentDrawingBitmap =
+                    Bitmap.createBitmap(validWidth, validHeight, Bitmap.Config.ARGB_8888)
                 mTranslucentDrawingCanvas = Canvas(mTranslucentDrawingBitmap!!)
             } catch (e: OutOfMemoryError) {
                 Log.e("SketchCanvas", "Failed to create drawing bitmaps: ${e.message}")
@@ -718,13 +764,18 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
                 val fallbackWidth = validWidth / 2
                 val fallbackHeight = validHeight / 2
                 try {
-                    mDrawingBitmap = Bitmap.createBitmap(fallbackWidth, fallbackHeight, Bitmap.Config.ARGB_8888)
+                    mDrawingBitmap =
+                        Bitmap.createBitmap(fallbackWidth, fallbackHeight, Bitmap.Config.ARGB_8888)
                     mDrawingCanvas = Canvas(mDrawingBitmap!!)
-                    mTranslucentDrawingBitmap = Bitmap.createBitmap(fallbackWidth, fallbackHeight, Bitmap.Config.ARGB_8888)
+                    mTranslucentDrawingBitmap =
+                        Bitmap.createBitmap(fallbackWidth, fallbackHeight, Bitmap.Config.ARGB_8888)
                     mTranslucentDrawingCanvas = Canvas(mTranslucentDrawingBitmap!!)
                     Log.i("SketchCanvas", "Using fallback size: ${fallbackWidth}x${fallbackHeight}")
                 } catch (e2: OutOfMemoryError) {
-                    Log.e("SketchCanvas", "Failed to create fallback bitmaps, canvas will not work properly")
+                    Log.e(
+                        "SketchCanvas",
+                        "Failed to create fallback bitmaps, canvas will not work properly"
+                    )
                     return
                 }
             }
@@ -832,31 +883,39 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
     ): Bitmap {
         // Determine target dimensions
         val targetWidth = if (mBackgroundImage != null && cropToImageSize) mOriginalWidth else width
-        val targetHeight = if (mBackgroundImage != null && cropToImageSize) mOriginalHeight else height
-        
+        val targetHeight =
+            if (mBackgroundImage != null && cropToImageSize) mOriginalHeight else height
+
         // Validate and adjust dimensions to prevent oversized bitmaps
         val (validWidth, validHeight) = getValidatedDimensions(targetWidth, targetHeight)
-        
+
         if (validWidth != targetWidth || validHeight != targetHeight) {
-            Log.w("SketchCanvas", "Output image size adjusted from ${targetWidth}x${targetHeight} to ${validWidth}x${validHeight} " +
-                "to prevent memory issues")
+            Log.w(
+                "SketchCanvas",
+                "Output image size adjusted from ${targetWidth}x${targetHeight} to ${validWidth}x${validHeight} " +
+                        "to prevent memory issues"
+            )
         }
-        
-        val bitmap = try {
-            Bitmap.createBitmap(validWidth, validHeight, Bitmap.Config.ARGB_8888)
-        } catch (e: OutOfMemoryError) {
-            Log.e("SketchCanvas", "Failed to create output bitmap: ${e.message}")
-            // Try with smaller fallback dimensions
-            val fallbackWidth = validWidth / 2
-            val fallbackHeight = validHeight / 2
+
+        val bitmap =
             try {
-                Log.i("SketchCanvas", "Using fallback output size: ${fallbackWidth}x${fallbackHeight}")
-                Bitmap.createBitmap(fallbackWidth, fallbackHeight, Bitmap.Config.ARGB_8888)
-            } catch (e2: OutOfMemoryError) {
-                Log.e("SketchCanvas", "Failed to create fallback bitmap, using minimal size")
-                Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+                Bitmap.createBitmap(validWidth, validHeight, Bitmap.Config.ARGB_8888)
+            } catch (e: OutOfMemoryError) {
+                Log.e("SketchCanvas", "Failed to create output bitmap: ${e.message}")
+                // Try with smaller fallback dimensions
+                val fallbackWidth = validWidth / 2
+                val fallbackHeight = validHeight / 2
+                try {
+                    Log.i(
+                        "SketchCanvas",
+                        "Using fallback output size: ${fallbackWidth}x${fallbackHeight}"
+                    )
+                    Bitmap.createBitmap(fallbackWidth, fallbackHeight, Bitmap.Config.ARGB_8888)
+                } catch (e2: OutOfMemoryError) {
+                    Log.e("SketchCanvas", "Failed to create fallback bitmap, using minimal size")
+                    Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+                }
             }
-        }
         val canvas = Canvas(bitmap)
         canvas.drawARGB(if (transparent) 0 else 255, 255, 255, 255)
         if (mBackgroundImage != null && includeImage) {
@@ -906,5 +965,38 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
             }
         }
         return bitmap
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+
+        // log the cleanup process
+        Log.d("SketchCanvas", "Cleaning up resources on detached from window")
+
+        // Cancel any pending image loads
+        mPendingImageLoad?.cancel(true)
+        mPendingImageLoad = null
+
+        // Explicitly recycle large bitmaps to free memory immediately
+        mBackgroundImage?.let { bitmap ->
+            if (!bitmap.isRecycled) {
+                bitmap.recycle()
+            }
+        }
+        mBackgroundImage = null
+
+        mDrawingBitmap?.let { bitmap ->
+            if (!bitmap.isRecycled) {
+                bitmap.recycle()
+            }
+        }
+        mDrawingBitmap = null
+
+        mTranslucentDrawingBitmap?.let { bitmap ->
+            if (!bitmap.isRecycled) {
+                bitmap.recycle()
+            }
+        }
+        mTranslucentDrawingBitmap = null
     }
 }
