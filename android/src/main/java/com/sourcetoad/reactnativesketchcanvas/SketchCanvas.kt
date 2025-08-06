@@ -752,6 +752,18 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
             }
 
             try {
+                // Clean up existing bitmaps before creating new ones to prevent memory leaks
+                mDrawingBitmap?.let { bitmap ->
+                    if (!bitmap.isRecycled) {
+                        bitmap.recycle()
+                    }
+                }
+                mTranslucentDrawingBitmap?.let { bitmap ->
+                    if (!bitmap.isRecycled) {
+                        bitmap.recycle()
+                    }
+                }
+
                 mDrawingBitmap =
                     Bitmap.createBitmap(validWidth, validHeight, Bitmap.Config.ARGB_8888)
                 mDrawingCanvas = Canvas(mDrawingBitmap!!)
@@ -967,15 +979,17 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         return bitmap
     }
 
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-
-        // log the cleanup process
-        Log.d("SketchCanvas", "Cleaning up resources on detached from window")
-
+    private fun cleanupResources() {
         // Cancel any pending image loads
         mPendingImageLoad?.cancel(true)
         mPendingImageLoad = null
+
+        // Clear collections to release references
+        mPaths.clear()
+        mPathIds.clear()
+        mArrCanvasText.clear()
+        mArrTextOnSketch.clear()
+        mArrSketchOnText.clear()
 
         // Explicitly recycle large bitmaps to free memory immediately
         mBackgroundImage?.let { bitmap ->
@@ -998,5 +1012,17 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
             }
         }
         mTranslucentDrawingBitmap = null
+
+        // Null out Canvas references to prevent memory leaks
+        mDrawingCanvas = null
+        mTranslucentDrawingCanvas = null
+
+        // Reset current path reference
+        mCurrentPath = null
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        cleanupResources()
     }
 }
