@@ -156,25 +156,11 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
         }
       },
       onPanResponderRelease: (_evt, _gestureState) => {
-        if (!this.props.touchEnabled) {
-          return;
-        }
-        if (this._path) {
-          this.props.onStrokeEnd?.({
-            path: this._path,
-            size: this._size,
-            drawer: this.props.user,
-          });
-          this._paths.push({
-            path: this._path,
-            size: this._size,
-            drawer: this.props.user,
-          });
-        }
+        this._handleStrokeEnd();
+      },
 
-        if (this.ref.current) {
-          Commands.endPath(this.ref.current);
-        }
+      onPanResponderTerminate: (_evt, _gestureState) => {
+        this._handleStrokeEnd();
       },
 
       onShouldBlockNativeResponder: (_evt, _gestureState) => {
@@ -182,6 +168,29 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
       },
     });
   }
+
+  _handleStrokeEnd = () => {
+    if (!this.props.touchEnabled) {
+      return;
+    }
+
+    if (this._path) {
+      this.props.onStrokeEnd?.({
+        path: this._path,
+        size: this._size,
+        drawer: this.props.user,
+      });
+      this._paths.push({
+        path: this._path,
+        size: this._size,
+        drawer: this.props.user,
+      });
+    }
+
+    if (this.ref.current) {
+      Commands.endPath(this.ref.current);
+    }
+  };
 
   _processText(text: any) {
     text &&
