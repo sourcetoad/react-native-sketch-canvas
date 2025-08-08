@@ -720,7 +720,7 @@ export default class example extends Component<any, ExampleState> {
           <View style={{ flex: 1, flexDirection: 'row' }}>
             <RNSketchCanvas
               localSourceImage={{
-                filename: 'bigimage.jpg',
+                filename: 'very_big_image.jpg',
                 directory: SketchCanvas.MAIN_BUNDLE,
                 mode: 'AspectFit',
               }}
