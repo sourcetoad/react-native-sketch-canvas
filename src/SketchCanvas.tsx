@@ -83,6 +83,9 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
       onStartShouldSetPanResponderCapture: (_evt, _gestureState) => true,
       onMoveShouldSetPanResponder: (_evt, _gestureState) => true,
       onMoveShouldSetPanResponderCapture: (_evt, _gestureState) => true,
+      
+      // Ensure we handle all touch types including Apple Pencil
+      onPanResponderTerminationRequest: (_evt, _gestureState) => false,
 
       onPanResponderGrant: (evt, gestureState) => {
         if (!this.props.touchEnabled) {
