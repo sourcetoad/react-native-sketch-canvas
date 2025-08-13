@@ -12,6 +12,7 @@ A React Native component for drawing by touching on both iOS and Android, with T
 
 - Supports New Architecture
 - Support iOS and Android
+- Apple Pencil and stylus support on iOS
 - Full TypeScript support
 - Stroke thickness and color are changeable while drawing
 - Can undo strokes one by one
