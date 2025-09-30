@@ -250,10 +250,27 @@
 }
 
 - (void)setFrozenImageNeedsUpdate {
+  if (_frozenImage) {
     CGImageRelease(_frozenImage);
-    CGImageRelease(_translucentFrozenImage);
     _frozenImage = nil;
+  }
+  if (_translucentFrozenImage) {
+    CGImageRelease(_translucentFrozenImage);
     _translucentFrozenImage = nil;
+  }
+}
+
+- (void)ensureFrozenImagesUpToDate {
+  if (!_drawingContext || !_translucentDrawingContext) {
+    [self createDrawingContext];
+  }
+  if (!_frozenImage && _drawingContext) {
+    _frozenImage = CGBitmapContextCreateImage(_drawingContext);
+  }
+  if (_currentPath && _currentPath.isTranslucent &&
+      !_translucentFrozenImage && _translucentDrawingContext) {
+    _translucentFrozenImage = CGBitmapContextCreateImage(_translucentDrawingContext);
+  }
 }
 
 - (BOOL)openSketchFile:(NSString *)filename directory:(NSString*) directory contentMode:(NSString*)mode {
@@ -454,6 +471,7 @@
 }
 
 - (UIImage*)createImageWithTransparentBackground: (BOOL) transparent includeImage:(BOOL)includeImage includeText:(BOOL)includeText cropToImageSize:(BOOL)cropToImageSize {
+    [self ensureFrozenImagesUpToDate];
     if (_backgroundImage && cropToImageSize) {
         CGRect rect = CGRectMake(0, 0, _backgroundImage.size.width, _backgroundImage.size.height);
         UIGraphicsBeginImageContextWithOptions(rect.size, !transparent, 1);
@@ -474,10 +492,12 @@
                 }
             }
         }
-        
-        CGContextDrawImage(context, targetRect, _frozenImage);
-        CGContextDrawImage(context, targetRect, _translucentFrozenImage);
-        
+      
+        if (_frozenImage) CGContextDrawImage(context, targetRect, _frozenImage);
+        if (_translucentFrozenImage && _currentPath && _currentPath.isTranslucent) {
+            CGContextDrawImage(context, targetRect, _translucentFrozenImage);
+        }
+      
         // Include current incomplete path in saved image
         if (_currentPath) {
             [_currentPath drawInContext:context];
@@ -516,8 +536,10 @@
             }
         }
         
-        CGContextDrawImage(context, rect, _frozenImage);
-        CGContextDrawImage(context, rect, _translucentFrozenImage);
+        if (_frozenImage) CGContextDrawImage(context, rect, _frozenImage);
+        if (_translucentFrozenImage && _currentPath && _currentPath.isTranslucent) {
+            CGContextDrawImage(context, rect, _translucentFrozenImage);
+        }
         
         // Include current incomplete path in saved image
         if (_currentPath) {
