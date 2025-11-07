@@ -1,17 +1,25 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { Component } from 'react';
+/**
+ * @format
+ */
+
+import React from 'react';
 import {
   AppRegistry,
-  StyleSheet,
   Text,
-  View,
   Alert,
   TouchableOpacity,
   ScrollView,
   Platform,
-  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  useColorScheme,
+  View,
   TextInput,
 } from 'react-native';
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 import RNSketchCanvas, {
   SketchCanvas,
@@ -28,7 +36,7 @@ type ExampleState = {
   scrollEnabled: boolean;
 };
 
-export default class example extends Component<any, ExampleState> {
+class ExampleApp extends React.Component<any, ExampleState> {
   constructor(props: any) {
     super(props);
 
@@ -70,7 +78,7 @@ export default class example extends Component<any, ExampleState> {
 
   render() {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         {this.state.example === 0 && (
           <View
             style={{
@@ -1056,10 +1064,24 @@ export default class example extends Component<any, ExampleState> {
         {this.state.example === 9 && (
           <Example9 onClose={() => this.setState({ example: 0 })} />
         )}
-      </SafeAreaView>
+      </View>
     );
   }
 }
+
+// Wrapper component to use hooks and provide SafeAreaProvider
+function AppWrapper() {
+  const isDarkMode = useColorScheme() === 'dark';
+
+  return (
+    <SafeAreaProvider>
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+      <ExampleApp />
+    </SafeAreaProvider>
+  );
+}
+
+export default AppWrapper;
 
 const styles = StyleSheet.create({
   container: {
@@ -1126,4 +1148,4 @@ const styles = StyleSheet.create({
   },
 });
 
-AppRegistry.registerComponent('example', () => example);
+AppRegistry.registerComponent('example', () => AppWrapper);
