@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import {
   SafeAreaProvider,
-  useSafeAreaInsets,
+  SafeAreaView,
 } from 'react-native-safe-area-context';
 
 import RNSketchCanvas, {
@@ -1076,7 +1076,9 @@ function AppWrapper() {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ExampleApp />
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+        <ExampleApp />
+      </SafeAreaView>
     </SafeAreaProvider>
   );
 }
