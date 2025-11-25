@@ -14,7 +14,7 @@ export const requestPermissions = async (
       }
     );
 
-    return granted === PermissionsAndroid.RESULTS.GRANTED;
+    return granted;
   }
   return true;
 };
