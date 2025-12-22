@@ -1,24 +1,20 @@
 import { requestPermissions } from '../handlePermissions';
 
-jest.mock('react-native/Libraries/Utilities/Platform', () => {
-  const Platform = jest.requireActual(
-    'react-native/Libraries/Utilities/Platform'
-  );
-  Platform.OS = 'android';
-  return Platform;
-});
-
-jest.mock(
-  'react-native//Libraries/PermissionsAndroid/PermissionsAndroid',
-  () => {
-    return {
-      ...jest.requireActual(
-        'react-native//Libraries/PermissionsAndroid/PermissionsAndroid'
-      ),
-      request: jest.fn(() => new Promise((resolve) => resolve('denied'))),
-    };
-  }
-);
+jest.mock('react-native', () => ({
+  Platform: {
+    OS: 'android',
+  },
+  PermissionsAndroid: {
+    PERMISSIONS: {
+      WRITE_EXTERNAL_STORAGE: 'android.permission.WRITE_EXTERNAL_STORAGE',
+    },
+    RESULTS: {
+      GRANTED: 'granted',
+      DENIED: 'denied',
+    },
+    request: jest.fn(() => Promise.resolve(false)),
+  },
+}));
 
 describe('Permission Denied', () => {
   it('should return false if permission is not granted', async () => {
