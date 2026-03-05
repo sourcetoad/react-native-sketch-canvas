@@ -10,7 +10,7 @@ A React Native component for drawing by touching on both iOS and Android, with T
 
 ## Features
 
-- Supports New Architecture
+- Supports New Architecture only
 - Support iOS and Android
 - Full TypeScript support
 - Stroke thickness and color are changeable while drawing
@@ -27,6 +27,15 @@ A React Native component for drawing by touching on both iOS and Android, with T
 - Permission handling for Android image saving
 - Initial paths loading with native batch processing for optimal performance
 - Real-time path loading feedback with onInitialPathsLoaded callback
+
+## Compatibility
+
+| Sketch Canvas Version | React Native Version | New Architecture Support | Old Architecture Support |
+|-----------------------|----------------------|--------------------------|--------------------------|
+| 2.4.0 and above       | 0.76.7 and above     | Yes                      | No                       |
+| 2.3.x and below       | 0.76.6 and below     | Yes                      | Yes                      |
+
+> **Note**: Starting from version 2.4.0, this library only supports React Native's New Architecture. For projects still using the old architecture, please use version 2.3.x or below.
 
 ## Installation
 
