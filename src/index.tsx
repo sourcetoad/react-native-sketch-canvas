@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, FlatList } from 'react-native';
 import SketchCanvas from './SketchCanvas';
-import type { RNSketchCanvasProps, PathData } from './types';
+import type { RNSketchCanvasProps, Path } from './types';
 
 type CanvasState = {
   color: any;
@@ -119,7 +119,7 @@ export default class RNSketchCanvas extends React.Component<
     return this._sketchCanvas.undo();
   }
 
-  addPath(data: PathData) {
+  addPath(data: Path) {
     this._sketchCanvas.addPath(data);
   }
 
