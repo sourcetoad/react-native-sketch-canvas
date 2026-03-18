@@ -77,7 +77,7 @@
   },
   "homepage": "https://github.com/sourcetoad/react-native-sketch-canvas",
   "devDependencies": {
-    "@react-native-community/cli": "20.0.0",
+    "@react-native-community/cli": "20.1.2",
     "@react-native/babel-preset": "^0.82.1",
     "@react-native/eslint-config": "^0.82.0",
     "@testing-library/react-native": "^13.2.0",
