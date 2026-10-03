@@ -1,11 +1,6 @@
 import type { ViewProps, HostComponent } from 'react-native';
 import { codegenNativeComponent, codegenNativeCommands } from 'react-native';
-import type {
-  DirectEventHandler,
-  BubblingEventHandler,
-  Int32,
-  Double,
-} from 'react-native/Libraries/Types/CodegenTypes';
+import type { CodegenTypes } from 'react-native';
 
 export interface LocalSourceImage {
   filename: string;
@@ -16,11 +11,11 @@ export interface LocalSourceImage {
 type CanvasText = {
   text: string;
   font?: string;
-  fontSize?: Double;
-  fontColor?: Int32;
+  fontSize?: CodegenTypes.Double;
+  fontColor?: CodegenTypes.Int32;
   overlay?: string;
-  anchor?: { x: Double; y: Double };
-  position: { x: Double; y: Double };
+  anchor?: { x: CodegenTypes.Double; y: CodegenTypes.Double };
+  position: { x: CodegenTypes.Double; y: CodegenTypes.Double };
   coordinate?: string;
   /**
    * If your text is multiline, `alignment` can align shorter lines with left/center/right.
@@ -29,19 +24,19 @@ type CanvasText = {
   /**
    * If your text is multiline, `lineHeightMultiple` can adjust the space between lines.
    */
-  lineHeightMultiple?: Double;
+  lineHeightMultiple?: CodegenTypes.Double;
 };
 
 type InitialPathData = {
-  pathId: Int32;
-  color: Int32;
-  width: Double;
+  pathId: CodegenTypes.Int32;
+  color: CodegenTypes.Int32;
+  width: CodegenTypes.Double;
   points: Array<string>;
 };
 
 type CanvasChangeEvent = {
   eventType: string;
-  pathsUpdate?: Int32;
+  pathsUpdate?: CodegenTypes.Int32;
   success?: boolean;
   path?: string;
 };
@@ -62,11 +57,13 @@ export interface NativeProps extends ViewProps {
   /**
    * Callback when the canvas has finished loading and is ready for interaction.
    */
-  onCanvasReady?: DirectEventHandler<null>;
+  onCanvasReady?: CodegenTypes.DirectEventHandler<null>;
 
-  onChange?: BubblingEventHandler<CanvasChangeEvent> | null;
-  onGenerateBase64?: DirectEventHandler<{ base64: string }> | null;
-  onInitialPathsLoaded?: DirectEventHandler<{ loadedCount: Int32 }> | null;
+  onChange?: CodegenTypes.BubblingEventHandler<CanvasChangeEvent> | null;
+  onGenerateBase64?: CodegenTypes.DirectEventHandler<{ base64: string }> | null;
+  onInitialPathsLoaded?: CodegenTypes.DirectEventHandler<{
+    loadedCount: CodegenTypes.Int32;
+  }> | null;
 }
 
 export interface NativeCommands {
@@ -82,14 +79,14 @@ export interface NativeCommands {
   ) => void;
   addPoint: (
     viewRef: React.ElementRef<ComponentType>,
-    x: Double,
-    y: Double
+    x: CodegenTypes.Double,
+    y: CodegenTypes.Double
   ) => void;
   addPath: (
     viewRef: React.ElementRef<ComponentType>,
-    pathId: Int32,
-    color: Int32,
-    width: Double,
+    pathId: CodegenTypes.Int32,
+    color: CodegenTypes.Int32,
+    width: CodegenTypes.Double,
     points: Array<string>
   ) => void;
   addInitialPaths: (
@@ -98,11 +95,14 @@ export interface NativeCommands {
   ) => void;
   newPath: (
     viewRef: React.ElementRef<ComponentType>,
-    pathId: Int32,
-    color: Int32,
-    width: Double
+    pathId: CodegenTypes.Int32,
+    color: CodegenTypes.Int32,
+    width: CodegenTypes.Double
   ) => void;
-  deletePath: (viewRef: React.ElementRef<ComponentType>, pathId: Int32) => void;
+  deletePath: (
+    viewRef: React.ElementRef<ComponentType>,
+    pathId: CodegenTypes.Int32
+  ) => void;
   endPath: (viewRef: React.ElementRef<ComponentType>) => void;
   clear: (viewRef: React.ElementRef<ComponentType>) => void;
   transferToBase64: (

@@ -77,12 +77,13 @@
   },
   "homepage": "https://github.com/sourcetoad/react-native-sketch-canvas",
   "devDependencies": {
-    "@react-native-community/cli": "20.1.2",
-    "@react-native/babel-preset": "^0.82.1",
-    "@react-native/eslint-config": "^0.82.0",
+    "@react-native-community/cli": "20.2.0",
+    "@react-native/babel-preset": "^0.87.1",
+    "@react-native/eslint-config": "^0.87.1",
+    "@react-native/jest-preset": "^0.87.1",
     "@testing-library/react-native": "^13.2.0",
     "@types/jest": "^29.5.13",
-    "@types/react": "^19.1.1",
+    "@types/react": "^19.2.0",
     "@types/react-dom": "^19.1.0",
     "del-cli": "^5.1.0",
     "eslint": "^8.51.0",
@@ -90,22 +91,22 @@
     "eslint-plugin-prettier": "^5.0.1",
     "jest": "^29.7.0",
     "prettier": "^3.0.3",
-    "react": "19.1.1",
-    "react-native": "0.82.0",
+    "react": "19.2.3",
+    "react-native": "0.87.1",
     "react-native-builder-bob": "^0.37.0",
-    "react-test-renderer": "19.1.1",
+    "react-test-renderer": "19.2.3",
     "turbo": "^2.9.14",
     "typescript": "^5.8.3"
   },
   "resolutions": {
-    "@types/react": "^19.1.1"
+    "@types/react": "^19.2.0"
   },
   "peerDependencies": {
     "react": "*",
     "react-native": "*"
   },
   "jest": {
-    "preset": "react-native",
+    "preset": "@react-native/jest-preset",
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"

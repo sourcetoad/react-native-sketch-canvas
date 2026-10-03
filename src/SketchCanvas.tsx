@@ -22,7 +22,7 @@ type CanvasState = {
   text: any;
 };
 
-type ComponentRef = InstanceType<typeof ReactNativeSketchCanvasView>;
+type ComponentRef = React.ComponentRef<typeof ReactNativeSketchCanvasView>;
 
 class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
   ref = React.createRef<ComponentRef>();
