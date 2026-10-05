@@ -420,6 +420,7 @@ final class SketchCanvasCore: UIView {
     ensureFrozenImagesUpToDate()
     if let backgroundImage, cropToImageSize {
       let rect = CGRect(x: 0, y: 0, width: backgroundImage.size.width, height: backgroundImage.size.height)
+      guard rect.width > 0, rect.height > 0 else { return nil }
       UIGraphicsBeginImageContextWithOptions(rect.size, !transparent, 1)
       let context = UIGraphicsGetCurrentContext()
       if !transparent {
@@ -462,6 +463,7 @@ final class SketchCanvasCore: UIView {
       return img
     } else {
       let rect = bounds
+      guard rect.width > 0, rect.height > 0 else { return nil }
       UIGraphicsBeginImageContextWithOptions(rect.size, !transparent, 0)
       let context = UIGraphicsGetCurrentContext()
       if !transparent {
@@ -525,6 +527,7 @@ final class SketchCanvasCore: UIView {
         includeText: includeText,
         cropToImageSize: cropToImageSize
       )
+      guard let img else { return (false, nil) }
 
       let tempDir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
         .appendingPathComponent(folder)
