@@ -53,6 +53,13 @@ class HybridSketchCanvasView(context: ThemedReactContext) : HybridSketchCanvasVi
         value?.let { callback -> { count: Int -> callback(count.toDouble()) } }
     }
 
+  override fun onDropView() {
+    onCanvasReady = null
+    onPathsChange = null
+    onInitialPathsLoaded = null
+    canvas.cancelPendingImageLoad()
+  }
+
   private inline fun onUi(crossinline block: (SketchCanvas) -> Unit) {
     canvas.post {
       if (canvas.isCanvasReady()) block(canvas) else Log.i(TAG, NOT_READY)

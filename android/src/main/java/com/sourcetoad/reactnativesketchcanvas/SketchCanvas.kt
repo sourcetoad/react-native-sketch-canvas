@@ -194,6 +194,10 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         return true
     }
 
+    fun cancelPendingImageLoad() {
+        mPendingImageLoad?.cancel(true)
+    }
+
     private fun loadImageAsync(filename: String, directory: String?, mode: String?) {
         try {
             // Check if cancelled before starting expensive work
