@@ -26,6 +26,7 @@ import RNSketchCanvas, {
 } from '@sourcetoad/react-native-sketch-canvas';
 import Example8 from './Example8';
 import Example9 from './Example9';
+import ParityScreen from './parity/ParityScreen';
 
 type ExampleState = {
   example: number;
@@ -201,6 +202,18 @@ class ExampleApp extends React.Component<any, ExampleState> {
                 - Example 9 -
               </Text>
               <Text>Performance Testing Suite</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                this.setState({ example: 10 });
+              }}
+            >
+              <Text
+                style={{ alignSelf: 'center', marginTop: 15, fontSize: 18 }}
+              >
+                - Parity scenes -
+              </Text>
+              <Text>Golden-image parity capture</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -1069,6 +1082,10 @@ class ExampleApp extends React.Component<any, ExampleState> {
 
         {this.state.example === 9 && (
           <Example9 onClose={() => this.setState({ example: 0 })} />
+        )}
+
+        {this.state.example === 10 && (
+          <ParityScreen onClose={() => this.setState({ example: 0 })} />
         )}
       </View>
     );
