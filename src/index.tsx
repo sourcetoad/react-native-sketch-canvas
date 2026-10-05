@@ -151,7 +151,7 @@ export default class RNSketchCanvas extends React.Component<
 
   getBase64(options?: Base64Options): Promise<string>;
   /**
-   * @deprecated Pass a `Base64Options` object instead. Removed in 4.0.
+   * @deprecated Pass a `Base64Options` object instead. Will be removed in a future major version.
    */
   getBase64(
     imageType: string,
