@@ -1743,7 +1743,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNSketchCanvas (2.4.1):
+  - RNSketchCanvas (3.0.0):
     - hermes-engine
     - NitroModules
     - RCTRequired
@@ -2131,7 +2131,7 @@ SPEC CHECKSUMS:
   ReactCommon: 749169e12aa3461a3df3656a00e48dbe0456b2d6
   ReactNativeDependencies: 94c922c39e0e6150ee9ad05e2ca1946e0ef55783
   RNScreens: 038dc998fe1ab34778d9e8f4a33318a6c7a5bde8
-  RNSketchCanvas: c35b53c21292744aa978414e22fba4e9bb7f6d59
+  RNSketchCanvas: 5c9e8c0e477a0cc396044a83442e5a323fcea4c2
   SocketRocket: 37aec555668fb852ec12e3c0de59a86ca58f0871
   Yoga: d1c536142c5ff8ec8cd856ab2a7c227a1d875c8e
 
