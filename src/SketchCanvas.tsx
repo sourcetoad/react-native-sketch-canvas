@@ -338,6 +338,9 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
   }
 
   save(options: SaveOptions): Promise<SaveResult>;
+  /**
+   * @deprecated Pass a `SaveOptions` object instead. Removed in 4.0.
+   */
   save(
     imageType: string,
     transparent: boolean,
@@ -415,6 +418,9 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
   }
 
   getBase64(options?: Base64Options): Promise<string>;
+  /**
+   * @deprecated Pass a `Base64Options` object instead. Removed in 4.0.
+   */
   getBase64(
     imageType: string,
     transparent: boolean,
