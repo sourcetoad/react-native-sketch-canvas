@@ -368,3 +368,43 @@ test('paths queued before layout reach native when the ref arrives late', () => 
     '3,4',
   ]);
 });
+
+test('the host receives processed text and the same localSourceImage', () => {
+  const localSourceImage = {
+    filename: 'whale.png',
+    directory: SketchCanvas.MAIN_BUNDLE,
+    mode: 'AspectFit' as const,
+  };
+  const minimal = { text: 'Hi', position: { x: 10, y: 20 }, fontSize: 12 };
+  const full = {
+    text: 'Full',
+    font: 'Arial',
+    fontSize: 20,
+    fontColor: '#FF0000',
+    overlay: 'SketchOnText' as const,
+    anchor: { x: 0.5, y: 0.5 },
+    position: { x: 0.5, y: 0.25 },
+    coordinate: 'Ratio' as const,
+    alignment: 'Center' as const,
+    lineHeightMultiple: 1.5,
+  };
+  renderCanvas({ localSourceImage, text: [minimal, full] });
+
+  const host = getHost();
+  const [sentMinimal, sentFull] = host.props.text;
+
+  expect(host.props.localSourceImage).toBe(localSourceImage);
+  expect(sentMinimal).toEqual(minimal);
+  expect(sentMinimal.fontColor).toBeUndefined();
+  for (const key of [
+    'font',
+    'overlay',
+    'anchor',
+    'coordinate',
+    'alignment',
+    'lineHeightMultiple',
+  ]) {
+    expect(sentMinimal).not.toHaveProperty(key);
+  }
+  expect(sentFull).toEqual({ ...full, fontColor: processColor('#FF0000') });
+});

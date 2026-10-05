@@ -10,6 +10,7 @@ import com.margelo.nitro.core.Promise
 import com.sourcetoad.reactnativesketchcanvas.CanvasTextInput
 import com.sourcetoad.reactnativesketchcanvas.InitialPathInput
 import com.sourcetoad.reactnativesketchcanvas.SketchCanvas
+import java.io.PrintWriter
 
 @Keep
 @DoNotStrip
@@ -20,12 +21,14 @@ class HybridSketchCanvasView(context: ThemedReactContext) : HybridSketchCanvasVi
 
   override var localSourceImage: LocalSourceImage? = null
     set(value) {
+      if (value == field) return
       field = value
       value?.let { canvas.openImageFile(it.filename, it.directory ?: "", it.mode ?: "") }
     }
 
   override var text: Array<SketchCanvasText>? = null
     set(value) {
+      if (value contentEquals field) return
       field = value
       canvas.setCanvasText(value?.map { it.toCanvasTextInput() })
     }
@@ -60,7 +63,7 @@ class HybridSketchCanvasView(context: ThemedReactContext) : HybridSketchCanvasVi
     canvas.post {
       if (!canvas.isCanvasReady()) {
         Log.i(TAG, NOT_READY)
-        promise.reject(Error(NOT_READY))
+        promise.reject(CanvasNotReadyError())
         return@post
       }
       try {
@@ -148,6 +151,12 @@ class HybridSketchCanvasView(context: ThemedReactContext) : HybridSketchCanvasVi
       alignment = alignment,
       lineHeightMultiple = lineHeightMultiple
     )
+
+  private class CanvasNotReadyError : Error(NOT_READY) {
+    override fun toString() = NOT_READY
+
+    override fun printStackTrace(s: PrintWriter) = s.print(NOT_READY)
+  }
 
   private companion object {
     const val TAG = "RNTSketchCanvas"
