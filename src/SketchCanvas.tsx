@@ -39,10 +39,14 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     }
   });
 
+  _initialPathsPending = false;
+
   _onCanvasReady = callback(() => {
     this.props.onCanvasReady?.();
 
-    if (this.props.initialPaths && this.props.initialPaths.length > 0) {
+    if (!this._initialized) {
+      this._initialPathsPending = true;
+    } else if (this.props.initialPaths && this.props.initialPaths.length > 0) {
       this.setInitialPaths(this.props.initialPaths);
     }
   });
@@ -411,6 +415,13 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
 
     this._pathsToProcess.length > 0 &&
       this._pathsToProcess.forEach((p) => this.addPath(p));
+
+    if (this._initialPathsPending) {
+      this._initialPathsPending = false;
+      if (this.props.initialPaths && this.props.initialPaths.length > 0) {
+        this.setInitialPaths(this.props.initialPaths);
+      }
+    }
   };
 
   render() {

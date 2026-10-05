@@ -249,6 +249,60 @@ test('initial paths load on canvas ready', () => {
   ]);
 });
 
+test('initial paths load once after layout when the canvas is ready first', () => {
+  const onCanvasReady = jest.fn();
+  const initialPaths = [
+    {
+      size: { width: 150, height: 150 },
+      path: { id: 7, color: '#00FF00', width: 4, data: ['10,20', '30,40'] },
+    },
+  ];
+  const { canvas } = renderCanvas({ initialPaths, onCanvasReady });
+  const methods = getMethods(canvas);
+
+  act(() => {
+    getHost().props.onCanvasReady.f();
+  });
+
+  expect(onCanvasReady).toHaveBeenCalledTimes(1);
+  expect(methods.addInitialPaths).not.toHaveBeenCalled();
+
+  layout(300, 300);
+
+  expect(methods.addInitialPaths).toHaveBeenCalledTimes(1);
+  expect(methods.addInitialPaths).toHaveBeenCalledWith([
+    {
+      pathId: 7,
+      color: processColor('#00FF00'),
+      width: 4,
+      points: ['20,40', '60,80'],
+    },
+  ]);
+
+  layout(300, 300);
+
+  expect(methods.addInitialPaths).toHaveBeenCalledTimes(1);
+});
+
+test('initial paths load once when layout comes before ready', () => {
+  const initialPaths = [
+    {
+      size: { width: 150, height: 150 },
+      path: { id: 7, color: '#00FF00', width: 4, data: ['10,20', '30,40'] },
+    },
+  ];
+  const { canvas } = renderCanvas({ initialPaths });
+  const methods = getMethods(canvas);
+
+  layout(300, 300);
+  act(() => {
+    getHost().props.onCanvasReady.f();
+  });
+  layout(300, 300);
+
+  expect(methods.addInitialPaths).toHaveBeenCalledTimes(1);
+});
+
 test('the wrapper view gets the style and the host gets the handlers', () => {
   const style = { width: 300, height: 200 };
   renderCanvas({ style });
