@@ -8,6 +8,11 @@ class HybridSketchCanvasView: HybridSketchCanvasViewSpec {
 
   var view: UIView { canvas }
 
+  deinit {
+    let canvas = self.canvas
+    DispatchQueue.main.async { _ = canvas }
+  }
+
   var localSourceImage: LocalSourceImage?
 
   var text: [SketchCanvasText]? {
@@ -47,6 +52,14 @@ class HybridSketchCanvasView: HybridSketchCanvasViewSpec {
         canvas.openSketchFile(image.filename, directory: image.directory, contentMode: image.mode)
       }
     }
+  }
+
+  func onDropView() {
+    onCanvasReady = nil
+    onPathsChange = nil
+    onInitialPathsLoaded = nil
+    appliedImage = (filename: "", directory: "", mode: "")
+    MainActor.assumeIsolated { canvas.invalidate() }
   }
 
   func newPath(pathId: Double, color: Double, width: Double) throws {
