@@ -85,6 +85,7 @@ jest.mock('react-native-nitro-modules', () => {
     clear: jest.fn(),
     save: jest.fn(() => Promise.resolve({ success: true, path: '/tmp/x.png' })),
     transferToBase64: jest.fn(() => Promise.resolve('BASE64')),
+    transferToArrayBuffer: jest.fn(() => Promise.resolve(new ArrayBuffer(4))),
   });
   return {
     mockOptions,

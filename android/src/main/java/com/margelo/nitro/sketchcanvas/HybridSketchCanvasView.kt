@@ -6,6 +6,7 @@ import android.view.View
 import androidx.annotation.Keep
 import com.facebook.proguard.annotations.DoNotStrip
 import com.facebook.react.uimanager.ThemedReactContext
+import com.margelo.nitro.core.ArrayBuffer
 import com.margelo.nitro.core.Promise
 import com.sourcetoad.reactnativesketchcanvas.CanvasTextInput
 import com.sourcetoad.reactnativesketchcanvas.InitialPathInput
@@ -134,6 +135,19 @@ class HybridSketchCanvasView(context: ThemedReactContext) : HybridSketchCanvasVi
   ): Promise<String> =
     onUiPromise {
       it.encodeBase64(imageType, transparent, includeImage, includeText, cropToImageSize)
+    }
+
+  override fun transferToArrayBuffer(
+    imageType: String,
+    transparent: Boolean,
+    includeImage: Boolean,
+    includeText: Boolean,
+    cropToImageSize: Boolean
+  ): Promise<ArrayBuffer> =
+    onUiPromise {
+      ArrayBuffer.copy(
+        it.encodeBytes(imageType, transparent, includeImage, includeText, cropToImageSize)
+      )
     }
 
   private fun SketchCanvasText.toCanvasTextInput() =

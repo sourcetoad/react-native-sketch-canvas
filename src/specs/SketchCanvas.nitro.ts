@@ -73,6 +73,13 @@ export interface SketchCanvasViewMethods extends HybridViewMethods {
     includeText: boolean,
     cropToImageSize: boolean
   ): Promise<string>;
+  transferToArrayBuffer(
+    imageType: string,
+    transparent: boolean,
+    includeImage: boolean,
+    includeText: boolean,
+    cropToImageSize: boolean
+  ): Promise<ArrayBuffer>;
 }
 
 export type SketchCanvasView = HybridView<

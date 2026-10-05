@@ -566,14 +566,30 @@ final class SketchCanvasCore: UIView {
     includeText: Bool,
     cropToImageSize: Bool
   ) -> String? {
+    let data = transferToImageData(
+      type: type,
+      transparent: transparent,
+      includeImage: includeImage,
+      includeText: includeText,
+      cropToImageSize: cropToImageSize
+    )
+    return data?.base64EncodedString(options: .lineLength64Characters)
+  }
+
+  func transferToImageData(
+    type: String,
+    transparent: Bool,
+    includeImage: Bool,
+    includeText: Bool,
+    cropToImageSize: Bool
+  ) -> Data? {
     let img = createImage(
       transparent: transparent,
       includeImage: includeImage,
       includeText: includeText,
       cropToImageSize: cropToImageSize
     )
-    let data = getImageData(img, type: type)
-    return data?.base64EncodedString(options: .lineLength64Characters)
+    return getImageData(img, type: type)
   }
 
   private func getImageData(_ img: UIImage?, type: String) -> Data? {

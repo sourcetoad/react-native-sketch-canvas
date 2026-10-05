@@ -163,6 +163,32 @@ class HybridSketchCanvasView: HybridSketchCanvasViewSpec {
     return promise
   }
 
+  func transferToArrayBuffer(
+    imageType: String,
+    transparent: Bool,
+    includeImage: Bool,
+    includeText: Bool,
+    cropToImageSize: Bool
+  ) throws -> Promise<ArrayBuffer> {
+    let promise = Promise<ArrayBuffer>()
+    DispatchQueue.main.async { [canvas] in
+      let data = canvas.transferToImageData(
+        type: imageType,
+        transparent: transparent,
+        includeImage: includeImage,
+        includeText: includeText,
+        cropToImageSize: cropToImageSize
+      )
+      do {
+        let buffer = try data.map { try ArrayBuffer.copy(data: $0) } ?? ArrayBuffer.allocate(size: 0)
+        promise.resolve(withResult: buffer)
+      } catch {
+        promise.reject(withError: error)
+      }
+    }
+    return promise
+  }
+
   private static func canvasTextInput(_ text: SketchCanvasText) -> CanvasTextInput {
     CanvasTextInput(
       text: text.text,

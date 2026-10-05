@@ -693,7 +693,19 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         includeImage: Boolean,
         includeText: Boolean,
         cropToImageSize: Boolean
-    ): String {
+    ): String =
+        Base64.encodeToString(
+            encodeBytes(format, transparent, includeImage, includeText, cropToImageSize),
+            Base64.DEFAULT
+        )
+
+    fun encodeBytes(
+        format: String,
+        transparent: Boolean,
+        includeImage: Boolean,
+        includeText: Boolean,
+        cropToImageSize: Boolean
+    ): ByteArray {
         val bitmap =
             createImage(format == "png" && transparent, includeImage, includeText, cropToImageSize)
         val byteArrayOS = ByteArrayOutputStream()
@@ -702,7 +714,7 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
             if (format == "png") 100 else 90,
             byteArrayOS
         )
-        return Base64.encodeToString(byteArrayOS.toByteArray(), Base64.DEFAULT)
+        return byteArrayOS.toByteArray()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
