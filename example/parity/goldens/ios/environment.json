@@ -1,0 +1,12 @@
+{
+  "platform": "ios",
+  "xcode": "Xcode 26.4.1 (17E202)",
+  "iosRuntime": "iOS 26.4 (26.4.1 - 23E254a) com.apple.CoreSimulator.SimRuntime.iOS-26-4",
+  "simulator": "iPad Pro 13-inch (M5)",
+  "simulatorDeviceType": "com.apple.CoreSimulator.SimDeviceType.iPad-Pro-13-inch-M5-12GB",
+  "screenScale": 2,
+  "canvasSize": { "width": 300, "height": 300, "unit": "pt" },
+  "reactNative": "0.87.1",
+  "canvas": "2.x (Fabric component + TurboModule, Objective-C core)",
+  "gitSha": "43dcffb4553738524184d582243c06d0909c23ea"
+}
