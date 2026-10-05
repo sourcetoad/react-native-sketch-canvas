@@ -3,39 +3,27 @@ package com.sourcetoad.reactnativesketchcanvas
 import com.facebook.react.BaseReactPackage
 import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.module.model.ReactModuleInfo
 import com.facebook.react.module.model.ReactModuleInfoProvider
 import com.facebook.react.uimanager.ViewManager
-import java.util.HashMap
+import com.margelo.nitro.sketchcanvas.RNSketchCanvasNitroOnLoad
+import com.margelo.nitro.sketchcanvas.views.HybridSketchCanvasViewManager
 
 class RNTSketchCanvasViewPackage : BaseReactPackage() {
     override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? {
-        return if (name == RNTSketchCanvasManagerModule.NAME) {
-            RNTSketchCanvasManagerModule(reactContext)
-        } else {
-            null
-        }
+        return null
     }
 
     override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {
-        val viewManagers: MutableList<ViewManager<*, *>> = ArrayList()
-        viewManagers.add(RNTSketchCanvasViewManager())
-        return viewManagers
+        return listOf(HybridSketchCanvasViewManager())
     }
 
     override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
-        return ReactModuleInfoProvider {
-            val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
-            moduleInfos[RNTSketchCanvasManagerModule.NAME] =
-                ReactModuleInfo(
-                    RNTSketchCanvasManagerModule.NAME,
-                    RNTSketchCanvasManagerModule.NAME,
-                    false, // canOverrideExistingModule
-                    false, // needsEagerInit
-                    false, // isCxxModule
-                    true // isTurboModule
-                )
-            moduleInfos
+        return ReactModuleInfoProvider { emptyMap() }
+    }
+
+    companion object {
+        init {
+            RNSketchCanvasNitroOnLoad.initializeNative()
         }
     }
 }
