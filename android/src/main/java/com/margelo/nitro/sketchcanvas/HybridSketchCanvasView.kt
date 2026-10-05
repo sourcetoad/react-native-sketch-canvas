@@ -1,6 +1,8 @@
 package com.margelo.nitro.sketchcanvas
 
 import android.graphics.PointF
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import androidx.annotation.Keep
@@ -68,7 +70,7 @@ class HybridSketchCanvasView(context: ThemedReactContext) : HybridSketchCanvasVi
 
   private inline fun <T> onUiPromise(crossinline block: (SketchCanvas) -> T): Promise<T> {
     val promise = Promise<T>()
-    canvas.post {
+    mainHandler.post {
       if (!canvas.isCanvasReady()) {
         Log.i(TAG, NOT_READY)
         promise.reject(CanvasNotReadyError())
@@ -182,5 +184,6 @@ class HybridSketchCanvasView(context: ThemedReactContext) : HybridSketchCanvasVi
   private companion object {
     const val TAG = "RNTSketchCanvas"
     const val NOT_READY = "Canvas is not ready"
+    val mainHandler = Handler(Looper.getMainLooper())
   }
 }
