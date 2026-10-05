@@ -353,7 +353,9 @@ class ExampleApp extends React.Component<any, ExampleState> {
                   // });
                 }}
                 // localSourceImage={{ filename: 'bulb.png', directory: RNSketchCanvas.MAIN_BUNDLE }}
-                ref={(ref) => (this.canvas = ref)}
+                ref={(ref) => {
+                  this.canvas = ref;
+                }}
                 style={{ flex: 1 }}
                 strokeColor={this.state.color}
                 strokeWidth={this.state.thickness}
@@ -426,7 +428,9 @@ class ExampleApp extends React.Component<any, ExampleState> {
         {this.state.example === 3 && (
           <View style={{ flex: 1, flexDirection: 'column' }}>
             <RNSketchCanvas
-              ref={(ref) => (this.canvas1 = ref)}
+              ref={(ref) => {
+                this.canvas1 = ref;
+              }}
               user={'user1'}
               containerStyle={{ backgroundColor: 'transparent', flex: 1 }}
               canvasStyle={{ backgroundColor: 'transparent', flex: 1 }}
@@ -518,7 +522,9 @@ class ExampleApp extends React.Component<any, ExampleState> {
               }}
             />
             <RNSketchCanvas
-              ref={(ref) => (this.canvas2 = ref)}
+              ref={(ref) => {
+                this.canvas2 = ref;
+              }}
               user={'user2'}
               containerStyle={{ backgroundColor: 'transparent', flex: 1 }}
               canvasStyle={{ backgroundColor: 'transparent', flex: 1 }}
