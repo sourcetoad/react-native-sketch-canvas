@@ -20,6 +20,11 @@ import {
   SafeAreaProvider,
   SafeAreaView,
 } from 'react-native-safe-area-context';
+import { NavigationContainer } from '@react-navigation/native';
+import {
+  createNativeStackNavigator,
+  type NativeStackScreenProps,
+} from '@react-navigation/native-stack';
 
 import RNSketchCanvas, {
   SketchCanvas,
@@ -27,6 +32,16 @@ import RNSketchCanvas, {
 import Example8 from './Example8';
 import Example9 from './Example9';
 import ParityScreen from './parity/ParityScreen';
+import PushedScreen from './PushedScreen';
+
+type RootStackParamList = {
+  Home: undefined;
+  Pushed: undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+type ExampleProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 type ExampleState = {
   example: number;
@@ -37,8 +52,8 @@ type ExampleState = {
   scrollEnabled: boolean;
 };
 
-class ExampleApp extends React.Component<any, ExampleState> {
-  constructor(props: any) {
+class ExampleApp extends React.Component<ExampleProps, ExampleState> {
+  constructor(props: ExampleProps) {
     super(props);
 
     this.state = {
@@ -219,7 +234,19 @@ class ExampleApp extends React.Component<any, ExampleState> {
         )}
 
         {this.state.example === 1 && (
-          <View style={{ flex: 1, flexDirection: 'row' }}>
+          <View
+            style={{ flex: 1, flexDirection: 'column', alignSelf: 'stretch' }}
+          >
+            <View style={{ flexDirection: 'row' }}>
+              <TouchableOpacity
+                style={[styles.functionButton, { width: 100 }]}
+                onPress={() => {
+                  this.props.navigation.push('Pushed');
+                }}
+              >
+                <Text style={{ color: 'white' }}>Push screen</Text>
+              </TouchableOpacity>
+            </View>
             <RNSketchCanvas
               containerStyle={{ backgroundColor: 'transparent', flex: 1 }}
               canvasStyle={{ backgroundColor: 'transparent', flex: 1 }}
@@ -428,7 +455,14 @@ class ExampleApp extends React.Component<any, ExampleState> {
                   ]}
                   onPress={() => {
                     Alert.alert(JSON.stringify(this.canvas.getPaths()));
-                    this.canvas.getBase64('jpg', false, true, true, true);
+                    this.canvas
+                      .getBase64('jpg', false, true, true, true)
+                      .then((base64: string) => {
+                        console.log('getBase64 promise result:', { base64 });
+                      })
+                      .catch((error: unknown) => {
+                        console.log('getBase64 promise error:', error);
+                      });
                   }}
                 >
                   <Text style={{ color: 'white' }}>Get Paths</Text>
@@ -1092,6 +1126,14 @@ class ExampleApp extends React.Component<any, ExampleState> {
   }
 }
 
+function HomeScreen(props: ExampleProps) {
+  return (
+    <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+      <ExampleApp {...props} />
+    </SafeAreaView>
+  );
+}
+
 // Wrapper component to use hooks and provide SafeAreaProvider
 function AppWrapper() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -1099,9 +1141,16 @@ function AppWrapper() {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-        <ExampleApp />
-      </SafeAreaView>
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen name="Pushed" component={PushedScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
     </SafeAreaProvider>
   );
 }
