@@ -32,13 +32,9 @@
     "lib",
     "android",
     "ios",
-    "cpp",
     "*.podspec",
-    "react-native.config.js",
     "nitrogen",
     "nitro.json",
-    "!ios/generated",
-    "!android/generated",
     "!ios/build",
     "!android/build",
     "!android/gradle",
@@ -156,8 +152,7 @@
     "lib/",
     "example/",
     "**/*/",
-    "!src/",
-    "react-native.config.js"
+    "!src/"
   ],
   "prettier": {
     "quoteProps": "consistent",
@@ -197,19 +192,6 @@
         }
       ]
     ]
-  },
-  "codegenConfig": {
-    "name": "RNSketchCanvasSpec",
-    "type": "all",
-    "jsSrcsDir": "src",
-    "outputDir": {
-      "ios": "ios/generated",
-      "android": "android/generated"
-    },
-    "android": {
-      "javaPackageName": "com.sourcetoad.reactnativesketchcanvas"
-    },
-    "includesGeneratedCode": false
   },
   "create-react-native-library": {
     "languages": "kotlin-objc",

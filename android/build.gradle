@@ -36,8 +36,6 @@ if (project.extensions.findByName("kotlin") == null) {
 
 apply from: '../nitrogen/generated/android/RNSketchCanvasNitro+autolinking.gradle'
 
-apply plugin: "com.facebook.react"
-
 android {
   namespace "com.sourcetoad.reactnativesketchcanvas"
 

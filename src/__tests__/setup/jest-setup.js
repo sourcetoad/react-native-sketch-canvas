@@ -1,20 +1,3 @@
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-
-  RN.UIManager.getViewManagerConfig = jest.fn(() => {
-    return {
-      Constants: {},
-    };
-  });
-
-  Object.defineProperty(RN, 'findNodeHandle', {
-    get: jest.fn(() => () => 1),
-    set: jest.fn(),
-  });
-
-  return RN;
-});
-
 jest.mock('react-native/Libraries/vendor/emitter/EventEmitter', () => {
   class EventEmitter {
     addListener = jest.fn();
@@ -85,33 +68,6 @@ jest.mock('react-native/Libraries/Animated/createAnimatedComponent', () => {
         });
       }
     };
-  };
-});
-
-/*
- * Turbo modules mocks.
- */
-jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => {
-  const turboModuleRegistry = jest.requireActual(
-    'react-native/Libraries/TurboModule/TurboModuleRegistry'
-  );
-  return {
-    ...turboModuleRegistry,
-    getEnforcing: (name) => {
-      // List of TurboModules libraries to mock.
-      const modulesToMock = ['SketchCanvasModule'];
-      if (modulesToMock.includes(name)) {
-        return {
-          getConstants: jest.fn(() => ({
-            MainBundlePath: 'test',
-            NSDocumentDirectory: 'test',
-            NSLibraryDirectory: 'test',
-            NSCachesDirectory: 'test',
-          })),
-        };
-      }
-      return turboModuleRegistry.getEnforcing(name);
-    },
   };
 });
 
