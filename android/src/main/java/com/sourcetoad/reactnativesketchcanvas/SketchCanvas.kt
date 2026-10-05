@@ -680,6 +680,8 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
             } catch (e: Exception) {
                 e.printStackTrace()
                 null
+            } finally {
+                bitmap.recycle()
             }
         } else {
             Log.e("SketchCanvas", "Failed to create folder!")
@@ -708,13 +710,17 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
     ): ByteArray {
         val bitmap =
             createImage(format == "png" && transparent, includeImage, includeText, cropToImageSize)
-        val byteArrayOS = ByteArrayOutputStream()
-        bitmap.compress(
-            if (format == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG,
-            if (format == "png") 100 else 90,
-            byteArrayOS
-        )
-        return byteArrayOS.toByteArray()
+        try {
+            val byteArrayOS = ByteArrayOutputStream()
+            bitmap.compress(
+                if (format == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG,
+                if (format == "png") 100 else 90,
+                byteArrayOS
+            )
+            return byteArrayOS.toByteArray()
+        } finally {
+            bitmap.recycle()
+        }
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
