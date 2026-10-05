@@ -137,6 +137,50 @@ const styles = StyleSheet.create({
 AppRegistry.registerComponent('example', () => Example);
 ```
 
+#### Saving and exporting
+
+`save()` and `getBase64()` take an options object and return promises:
+
+```tsx
+import React, { useRef } from 'react';
+import { Button, View } from 'react-native';
+import { SketchCanvas } from '@sourcetoad/react-native-sketch-canvas';
+
+export default function SaveExample() {
+  const canvas = useRef<SketchCanvas>(null);
+
+  const onSave = async () => {
+    try {
+      const { success, path } = await canvas.current!.save({
+        folder: 'RNSketchCanvas',
+        filename: `drawing-${Date.now()}`,
+        imageType: 'png',
+      });
+      console.log(success ? `Saved to ${path}` : 'Save failed');
+    } catch (e) {
+      console.warn((e as Error).message);
+    }
+  };
+
+  const onExport = async () => {
+    const base64 = await canvas.current!.getBase64({ imageType: 'jpg' });
+    console.log(`data:image/jpeg;base64,${base64}`);
+  };
+
+  return (
+    <View style={{ flex: 1 }}>
+      <SketchCanvas ref={canvas} style={{ flex: 1 }} strokeColor="red" strokeWidth={7} />
+      <Button title="Save" onPress={onSave} />
+      <Button title="Export" onPress={onExport} />
+    </View>
+  );
+}
+```
+
+- `save()` resolves with a [SaveResult](#saveresult-object). A failed write resolves with `success: false`; it doesn't reject.
+- Both reject with `Error('Canvas is not ready')` if the canvas hasn't finished mounting (or is unmounted). On Android, commands sent before the canvas is ready are dropped, so a save right after mount can reject.
+- `getBase64()` with no options returns a PNG of the whole canvas, including the background image and text.
+
 #### Properties
 
 ---
@@ -489,6 +533,20 @@ await canvas.current.getBase64({ transparent: true, includeText: false });
 | includeImage?    | boolean | Set to `true` to include the image loaded from `LocalSourceImage`. (Default is `true`)                              |
 | includeText?     | boolean | Set to `true` to include the text drawn from `Text`. (Default is `true`)                                            |
 | cropToImageSize? | boolean | Set to `true` to crop output image to the image loaded from `LocalSourceImage`. (Default is `false`)                |
+
+### SaveResult object
+
+What the `save()` promise resolves with:
+
+```tsx
+const result: SaveResult = await canvas.current.save({ filename: 'image' });
+// { success: true, path: '/.../Pictures/image.png' }
+```
+
+| Property | Type             | Description                                                                                       |
+|:---------|:-----------------|:--------------------------------------------------------------------------------------------------|
+| success  | boolean          | `true` if the image was written. iOS reports `true` even when the final write fails (2.x behaviour; see [Known Issues](#known-issues)) |
+| path     | string \| null   | The full path of the saved file, or `null` when the save failed                                  |
 
 ### Path object
 
