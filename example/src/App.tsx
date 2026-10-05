@@ -28,10 +28,30 @@ import {
 
 import RNSketchCanvas, {
   SketchCanvas,
+  type SaveResponse,
 } from '@sourcetoad/react-native-sketch-canvas';
 import Example8 from './Example8';
 import Example9 from './Example9';
 import PushedScreen from './PushedScreen';
+
+declare const atob: (data: string) => string;
+
+const savedMessage = (response: SaveResponse) =>
+  response.type === 'file' ? (response.data ?? '') : response.type;
+
+const bytesEqual = (base64: string, buffer: ArrayBuffer) => {
+  const binary = atob(base64.replace(/\s/g, ''));
+  const bytes = new Uint8Array(buffer);
+  if (binary.length !== bytes.length) {
+    return false;
+  }
+  for (let i = 0; i < bytes.length; i++) {
+    if (binary.charCodeAt(i) !== bytes[i]) {
+      return false;
+    }
+  }
+  return true;
+};
 
 type RootStackParamList = {
   Home: undefined;
@@ -315,11 +335,11 @@ class ExampleApp extends React.Component<ExampleProps, ExampleState> {
                   imageType: 'png',
                 };
               }}
-              onSketchSaved={(success, path) => {
-                console.log('onSketchSaved', success, path);
+              onSketchSaved={(success, response) => {
+                console.log('onSketchSaved', success, response);
                 Alert.alert(
                   success ? 'Image saved!' : 'Failed to save image!',
-                  path
+                  savedMessage(response)
                 );
               }}
               onPathsChange={(pathsCount) => {
@@ -386,8 +406,20 @@ class ExampleApp extends React.Component<ExampleProps, ExampleState> {
                 style={{ flex: 1 }}
                 strokeColor={this.state.color}
                 strokeWidth={this.state.thickness}
-                onGenerateBase64={(result) => {
-                  console.log('base64 result:', result);
+                onSketchSaved={(success, response) => {
+                  if (response.type === 'base64') {
+                    console.log(
+                      'save base64:',
+                      success,
+                      response.data?.length ?? 0
+                    );
+                  } else if (response.type === 'arraybuffer') {
+                    console.log(
+                      'save arraybuffer:',
+                      success,
+                      response.data?.byteLength ?? 0
+                    );
+                  }
                 }}
                 onStrokeStart={(x, y) => {
                   console.log('x: ', x, ', y: ', y);
@@ -442,13 +474,26 @@ class ExampleApp extends React.Component<ExampleProps, ExampleState> {
                   ]}
                   onPress={() => {
                     Alert.alert(JSON.stringify(this.canvas.getPaths()));
-                    this.canvas
-                      .getBase64({ imageType: 'jpg', cropToImageSize: true })
-                      .then((base64: string) => {
-                        console.log('getBase64 promise result:', { base64 });
+                    Promise.all([
+                      this.canvas.save({
+                        type: 'base64',
+                        imageType: 'jpg',
+                        cropToImageSize: true,
+                      }),
+                      this.canvas.save({
+                        type: 'arraybuffer',
+                        imageType: 'jpg',
+                        cropToImageSize: true,
+                      }),
+                    ])
+                      .then(([base64, buffer]) => {
+                        console.log(
+                          'bytes equal:',
+                          bytesEqual(base64.data ?? '', buffer.data!)
+                        );
                       })
                       .catch((error: unknown) => {
-                        console.log('getBase64 promise error:', error);
+                        console.log('save error:', error);
                       });
                   }}
                 >
@@ -542,10 +587,10 @@ class ExampleApp extends React.Component<ExampleProps, ExampleState> {
                   imageType: 'jpg',
                 };
               }}
-              onSketchSaved={(success, path) => {
+              onSketchSaved={(success, response) => {
                 Alert.alert(
                   success ? 'Image saved!' : 'Failed to save image!',
-                  path
+                  savedMessage(response)
                 );
               }}
               onStrokeEnd={(path) => {
@@ -628,10 +673,10 @@ class ExampleApp extends React.Component<ExampleProps, ExampleState> {
                   imageType: 'jpg',
                 };
               }}
-              onSketchSaved={(success, path) => {
+              onSketchSaved={(success, response) => {
                 Alert.alert(
                   success ? 'Image saved!' : 'Failed to save image!',
-                  path
+                  savedMessage(response)
                 );
               }}
               onStrokeEnd={(path) => {
@@ -751,10 +796,10 @@ class ExampleApp extends React.Component<ExampleProps, ExampleState> {
                     imageType: 'png',
                   };
                 }}
-                onSketchSaved={(success, path) => {
+                onSketchSaved={(success, response) => {
                   Alert.alert(
                     success ? 'Image saved!' : 'Failed to save image!',
-                    path
+                    savedMessage(response)
                   );
                 }}
                 onPathsChange={(pathsCount) => {
@@ -852,10 +897,10 @@ class ExampleApp extends React.Component<ExampleProps, ExampleState> {
                   imageType: 'jpg',
                 };
               }}
-              onSketchSaved={(success, path) => {
+              onSketchSaved={(success, response) => {
                 Alert.alert(
                   success ? 'Image saved!' : 'Failed to save image!',
-                  path
+                  savedMessage(response)
                 );
               }}
               onPathsChange={(pathsCount) => {
@@ -1003,10 +1048,10 @@ class ExampleApp extends React.Component<ExampleProps, ExampleState> {
                   imageType: 'jpg',
                 };
               }}
-              onSketchSaved={(success, path) => {
+              onSketchSaved={(success, response) => {
                 Alert.alert(
                   success ? 'Image saved!' : 'Failed to save image!',
-                  path
+                  savedMessage(response)
                 );
               }}
               onPathsChange={(pathsCount) => {

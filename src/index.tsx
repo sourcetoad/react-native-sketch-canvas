@@ -1,12 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, FlatList } from 'react-native';
 import SketchCanvas from './SketchCanvas';
-import type {
-  RNSketchCanvasProps,
-  Path,
-  SaveResult,
-  Base64Options,
-} from './types';
+import type { RNSketchCanvasProps, Path, SaveResult } from './types';
 
 type CanvasState = {
   color: any;
@@ -84,7 +79,6 @@ export default class RNSketchCanvas extends React.Component<
 
     savePreference: null,
     onSketchSaved: () => {},
-    onGenerateBase64: () => {},
 
     text: null,
     localSourceImage: null,
@@ -135,45 +129,25 @@ export default class RNSketchCanvas extends React.Component<
   save(): Promise<SaveResult> {
     if (this.props.savePreference) {
       const p = this.props.savePreference();
-      return this._sketchCanvas.save({
+      const image = {
         imageType: p.imageType,
         transparent: p.transparent,
-        folder: p.folder ? p.folder : '',
-        filename: p.filename,
         includeImage: p.includeImage !== false,
         includeText: p.includeText !== false,
         cropToImageSize: p.cropToImageSize || false,
+      };
+      if (p.type === 'base64' || p.type === 'arraybuffer') {
+        return this._sketchCanvas.save({ ...image, type: p.type });
+      }
+      return this._sketchCanvas.save({
+        ...image,
+        type: 'file',
+        folder: p.folder ? p.folder : '',
+        filename: p.filename,
       });
     } else {
       return this._sketchCanvas.save({ filename: generateUniqueFilename() });
     }
-  }
-
-  getBase64(options?: Base64Options): Promise<string>;
-  /**
-   * @deprecated Pass a `Base64Options` object instead. Will be removed in a future major version.
-   */
-  getBase64(
-    imageType: string,
-    transparent: boolean,
-    includeImage: boolean,
-    includeText: boolean,
-    cropToImageSize: boolean
-  ): Promise<string>;
-  getBase64(
-    options?: Base64Options | string,
-    transparent?: boolean,
-    includeImage?: boolean,
-    includeText?: boolean,
-    cropToImageSize?: boolean
-  ): Promise<string> {
-    return this._sketchCanvas.getBase64(
-      options,
-      transparent,
-      includeImage,
-      includeText,
-      cropToImageSize
-    );
   }
 
   nextStrokeWidth() {
@@ -326,10 +300,9 @@ export default class RNSketchCanvas extends React.Component<
           onStrokeEnd={this.props.onStrokeEnd}
           user={this.props.user}
           strokeWidth={this.state.strokeWidth}
-          onSketchSaved={(success, path) =>
-            this.props.onSketchSaved?.(success, path)
+          onSketchSaved={(success, response) =>
+            this.props.onSketchSaved?.(success, response)
           }
-          onGenerateBase64={this.props.onGenerateBase64}
           onPathsChange={this.props.onPathsChange}
           onCanvasReady={this.props.onCanvasReady}
           onInitialPathsLoaded={this.props.onInitialPathsLoaded}
@@ -370,9 +343,13 @@ export type {
   Path,
   CanvasText,
   SavePreference,
-  SaveResult,
+  SaveType,
   SaveOptions,
-  Base64Options,
+  FileSaveOptions,
+  Base64SaveOptions,
+  ArrayBufferSaveOptions,
+  SaveResponse,
+  SaveResult,
   LocalSourceImage,
   SketchCanvasProps,
   RNSketchCanvasProps,

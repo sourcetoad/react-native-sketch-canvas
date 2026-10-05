@@ -17,9 +17,12 @@ import type {
   CanvasText,
   PathData,
   Path,
+  ImageType,
   SaveResult,
   SaveOptions,
-  Base64Options,
+  FileSaveOptions,
+  Base64SaveOptions,
+  ArrayBufferSaveOptions,
 } from './types';
 import {
   SketchCanvasHost,
@@ -70,7 +73,6 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     onStrokeChanged: () => {},
     onStrokeEnd: () => {},
     onSketchSaved: () => {},
-    onGenerateBase64: () => {},
     user: null,
 
     touchEnabled: true,
@@ -337,6 +339,11 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     }
   }
 
+  save(options: FileSaveOptions): Promise<SaveResult & { type: 'file' }>;
+  save(options: Base64SaveOptions): Promise<SaveResult & { type: 'base64' }>;
+  save(
+    options: ArrayBufferSaveOptions
+  ): Promise<SaveResult & { type: 'arraybuffer' }>;
   save(options: SaveOptions): Promise<SaveResult>;
   /**
    * @deprecated Pass a `SaveOptions` object instead. Will be removed in a future major version.
@@ -349,7 +356,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     includeImage: boolean,
     includeText: boolean,
     cropToImageSize: boolean
-  ): Promise<SaveResult>;
+  ): Promise<SaveResult & { type: 'file' }>;
   save(
     options: SaveOptions | string,
     transparent?: boolean,
@@ -360,53 +367,71 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     cropToImageSize?: boolean
   ): Promise<SaveResult> {
     if (typeof options === 'object' && options !== null) {
-      return this._save(
-        options.imageType ?? 'png',
-        options.transparent ?? false,
-        options.folder ?? '',
-        options.filename,
-        options.includeImage ?? true,
-        options.includeText ?? true,
-        options.cropToImageSize ?? false
-      );
+      return this._save(options);
     }
-    return this._save(
-      options,
-      transparent!,
-      folder!,
-      filename!,
-      includeImage!,
-      includeText!,
-      cropToImageSize!
-    );
+    return this._save({
+      type: 'file',
+      imageType: options as ImageType,
+      transparent,
+      folder,
+      filename: filename!,
+      includeImage,
+      includeText,
+      cropToImageSize,
+    });
   }
 
-  _save(
-    imageType: string,
-    transparent: boolean,
-    folder: string,
-    filename: string,
-    includeImage: boolean,
-    includeText: boolean,
-    cropToImageSize: boolean
-  ): Promise<SaveResult> {
-    const promise: Promise<SaveResult> = this._view
-      ? this._view
-          .save(
-            imageType,
-            folder,
-            filename,
-            transparent,
-            includeImage,
-            includeText,
-            cropToImageSize
-          )
-          .then(({ success, path }) => ({ success, path: path ?? null }))
-      : Promise.reject(new Error('Canvas is not ready'));
+  _save(options: SaveOptions): Promise<SaveResult> {
+    const imageType = options.imageType ?? 'png';
+    const transparent = options.transparent ?? false;
+    const includeImage = options.includeImage ?? true;
+    const includeText = options.includeText ?? true;
+    const cropToImageSize = options.cropToImageSize ?? false;
+
+    let promise: Promise<SaveResult>;
+    if (!this._view) {
+      promise = Promise.reject(new Error('Canvas is not ready'));
+    } else if (options.type === 'base64') {
+      promise = this._view
+        .transferToBase64(
+          imageType,
+          transparent,
+          includeImage,
+          includeText,
+          cropToImageSize
+        )
+        .then((data) => ({ success: true, type: 'base64', data }));
+    } else if (options.type === 'arraybuffer') {
+      promise = this._view
+        .transferToArrayBuffer(
+          imageType,
+          transparent,
+          includeImage,
+          includeText,
+          cropToImageSize
+        )
+        .then((data) => ({ success: true, type: 'arraybuffer', data }));
+    } else {
+      promise = this._view
+        .save(
+          imageType,
+          options.folder ?? '',
+          options.filename,
+          transparent,
+          includeImage,
+          includeText,
+          cropToImageSize
+        )
+        .then(({ success, path }) => ({
+          success,
+          type: 'file',
+          data: path ?? null,
+        }));
+    }
 
     promise
-      .then(({ success, path }) =>
-        this.props.onSketchSaved?.(success, path ?? '')
+      .then(({ success, ...response }) =>
+        this.props.onSketchSaved?.(success, response)
       )
       .catch(() => {});
 
@@ -415,69 +440,6 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
 
   getPaths() {
     return this._paths;
-  }
-
-  getBase64(options?: Base64Options): Promise<string>;
-  /**
-   * @deprecated Pass a `Base64Options` object instead. Will be removed in a future major version.
-   */
-  getBase64(
-    imageType: string,
-    transparent: boolean,
-    includeImage: boolean,
-    includeText: boolean,
-    cropToImageSize: boolean
-  ): Promise<string>;
-  getBase64(
-    options?: Base64Options | string,
-    transparent?: boolean,
-    includeImage?: boolean,
-    includeText?: boolean,
-    cropToImageSize?: boolean
-  ): Promise<string> {
-    if (
-      options === undefined ||
-      (typeof options === 'object' && options !== null)
-    ) {
-      return this._getBase64(
-        options?.imageType ?? 'png',
-        options?.transparent ?? false,
-        options?.includeImage ?? true,
-        options?.includeText ?? true,
-        options?.cropToImageSize ?? false
-      );
-    }
-    return this._getBase64(
-      options,
-      transparent!,
-      includeImage!,
-      includeText!,
-      cropToImageSize!
-    );
-  }
-
-  _getBase64(
-    imageType: string,
-    transparent: boolean,
-    includeImage: boolean,
-    includeText: boolean,
-    cropToImageSize: boolean
-  ): Promise<string> {
-    const promise = this._view
-      ? this._view.transferToBase64(
-          imageType,
-          transparent,
-          includeImage,
-          includeText,
-          cropToImageSize
-        )
-      : Promise.reject(new Error('Canvas is not ready'));
-
-    promise
-      .then((base64) => this.props.onGenerateBase64?.({ base64 }))
-      .catch(() => {});
-
-    return promise;
   }
 
   async componentDidMount() {

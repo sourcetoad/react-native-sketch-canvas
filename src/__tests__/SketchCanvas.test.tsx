@@ -85,134 +85,13 @@ describe('pan input', () => {
   });
 });
 
-describe('getBase64', () => {
-  test('resolves the base64 and calls onGenerateBase64', async () => {
-    const onGenerateBase64 = jest.fn();
-    const { canvas } = renderCanvas({ onGenerateBase64 });
-
-    const result = await canvas.getBase64('png', false, true, true, false);
-
-    expect(result).toBe('BASE64');
-    expect(getMethods(canvas).transferToBase64).toHaveBeenCalledWith(
-      'png',
-      false,
-      true,
-      true,
-      false
-    );
-    await flush();
-    expect(onGenerateBase64).toHaveBeenCalledWith({ base64: 'BASE64' });
-  });
-
-  test('rejects before the hybrid ref arrives', async () => {
-    nitroMock.mockOptions.deliverHybridRef = false;
-    const onGenerateBase64 = jest.fn();
-    const { canvas } = renderCanvas({ onGenerateBase64 });
-
-    await expect(
-      canvas.getBase64('png', false, true, true, false)
-    ).rejects.toThrow('Canvas is not ready');
-    await flush();
-    expect(onGenerateBase64).not.toHaveBeenCalled();
-  });
-
-  test('rejects after unmount', async () => {
-    const onGenerateBase64 = jest.fn();
-    const { canvas, unmount } = renderCanvas({ onGenerateBase64 });
-    unmount();
-
-    await expect(
-      canvas.getBase64('png', false, true, true, false)
-    ).rejects.toThrow('Canvas is not ready');
-    await flush();
-    expect(onGenerateBase64).not.toHaveBeenCalled();
-  });
-
-  test('an ignored rejection is not unhandled', async () => {
-    nitroMock.mockOptions.deliverHybridRef = false;
-    const unhandled = jest.fn();
-    process.on('unhandledRejection', unhandled);
-    try {
-      const { canvas } = renderCanvas();
-      const promise = canvas.getBase64('png', false, true, true, false);
-      await flush();
-      await flush();
-      expect(unhandled).not.toHaveBeenCalled();
-      await expect(promise).rejects.toThrow('Canvas is not ready');
-    } finally {
-      process.off('unhandledRejection', unhandled);
-    }
-  });
-});
-
 describe('save', () => {
-  test('reorders arguments, resolves the result and calls onSketchSaved', async () => {
-    const onSketchSaved = jest.fn();
-    const { canvas } = renderCanvas({ onSketchSaved });
-
-    const result = await canvas.save(
-      'png',
-      true,
-      'folder',
-      'name',
-      true,
-      false,
-      true
-    );
-
-    expect(getMethods(canvas).save).toHaveBeenCalledWith(
-      'png',
-      'folder',
-      'name',
-      true,
-      true,
-      false,
-      true
-    );
-    expect(result).toEqual({ success: true, path: '/tmp/x.png' });
-    await flush();
-    expect(onSketchSaved).toHaveBeenCalledWith(true, '/tmp/x.png');
-  });
-
-  test('a failed save maps path to null and the callback to an empty path', async () => {
-    const onSketchSaved = jest.fn();
-    const { canvas } = renderCanvas({ onSketchSaved });
-    getMethods(canvas).save.mockResolvedValueOnce({ success: false });
-
-    const result = await canvas.save(
-      'png',
-      false,
-      '',
-      'name',
-      true,
-      true,
-      false
-    );
-
-    expect(result).toEqual({ success: false, path: null });
-    await flush();
-    expect(onSketchSaved).toHaveBeenCalledWith(false, '');
-  });
-
-  test('rejects without a view', async () => {
-    const onSketchSaved = jest.fn();
-    const { canvas, unmount } = renderCanvas({ onSketchSaved });
-    unmount();
-
-    await expect(
-      canvas.save('png', false, '', 'name', true, true, false)
-    ).rejects.toThrow('Canvas is not ready');
-    await flush();
-    expect(onSketchSaved).not.toHaveBeenCalled();
-  });
-});
-
-describe('options form', () => {
-  test('save maps the options to the native argument order', async () => {
+  test('file maps the options to the native argument order', async () => {
     const onSketchSaved = jest.fn();
     const { canvas } = renderCanvas({ onSketchSaved });
 
     const result = await canvas.save({
+      type: 'file',
       filename: 'name',
       folder: 'folder',
       imageType: 'jpg',
@@ -231,15 +110,22 @@ describe('options form', () => {
       false,
       true
     );
-    expect(result).toEqual({ success: true, path: '/tmp/x.png' });
+    expect(result).toEqual({ success: true, type: 'file', data: '/tmp/x.png' });
     await flush();
-    expect(onSketchSaved).toHaveBeenCalledWith(true, '/tmp/x.png');
+    expect(onSketchSaved).toHaveBeenCalledTimes(1);
+    expect(onSketchSaved).toHaveBeenCalledWith(true, {
+      type: 'file',
+      data: '/tmp/x.png',
+    });
   });
 
-  test('save applies the defaults for omitted fields', async () => {
+  test('file is the default type and the defaults are applied', async () => {
     const { canvas } = renderCanvas();
 
-    await canvas.save({ filename: 'name', transparent: undefined });
+    const result = await canvas.save({
+      filename: 'name',
+      transparent: undefined,
+    });
 
     expect(getMethods(canvas).save).toHaveBeenCalledWith(
       'png',
@@ -250,9 +136,146 @@ describe('options form', () => {
       true,
       false
     );
+    expect(result.type).toBe('file');
   });
 
-  test('save makes the same native call in both forms', async () => {
+  test('a failed file save resolves null data', async () => {
+    const onSketchSaved = jest.fn();
+    const { canvas } = renderCanvas({ onSketchSaved });
+    getMethods(canvas).save.mockResolvedValueOnce({ success: false });
+
+    const result = await canvas.save({ filename: 'name' });
+
+    expect(result).toEqual({ success: false, type: 'file', data: null });
+    await flush();
+    expect(onSketchSaved).toHaveBeenCalledWith(false, {
+      type: 'file',
+      data: null,
+    });
+  });
+
+  test('base64 maps the options to transferToBase64', async () => {
+    const onSketchSaved = jest.fn();
+    const { canvas } = renderCanvas({ onSketchSaved });
+
+    const result = await canvas.save({
+      type: 'base64',
+      imageType: 'jpg',
+      transparent: true,
+      includeImage: false,
+      includeText: false,
+      cropToImageSize: true,
+    });
+
+    expect(getMethods(canvas).transferToBase64).toHaveBeenCalledWith(
+      'jpg',
+      true,
+      false,
+      false,
+      true
+    );
+    expect(getMethods(canvas).save).not.toHaveBeenCalled();
+    expect(result).toEqual({ success: true, type: 'base64', data: 'BASE64' });
+    await flush();
+    expect(onSketchSaved).toHaveBeenCalledTimes(1);
+    expect(onSketchSaved).toHaveBeenCalledWith(true, {
+      type: 'base64',
+      data: 'BASE64',
+    });
+  });
+
+  test('base64 applies the defaults', async () => {
+    const { canvas } = renderCanvas();
+
+    await canvas.save({ type: 'base64' });
+
+    expect(getMethods(canvas).transferToBase64).toHaveBeenCalledWith(
+      'png',
+      false,
+      true,
+      true,
+      false
+    );
+  });
+
+  test('arraybuffer maps the options to transferToArrayBuffer', async () => {
+    const onSketchSaved = jest.fn();
+    const { canvas } = renderCanvas({ onSketchSaved });
+
+    const result = await canvas.save({
+      type: 'arraybuffer',
+      imageType: 'jpg',
+      transparent: true,
+      includeImage: false,
+      includeText: true,
+      cropToImageSize: true,
+    });
+
+    expect(getMethods(canvas).transferToArrayBuffer).toHaveBeenCalledWith(
+      'jpg',
+      true,
+      false,
+      true,
+      true
+    );
+    expect(result.success).toBe(true);
+    expect(result.type).toBe('arraybuffer');
+    expect(result.data).toBeInstanceOf(ArrayBuffer);
+    expect(result.data!.byteLength).toBe(4);
+    await flush();
+    expect(onSketchSaved).toHaveBeenCalledTimes(1);
+    expect(onSketchSaved).toHaveBeenCalledWith(true, {
+      type: 'arraybuffer',
+      data: result.data,
+    });
+  });
+
+  test('arraybuffer applies the defaults', async () => {
+    const { canvas } = renderCanvas();
+
+    await canvas.save({ type: 'arraybuffer' });
+
+    expect(getMethods(canvas).transferToArrayBuffer).toHaveBeenCalledWith(
+      'png',
+      false,
+      true,
+      true,
+      false
+    );
+  });
+
+  test('the positional form saves a file', async () => {
+    const onSketchSaved = jest.fn();
+    const { canvas } = renderCanvas({ onSketchSaved });
+
+    const result = await canvas.save(
+      'png',
+      true,
+      'folder',
+      'name',
+      true,
+      false,
+      true
+    );
+
+    expect(getMethods(canvas).save).toHaveBeenCalledWith(
+      'png',
+      'folder',
+      'name',
+      true,
+      true,
+      false,
+      true
+    );
+    expect(result).toEqual({ success: true, type: 'file', data: '/tmp/x.png' });
+    await flush();
+    expect(onSketchSaved).toHaveBeenCalledWith(true, {
+      type: 'file',
+      data: '/tmp/x.png',
+    });
+  });
+
+  test('both forms make the same native call', async () => {
     const { canvas } = renderCanvas();
 
     await canvas.save('jpg', true, 'folder', 'name', false, true, true);
@@ -271,98 +294,66 @@ describe('options form', () => {
     expect(calls[1]).toEqual(calls[0]);
   });
 
-  test('save rejects without a view', async () => {
+  test.each([
+    { type: 'file' as const, filename: 'name' },
+    { type: 'base64' as const },
+    { type: 'arraybuffer' as const },
+  ])('$type rejects after unmount without a callback', async (options) => {
     const onSketchSaved = jest.fn();
     const { canvas, unmount } = renderCanvas({ onSketchSaved });
     unmount();
 
-    await expect(canvas.save({ filename: 'name' })).rejects.toThrow(
+    await expect(canvas.save(options)).rejects.toThrow('Canvas is not ready');
+    await flush();
+    expect(onSketchSaved).not.toHaveBeenCalled();
+  });
+
+  test('rejects before the hybrid ref arrives', async () => {
+    nitroMock.mockOptions.deliverHybridRef = false;
+    const onSketchSaved = jest.fn();
+    const { canvas } = renderCanvas({ onSketchSaved });
+
+    await expect(canvas.save({ type: 'base64' })).rejects.toThrow(
       'Canvas is not ready'
     );
     await flush();
     expect(onSketchSaved).not.toHaveBeenCalled();
   });
 
-  test('getBase64 maps the options to the native argument order', async () => {
-    const onGenerateBase64 = jest.fn();
-    const { canvas } = renderCanvas({ onGenerateBase64 });
+  test('a native rejection rejects without a callback', async () => {
+    const onSketchSaved = jest.fn();
+    const { canvas } = renderCanvas({ onSketchSaved });
+    getMethods(canvas).transferToArrayBuffer.mockRejectedValueOnce(
+      new Error('CanvasNotReadyError')
+    );
 
-    const result = await canvas.getBase64({
-      imageType: 'jpg',
-      transparent: true,
-      includeImage: false,
-      includeText: false,
-      cropToImageSize: true,
-    });
-
-    expect(result).toBe('BASE64');
-    expect(getMethods(canvas).transferToBase64).toHaveBeenCalledWith(
-      'jpg',
-      true,
-      false,
-      false,
-      true
+    await expect(canvas.save({ type: 'arraybuffer' })).rejects.toThrow(
+      'CanvasNotReadyError'
     );
     await flush();
-    expect(onGenerateBase64).toHaveBeenCalledWith({ base64: 'BASE64' });
+    expect(onSketchSaved).not.toHaveBeenCalled();
   });
 
-  test('getBase64 applies the defaults for omitted fields', async () => {
+  test('an ignored rejection is not unhandled', async () => {
+    nitroMock.mockOptions.deliverHybridRef = false;
+    const unhandled = jest.fn();
+    process.on('unhandledRejection', unhandled);
+    try {
+      const { canvas } = renderCanvas();
+      const promise = canvas.save({ type: 'arraybuffer' });
+      await flush();
+      await flush();
+      expect(unhandled).not.toHaveBeenCalled();
+      await expect(promise).rejects.toThrow('Canvas is not ready');
+    } finally {
+      process.off('unhandledRejection', unhandled);
+    }
+  });
+
+  test('getBase64 is gone', () => {
     const { canvas } = renderCanvas();
 
-    await canvas.getBase64({ includeText: false });
-
-    expect(getMethods(canvas).transferToBase64).toHaveBeenCalledWith(
-      'png',
-      false,
-      true,
-      false,
-      false
-    );
-  });
-
-  test('getBase64 with no argument uses all the defaults', async () => {
-    const onGenerateBase64 = jest.fn();
-    const { canvas } = renderCanvas({ onGenerateBase64 });
-
-    await expect(canvas.getBase64()).resolves.toBe('BASE64');
-
-    expect(getMethods(canvas).transferToBase64).toHaveBeenCalledWith(
-      'png',
-      false,
-      true,
-      true,
-      false
-    );
-    await flush();
-    expect(onGenerateBase64).toHaveBeenCalledWith({ base64: 'BASE64' });
-  });
-
-  test('getBase64 makes the same native call in both forms', async () => {
-    const { canvas } = renderCanvas();
-
-    await canvas.getBase64('jpg', true, false, true, true);
-    await canvas.getBase64({
-      imageType: 'jpg',
-      transparent: true,
-      includeImage: false,
-      includeText: true,
-      cropToImageSize: true,
-    });
-
-    const calls = getMethods(canvas).transferToBase64.mock.calls;
-    expect(calls).toHaveLength(2);
-    expect(calls[1]).toEqual(calls[0]);
-  });
-
-  test('getBase64 rejects without a view', async () => {
-    const onGenerateBase64 = jest.fn();
-    const { canvas, unmount } = renderCanvas({ onGenerateBase64 });
-    unmount();
-
-    await expect(canvas.getBase64()).rejects.toThrow('Canvas is not ready');
-    await flush();
-    expect(onGenerateBase64).not.toHaveBeenCalled();
+    expect((canvas as any).getBase64).toBeUndefined();
   });
 });
 

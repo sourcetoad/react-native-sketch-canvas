@@ -18,18 +18,6 @@ test('renders correctly', async () => {
   render(<RNSketchCanvas />);
 });
 
-test('getBase64 returns the promise and forwards onGenerateBase64', async () => {
-  const onGenerateBase64 = jest.fn();
-  const canvas = renderCanvas({ onGenerateBase64 });
-
-  const promise = canvas.getBase64('png', false, true, true, false);
-
-  expect(promise).toBeInstanceOf(Promise);
-  await expect(promise).resolves.toBe('BASE64');
-  await flush();
-  expect(onGenerateBase64).toHaveBeenCalledWith({ base64: 'BASE64' });
-});
-
 test('save returns a promise of the save result', async () => {
   const onSketchSaved = jest.fn();
   const canvas = renderCanvas({ onSketchSaved });
@@ -39,23 +27,47 @@ test('save returns a promise of the save result', async () => {
   expect(promise).toBeInstanceOf(Promise);
   await expect(promise).resolves.toEqual({
     success: true,
-    path: '/tmp/x.png',
+    type: 'file',
+    data: '/tmp/x.png',
   });
   await flush();
-  expect(onSketchSaved).toHaveBeenCalledWith(true, '/tmp/x.png');
+  expect(onSketchSaved).toHaveBeenCalledTimes(1);
+  expect(onSketchSaved).toHaveBeenCalledWith(true, {
+    type: 'file',
+    data: '/tmp/x.png',
+  });
   expect(screen.getByTestId('sketch-canvas-host')).toBeTruthy();
 });
 
 const getMethods = (canvas: RNSketchCanvas) =>
   (canvas as any)._sketchCanvas._view;
 
-test('getBase64 accepts an options object', async () => {
+test('getBase64 is gone', () => {
   const canvas = renderCanvas();
 
-  await expect(
-    canvas.getBase64({ imageType: 'jpg', transparent: true })
-  ).resolves.toBe('BASE64');
+  expect((canvas as any).getBase64).toBeUndefined();
+});
 
+test('save honours savePreference().type for base64', async () => {
+  const onSketchSaved = jest.fn();
+  const canvas = renderCanvas({
+    onSketchSaved,
+    savePreference: () => ({
+      type: 'base64',
+      folder: '',
+      filename: '',
+      transparent: true,
+      imageType: 'jpg',
+    }),
+  });
+
+  await expect(canvas.save()).resolves.toEqual({
+    success: true,
+    type: 'base64',
+    data: 'BASE64',
+  });
+
+  expect(getMethods(canvas).save).not.toHaveBeenCalled();
   expect(getMethods(canvas).transferToBase64).toHaveBeenCalledWith(
     'jpg',
     true,
@@ -63,34 +75,43 @@ test('getBase64 accepts an options object', async () => {
     true,
     false
   );
+  await flush();
+  expect(onSketchSaved).toHaveBeenCalledWith(true, {
+    type: 'base64',
+    data: 'BASE64',
+  });
 });
 
-test('getBase64 with no argument uses all the defaults', async () => {
-  const canvas = renderCanvas();
+test('save honours savePreference().type for arraybuffer', async () => {
+  const onSketchSaved = jest.fn();
+  const canvas = renderCanvas({
+    onSketchSaved,
+    savePreference: () => ({
+      type: 'arraybuffer',
+      folder: '',
+      filename: '',
+      transparent: false,
+      imageType: 'png',
+      includeText: false,
+    }),
+  });
 
-  await expect(canvas.getBase64()).resolves.toBe('BASE64');
+  const result = await canvas.save();
 
-  expect(getMethods(canvas).transferToBase64).toHaveBeenCalledWith(
+  expect(result.type).toBe('arraybuffer');
+  expect(result.data).toBeInstanceOf(ArrayBuffer);
+  expect(getMethods(canvas).transferToArrayBuffer).toHaveBeenCalledWith(
     'png',
     false,
     true,
-    true,
+    false,
     false
   );
-});
-
-test('getBase64 still accepts the positional form', async () => {
-  const canvas = renderCanvas();
-
-  await canvas.getBase64('jpg', true, false, true, true);
-
-  expect(getMethods(canvas).transferToBase64).toHaveBeenCalledWith(
-    'jpg',
-    true,
-    false,
-    true,
-    true
-  );
+  await flush();
+  expect(onSketchSaved).toHaveBeenCalledWith(true, {
+    type: 'arraybuffer',
+    data: result.data,
+  });
 });
 
 test('save passes the savePreference through as an options object', async () => {

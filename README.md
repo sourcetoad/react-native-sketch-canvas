@@ -17,7 +17,7 @@ A React Native component for drawing by touching on both iOS and Android, with T
 - Can undo strokes one by one
 - Can serialize path data to JSON for syncing between devices
 - Save drawing to a non-transparent image (png or jpg) or a transparent image (png only)
-- `save()` and `getBase64()` return promises
+- One `save()` exports a file, a base64 string or raw bytes (`ArrayBuffer`), and returns a promise
 - Use vector concept - sketches won't be cropped in different sizes of canvas
 - Support translucent colors and eraser
 - Support drawing on an image
@@ -52,18 +52,18 @@ Then run `pod install` in your `ios` folder. Both platforms autolink.
 
 ---
 
-3.0 replaces the Fabric component and TurboModule with a Nitro view. The JS API is the same, plus promises.
+3.0 replaces the Fabric component and TurboModule with a Nitro view, and merges every export into one `save()` and one `onSketchSaved`.
 
 - Install the peer dependency `react-native-nitro-modules` (~0.37.1). React Native >= 0.86 and the New Architecture are required.
-- `save()` now returns `Promise<SaveResult>` (`{ success: boolean; path: string | null }`) and `getBase64()` returns `Promise<string>`. This applies to both `SketchCanvas` and `RNSketchCanvas`.
-- `save()` and `getBase64()` take an options object ([SaveOptions](#saveoptions-and-base64options-objects) / [Base64Options](#saveoptions-and-base64options-objects)). The positional forms still work but are deprecated and will be removed in a future major version.
-- `onSketchSaved` and `onGenerateBase64` work as before: they fire for every save and export, so you can keep using them instead of awaiting the promise.
-- If the canvas isn't ready (not mounted yet, unmounted, or Android's native canvas isn't ready), the promises reject with `Error('Canvas is not ready')`, and `onSketchSaved` / `onGenerateBase64` don't fire (as in 2.x).
-- `RNSketchCanvas` now forwards `onGenerateBase64` to its canvas.
+- `save()` takes a [SaveOptions](#saveoptions-object) object whose `type` picks the output: `'file'` (the default), `'base64'` or `'arraybuffer'`. It returns `Promise<SaveResult>` (`{ success, type, data }`). This applies to both `SketchCanvas` and `RNSketchCanvas`.
+- **Breaking:** `getBase64()` and `onGenerateBase64` are removed. Use `save({ type: 'base64' })`; the result arrives in `onSketchSaved` and in the promise.
+- **Breaking:** the second argument of `onSketchSaved` is now a [SaveResponse](#saveresult-and-saveresponse-objects) object (`{ type, data }`) instead of the saved path. For a file save, the path is `response.data` (`null` on failure).
+- The positional `save(imageType, transparent, folder, filename, includeImage, includeText, cropToImageSize)` still works and saves a file, but it is deprecated and will be removed in a future major version.
+- If the canvas isn't ready (not mounted yet, unmounted, or Android's native canvas isn't ready), the promise rejects with `Error('Canvas is not ready')` and `onSketchSaved` doesn't fire (as in 2.x).
 - `OnChangeEventType` is deprecated. It's still exported, but no change events use it anymore.
 - Update your Jest mock (see [Jest Setup](#jest-setup)).
 
-In 2.x you passed positional arguments, and the results arrived through the callbacks:
+In 2.x you passed positional arguments, the path arrived as the second `onSketchSaved` argument, and base64 had its own method and callback:
 
 ```tsx
 <SketchCanvas
@@ -75,29 +75,34 @@ canvas.current.save('png', false, 'RNSketchCanvas', 'drawing', true, true, false
 canvas.current.getBase64('png', false, true, true, false);
 ```
 
-In 3.0 you pass an options object instead (omitted options use their defaults). The callbacks keep working exactly as before:
+In 3.0 you pass an options object (omitted options use their defaults), and every result arrives in `onSketchSaved`:
 
 ```tsx
 <SketchCanvas
   ref={canvas}
-  onSketchSaved={(success, path) => console.log(success, path)}
-  onGenerateBase64={({ base64 }) => console.log(base64)}
+  onSketchSaved={(success, response) => {
+    if (response.type === 'file') {
+      console.log(success, response.data);
+    } else if (response.type === 'base64') {
+      console.log(response.data);
+    }
+  }}
 />;
 canvas.current.save({ folder: 'RNSketchCanvas', filename: 'drawing' });
-canvas.current.getBase64();
+canvas.current.save({ type: 'base64' });
 ```
 
 Or await the result of a specific call:
 
 ```tsx
-const { success, path } = await canvas.current.save({ folder: 'RNSketchCanvas', filename: 'drawing' });
-const base64 = await canvas.current.getBase64();
+const { success, data: path } = await canvas.current.save({ folder: 'RNSketchCanvas', filename: 'drawing' });
+const { data: base64 } = await canvas.current.save({ type: 'base64' });
 ```
 
 Behaviour changes (iOS, from the Swift rewrite):
 
 - All `text` field changes are applied. 2.x could skip some updates to an existing `text` array.
-- A save that fails to create its folder no longer crashes. It resolves `{ success: false, path: null }`.
+- A save that fails to create its folder no longer crashes. It resolves `{ success: false, type: 'file', data: null }`.
 - `addPath` and `initialPaths` skip a malformed point (one without a comma) instead of crashing. Android still throws, as in 2.x.
 
 Other changes:
@@ -151,47 +156,65 @@ AppRegistry.registerComponent('example', () => Example);
 
 #### Saving and exporting
 
-`save()` and `getBase64()` take an options object. Results arrive through `onSketchSaved` / `onGenerateBase64`, and each call also returns a promise if you'd rather await it:
+`save()` takes an options object whose `type` picks the output: a file (the default), a base64 string or the encoded image bytes as an `ArrayBuffer`. Every result arrives in `onSketchSaved(success, response)`, and each call also returns a promise if you'd rather await it:
 
 ```tsx
 import React, { useRef } from 'react';
 import { Button, View } from 'react-native';
-import { SketchCanvas } from '@sourcetoad/react-native-sketch-canvas';
+import {
+  SketchCanvas,
+  type SaveResponse,
+} from '@sourcetoad/react-native-sketch-canvas';
 
 export default function SaveExample() {
   const canvas = useRef<SketchCanvas>(null);
 
-  const onSave = async () => {
-    try {
-      const { success, path } = await canvas.current!.save({
-        folder: 'RNSketchCanvas',
-        filename: `drawing-${Date.now()}`,
-        imageType: 'png',
-      });
-      console.log(success ? `Saved to ${path}` : 'Save failed');
-    } catch (e) {
-      console.warn((e as Error).message);
+  const onSketchSaved = (success: boolean, response: SaveResponse) => {
+    if (response.type === 'file') {
+      console.log(success ? `Saved to ${response.data}` : 'Save failed');
+    } else if (response.type === 'base64') {
+      console.log(`data:image/jpeg;base64,${response.data}`);
+    } else {
+      console.log(`${response.data?.byteLength} bytes`);
     }
   };
 
-  const onExport = async () => {
-    const base64 = await canvas.current!.getBase64({ imageType: 'jpg' });
-    console.log(`data:image/jpeg;base64,${base64}`);
+  const onSave = () =>
+    canvas.current!.save({
+      folder: 'RNSketchCanvas',
+      filename: `drawing-${Date.now()}`,
+      imageType: 'png',
+    }).catch((e) => console.warn((e as Error).message));
+
+  const onExport = () =>
+    canvas.current!.save({ type: 'base64', imageType: 'jpg' }).catch(() => {});
+
+  const onUpload = async () => {
+    const { data } = await canvas.current!.save({ type: 'arraybuffer' });
+    await fetch('https://example.com/upload', { method: 'POST', body: data });
   };
 
   return (
     <View style={{ flex: 1 }}>
-      <SketchCanvas ref={canvas} style={{ flex: 1 }} strokeColor="red" strokeWidth={7} />
+      <SketchCanvas
+        ref={canvas}
+        style={{ flex: 1 }}
+        strokeColor="red"
+        strokeWidth={7}
+        onSketchSaved={onSketchSaved}
+      />
       <Button title="Save" onPress={onSave} />
       <Button title="Export" onPress={onExport} />
+      <Button title="Upload" onPress={onUpload} />
     </View>
   );
 }
 ```
 
-- `save()` resolves with a [SaveResult](#saveresult-object). A failed write resolves with `success: false`; it doesn't reject.
-- Both reject with `Error('Canvas is not ready')` if the canvas hasn't finished mounting (or is unmounted). On Android, commands sent before the canvas is ready are dropped, so a save right after mount can reject.
-- `getBase64()` with no options returns a PNG of the whole canvas, including the background image and text.
+- `save()` resolves with a [SaveResult](#saveresult-and-saveresponse-objects) (`{ success, type, data }`). The result type follows `type`, so `data` is a `string` for `'file'` and `'base64'` and an `ArrayBuffer` for `'arraybuffer'` (`null` when a file save fails). A failed write resolves with `success: false`; it doesn't reject.
+- `onSketchSaved(success, response)` fires once for every save that resolves, with `response` being `{ type, data }`.
+- `save()` rejects with `Error('Canvas is not ready')` if the canvas hasn't finished mounting (or is unmounted), and `onSketchSaved` doesn't fire. On Android, commands sent before the canvas is ready are dropped, so a save right after mount can reject.
+- `save({ type: 'base64' })` and `save({ type: 'arraybuffer' })` with no other options return a PNG of the whole canvas, including the background image and text. The `ArrayBuffer` holds exactly the bytes the base64 string encodes.
 
 #### Properties
 
@@ -205,14 +228,13 @@ export default function SaveExample() {
 | onStrokeStart           | `function` | An optional function which accepts 2 arguments `x` and `y`. Called when user's finger touches the canvas (starts to draw)                                                                                                                                                                                                                   |
 | onStrokeChanged         | `function` | An optional function which accepts 2 arguments `x` and `y`. Called when user's finger moves                                                                                                                                                                                                                                                 |
 | onStrokeEnd             | `function` | An optional function called when user's finger leaves the canvas (end drawing)                                                                                                                                                                                                                                                              |
-| onSketchSaved           | `function` | An optional function which accepts 2 arguments `success` and `path`. If `success` is true, image is saved successfully and the saved image path is in the second argument (empty string on failure). Called when the `save()` promise resolves.                                     |
+| onSketchSaved           | `function` | An optional function which accepts 2 arguments `success` and `response`. `response` is a [SaveResponse](#saveresult-and-saveresponse-objects) (`{ type, data }`): the saved file path for `type: 'file'` (`null` on failure), the base64 string for `'base64'`, or the image bytes for `'arraybuffer'`. Called once when a `save()` promise resolves. |
 | onPathsChange           | `function` | An optional function which accepts 1 argument `pathsCount`, which indicates the number of paths. Useful for UI controls.                                                                                                                                                                                                                    |
 | user                    |  `string`  | An identifier to identify who draws the path. Useful when undo between two users                                                                                                                                                                                                                                                            |
 | touchEnabled            |   `bool`   | If false, disable touching. Default is true.                                                                                                                                                                                                                                                                                                |
 | localSourceImage        |  `object`  | Require an object (see [below](#objects)) which consists of `filename`, `directory`(optional) and `mode`(optional). If set, the image will be loaded and display as a background in canvas.                                                                                                                                                 |
 | permissionDialogTitle   |  `string`  | Android Only: Provide a Dialog Title for the Image Saving PermissionDialog. Defaults to empty string if not set                                                                                                                                                                                                                             |
 | permissionDialogMessage |  `string`  | Android Only: Provide a Dialog Message for the Image Saving PermissionDialog. Defaults to empty string if not set                                                                                                                                                                                                                           |
-| onGenerateBase64        | `function` | An optional function which accepts 1 argument `result` (`{ base64 }`) containing the base64 string of the canvas. Called when the `getBase64()` promise resolves.                                                                                                                 |
 | onCanvasReady           | `function` | An optional function called when the canvas is ready for interaction.                                                                                                                                                                                                                                                                       |
 | initialPaths            |  `array`   | Array of paths to load into the canvas when it becomes ready. Uses native batch processing for optimal performance. Each path should follow the [Path object](#objects) format.                                                                                                                                                             |
 | onInitialPathsLoaded    | `function` | An optional function which accepts 1 argument `eventData`. Called when `initialPaths` have been processed and loaded into the canvas. `eventData` is an object with `{ loadedCount: number }` property containing the number of paths successfully loaded.                                                                                  |
@@ -227,9 +249,8 @@ export default function SaveExample() {
 | undo()                                                                        | Delete the latest path. Can undo multiple times.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | addPath(path)                                                                 | Add a path (see [below](#objects)) to canvas.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | deletePath(id)                                                                | Delete a path with its `id`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| save(options) | Takes a [SaveOptions](#saveoptions-and-base64options-objects) object and returns `Promise<SaveResult>` (`{ success, path }`, `path` is `null` on failure). Save image to filesystem. If `localSourceImage` is set and a background image is loaded successfully, set `includeImage` to true to include background image and set `cropToImageSize` to true to crop output image to background image.<br/>Android: Save image in `imageType` format with transparent background (if `transparent` sets to True) to **/sdcard/Pictures/`folder`/`filename`** (which is Environment.DIRECTORY_PICTURES).<br/>iOS: Save image in `imageType` format with transparent background (if `transparent` sets to True) to **temporary directory/`folder`/`filename`** (which is NSTemporaryDirectory()).<br/>Rejects with `Error('Canvas is not ready')` if the canvas isn't ready.<br/>**Deprecated:** `save(imageType, transparent, folder, filename, includeImage, includeText, cropToImageSize)` still works and will be removed in a future major version. |
+| save(options) | Takes a [SaveOptions](#saveoptions-object) object and returns `Promise<SaveResult>` (`{ success, type, data }`); the result is also sent to `onSketchSaved`. `type` picks the output:<br/>`'file'` (default): saves the image to the filesystem and resolves the path in `data` (`null` on failure).<br/>Android: Save image in `imageType` format with transparent background (if `transparent` sets to True) to **/sdcard/Pictures/`folder`/`filename`** (which is Environment.DIRECTORY_PICTURES).<br/>iOS: Save image in `imageType` format with transparent background (if `transparent` sets to True) to **temporary directory/`folder`/`filename`** (which is NSTemporaryDirectory()).<br/>`'base64'`: resolves the base64-encoded image in `data`.<br/>`'arraybuffer'`: resolves the encoded image bytes in `data` as an `ArrayBuffer`.<br/>If `localSourceImage` is set and a background image is loaded successfully, set `includeImage` to true to include background image and set `cropToImageSize` to true to crop output image to background image.<br/>Rejects with `Error('Canvas is not ready')` if the canvas isn't ready.<br/>**Deprecated:** `save(imageType, transparent, folder, filename, includeImage, includeText, cropToImageSize)` still works (as `type: 'file'`) and will be removed in a future major version. |
 | getPaths()                                                                    | Get the paths that drawn on the canvas                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| getBase64(options?) | Takes an optional [Base64Options](#saveoptions-and-base64options-objects) object and returns `Promise<string>` with the base64 string of the canvas (also sent to `onGenerateBase64`). `getBase64()` uses all the defaults. Rejects with `Error('Canvas is not ready')` if the canvas isn't ready.<br/>**Deprecated:** `getBase64(imageType, transparent, includeImage, includeText, cropToImageSize)` still works and will be removed in a future major version.                                                                                                                                                                                                                                                                                                                                             |
 | setInitialPaths(initialPaths)                                                 | Set initial paths to the canvas using native batch processing. This method is called automatically when the `initialPaths` prop is provided, but can also be called manually for dynamic path loading.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 #### Constants
@@ -373,7 +394,6 @@ AppRegistry.registerComponent('example', () => Example);
 | strokeWidthStep         |  `number`   | The step value of thickness when tapping `strokeWidthComponent`.                                                                                                                                                                                                                                                                                  |
 | savePreference          | `function`  | A function which is called when saving image and should return an object (see [below](#objects)).                                                                                                                                                                                                                                                 |
 | onSketchSaved           | `function`  | See [above](#properties)                                                                                                                                                                                                                                                                                                          |
-| onGenerateBase64        | `function`  | See [above](#properties)                                                                                                                                                                                                                                                                                                          |
 | onCanvasReady           | `function`  | An optional function called when the canvas is ready for interaction.                                                                                                                                                                                                                                                                             |
 | initialPaths            |   `array`   | Array of paths to load into the canvas when it becomes ready. Uses native batch processing for optimal performance. Each path should follow the [Path object](#objects) format.                                                                                                                                                                   |
 | onInitialPathsLoaded    | `function`  | An optional function which accepts 1 argument `eventData`. Called when `initialPaths` have been processed and loaded into the canvas. `eventData` is an object with `{ loadedCount: number }` property containing the number of paths successfully loaded.                                                                                        |
@@ -388,8 +408,7 @@ AppRegistry.registerComponent('example', () => Example);
 | undo()         | See [above](#methods) |
 | addPath(path)  | See [above](#methods) |
 | deletePath(id) | See [above](#methods) |
-| save()         | Saves with `savePreference()` (or png with a generated filename). Returns `Promise<SaveResult>` |
-| getBase64(options?) | See [above](#methods). **Deprecated:** the positional `getBase64(imageType, transparent, includeImage, includeText, cropToImageSize)` still works and will be removed in a future major version. |
+| save()         | Saves with `savePreference()` (or a png file with a generated filename). `savePreference().type` picks the output (`'file'` by default). Returns `Promise<SaveResult>` and calls `onSketchSaved` |
 
 #### Constants
 
@@ -507,6 +526,7 @@ onInitialPathsLoaded={(eventData) => {
 
 ```json5
 {
+  type: 'file',
   folder: 'RNSketchCanvas',
   filename: 'image',
   transparent: true,
@@ -519,46 +539,51 @@ onInitialPathsLoaded={(eventData) => {
 
 | Property         | Type    | Description                                                                                                                                                                                  |
 |:-----------------|:--------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| folder?          | string  | Android: the folder name in `Pictures` directory<br/>iOS: the folder name in the temporary directory                                                                                          |
-| filename?        | string  | the file name of image                                                                                                                                                                       |
+| type?            | string  | The output of the toolbar save<br/>Options: `file`, `base64`, `arraybuffer`. (Default is `file`)                                                                                              |
+| folder           | string  | `file` only. Android: the folder name in `Pictures` directory<br/>iOS: the folder name in the temporary directory                                                                            |
+| filename         | string  | `file` only. The file name of image                                                                                                                                                          |
 | transparent      | boolean | save canvas with transparent background, ignored if imageType is `jpg`                                                                                                                       |
 | imageType        | string  | image file format<br/>Options: `png`, `jpg`                                                                                                                                                  |
 | includeImage?    | boolean | Set to `true` to include the image loaded from `LocalSourceImage`. (Default is `true`)                                                                                                       |
 | includeText?     | boolean | Set to `true` to include the text drawn from `Text`. (Default is `true`)                                                                                                                     |
 | cropToImageSize? | boolean | Set to `true` to crop output image to the image loaded from `LocalSourceImage`. (Default is `false`)                                                                                         |
 
-### SaveOptions and Base64Options objects
+### SaveOptions object
 
 ```tsx
 await canvas.current.save({ folder: 'RNSketchCanvas', filename: 'image', imageType: 'jpg' });
-await canvas.current.getBase64({ transparent: true, includeText: false });
+await canvas.current.save({ type: 'base64', transparent: true, includeText: false });
+await canvas.current.save({ type: 'arraybuffer' });
 ```
 
-`Base64Options` has every `SaveOptions` property except `filename` and `folder`.
+`SaveOptions` is a union of `FileSaveOptions`, `Base64SaveOptions` and `ArrayBufferSaveOptions`, picked by `type`.
 
 | Property         | Type    | Description                                                                                                         |
 |:-----------------|:--------|:--------------------------------------------------------------------------------------------------------------------|
-| filename         | string  | `SaveOptions` only. The file name of the image                                                                      |
-| folder?          | string  | `SaveOptions` only. Android: the folder name in `Pictures` directory<br/>iOS: the folder name in the temporary directory. (Default is `''`) |
+| type?            | string  | The output<br/>Options: `file`, `base64`, `arraybuffer`. (Default is `file`)                                         |
+| filename         | string  | `file` only, required. The file name of the image                                                                   |
+| folder?          | string  | `file` only. Android: the folder name in `Pictures` directory<br/>iOS: the folder name in the temporary directory. (Default is `''`) |
 | imageType?       | string  | Image format<br/>Options: `png`, `jpg`. (Default is `png`)                                                          |
 | transparent?     | boolean | Use a transparent background, ignored if imageType is `jpg`. (Default is `false`)                                   |
 | includeImage?    | boolean | Set to `true` to include the image loaded from `LocalSourceImage`. (Default is `true`)                              |
 | includeText?     | boolean | Set to `true` to include the text drawn from `Text`. (Default is `true`)                                            |
 | cropToImageSize? | boolean | Set to `true` to crop output image to the image loaded from `LocalSourceImage`. (Default is `false`)                |
 
-### SaveResult object
+### SaveResult and SaveResponse objects
 
-What the `save()` promise resolves with:
+`SaveResult` is what the `save()` promise resolves with. `SaveResponse` is the same object without `success`, passed as the second argument of `onSketchSaved`.
 
 ```tsx
-const result: SaveResult = await canvas.current.save({ filename: 'image' });
-// { success: true, path: '/.../Pictures/image.png' }
+const result = await canvas.current.save({ filename: 'image' });
 ```
 
-| Property | Type             | Description                                                                                       |
-|:---------|:-----------------|:--------------------------------------------------------------------------------------------------|
-| success  | boolean          | `true` if the image was written. iOS reports `true` even when the final write fails (2.x behaviour; see [Known Issues](#known-issues)) |
-| path     | string \| null   | The full path of the saved file, or `null` when the save failed                                  |
+`result` is `{ success: true, type: 'file', data: '/.../Pictures/image.png' }`.
+
+| Property | Type                                 | Description                                                                                       |
+|:---------|:-------------------------------------|:--------------------------------------------------------------------------------------------------|
+| success  | boolean                              | `SaveResult` only. `true` if the image was written. iOS reports `true` even when the final write fails (2.x behaviour; see [Known Issues](#known-issues)). Always `true` for `base64` and `arraybuffer` |
+| type     | string                               | `file`, `base64` or `arraybuffer`, matching the `type` you saved with                              |
+| data     | string \| ArrayBuffer \| null        | `file`: the full path of the saved file, or `null` when the save failed<br/>`base64`: the base64-encoded image<br/>`arraybuffer`: the encoded image bytes |
 
 ### Path object
 
@@ -635,7 +660,7 @@ const result: SaveResult = await canvas.current.save({ filename: 'image' });
 These are 2.x behaviours that 3.0 keeps as they are.
 
 - Android: detaching and re-attaching the canvas (for example pushing a screen and popping back) blanks it, including the background image and text. After that the canvas drops every command and logs "Canvas is not ready".
-- Android: commands sent before the canvas is ready are dropped, so `save()` and `getBase64()` reject with `Error('Canvas is not ready')`. iOS accepts them before it's ready.
+- Android: commands sent before the canvas is ready are dropped, so `save()` rejects with `Error('Canvas is not ready')`. iOS accepts them before it's ready.
 - Android: saving writes to the public `Pictures` directory without MediaStore, which fails on API 29+.
 - Android: the storage permission request on mount returns a status string that is always truthy, and its result is ignored.
 - Android: `MAIN_BUNDLE`, `DOCUMENT`, `LIBRARY` and `CACHES` are empty strings.
@@ -654,6 +679,8 @@ These are 2.x behaviours that 3.0 keeps as they are.
   | Save location      | `NSTemporaryDirectory()/folder/filename`  | `Pictures/folder/filename`                 |
   | Base64 line breaks | `\r\n` every 64 characters                | `\n` every 76 characters                    |
   | JPEG quality       | 100%                                      | 90%                                        |
+
+  Because the base64 line breaks differ, strip whitespace before decoding, or use `save({ type: 'arraybuffer' })`, which returns the encoded bytes with no line breaks to handle.
 
 - `onInitialPathsLoaded` is typed `(count: number) => void` but receives `{ loadedCount }`.
 
@@ -683,6 +710,7 @@ jest.mock('react-native-nitro-modules', () => {
     clear: jest.fn(),
     save: jest.fn(() => Promise.resolve({ success: true, path: '/tmp/x.png' })),
     transferToBase64: jest.fn(() => Promise.resolve('BASE64')),
+    transferToArrayBuffer: jest.fn(() => Promise.resolve(new ArrayBuffer(4))),
   });
   return {
     getHostComponent: () =>
@@ -708,7 +736,7 @@ jest.mock('react-native-nitro-modules', () => {
 
 Also add `react-native-nitro-modules` to the allow-list in your `transformIgnorePatterns`. If your mock covers other Nitro libraries, extend it rather than adding a second `jest.mock('react-native-nitro-modules')`.
 
-This mock renders the canvas as a plain `View`, makes `save()` and `getBase64()` resolve, and provides the constants.
+This mock renders the canvas as a plain `View`, makes `save()` resolve, and provides the constants.
 
 ### TypeScript Support
 
@@ -726,9 +754,13 @@ import type {
   LocalSourceImage,
   SketchCanvasProps,
   RNSketchCanvasProps,
-  SaveResult,
+  SaveType,
   SaveOptions,
-  Base64Options,
+  FileSaveOptions,
+  Base64SaveOptions,
+  ArrayBufferSaveOptions,
+  SaveResponse,
+  SaveResult,
 } from '@sourcetoad/react-native-sketch-canvas';
 ```
 
