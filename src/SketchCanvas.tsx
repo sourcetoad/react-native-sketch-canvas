@@ -389,51 +389,55 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     const cropToImageSize = options.cropToImageSize ?? false;
 
     let promise: Promise<SaveResult>;
-    if (!this._view) {
-      promise = Promise.reject(new Error('Canvas is not ready'));
-    } else if (options.type === 'base64') {
-      promise = this._view
-        .transferToBase64(
-          imageType,
-          transparent,
-          includeImage,
-          includeText,
-          cropToImageSize
-        )
-        .then((data) => ({ success: true, type: 'base64', data }));
-    } else if (options.type === 'arraybuffer') {
-      promise = this._view
-        .transferToArrayBuffer(
-          imageType,
-          transparent,
-          includeImage,
-          includeText,
-          cropToImageSize
-        )
-        .then((data) => ({ success: true, type: 'arraybuffer', data }));
-    } else {
-      promise = this._view
-        .save(
-          imageType,
-          options.folder ?? '',
-          options.filename,
-          transparent,
-          includeImage,
-          includeText,
-          cropToImageSize
-        )
-        .then(({ success, path }) => ({
-          success,
-          type: 'file',
-          data: path ?? null,
-        }));
+    try {
+      if (!this._view) {
+        promise = Promise.reject(new Error('Canvas is not ready'));
+      } else if (options.type === 'base64') {
+        promise = this._view
+          .transferToBase64(
+            imageType,
+            transparent,
+            includeImage,
+            includeText,
+            cropToImageSize
+          )
+          .then((data) => ({ success: true, type: 'base64', data }));
+      } else if (options.type === 'arraybuffer') {
+        promise = this._view
+          .transferToArrayBuffer(
+            imageType,
+            transparent,
+            includeImage,
+            includeText,
+            cropToImageSize
+          )
+          .then((data) => ({ success: true, type: 'arraybuffer', data }));
+      } else {
+        promise = this._view
+          .save(
+            imageType,
+            options.folder ?? '',
+            options.filename,
+            transparent,
+            includeImage,
+            includeText,
+            cropToImageSize
+          )
+          .then(({ success, path }) => ({
+            success,
+            type: 'file',
+            data: path ?? null,
+          }));
+      }
+    } catch (e) {
+      promise = Promise.reject(e);
     }
 
-    promise
-      .then(({ success, ...response }) =>
-        this.props.onSketchSaved?.(success, response)
-      )
-      .catch(() => {});
+    promise.then(
+      ({ success, ...response }) =>
+        this.props.onSketchSaved?.(success, response),
+      () => {}
+    );
 
     return promise;
   }

@@ -334,6 +334,60 @@ describe('save', () => {
     expect(onSketchSaved).not.toHaveBeenCalled();
   });
 
+  test.each([
+    { method: 'save', options: { type: 'file' as const } },
+    { method: 'transferToBase64', options: { type: 'base64' as const } },
+    {
+      method: 'transferToArrayBuffer',
+      options: { type: 'arraybuffer' as const },
+    },
+  ])(
+    'a synchronous $method throw rejects without a callback',
+    async ({ method, options }) => {
+      const onSketchSaved = jest.fn();
+      const { canvas } = renderCanvas({ onSketchSaved });
+      getMethods(canvas)[method].mockImplementationOnce(() => {
+        throw new Error('expected a String');
+      });
+
+      let promise: Promise<unknown> | undefined;
+      expect(() => {
+        promise = canvas.save(options as any);
+      }).not.toThrow();
+      await expect(promise).rejects.toThrow('expected a String');
+      await flush();
+      expect(onSketchSaved).not.toHaveBeenCalled();
+    }
+  );
+
+  test('an onSketchSaved error is not swallowed', () => {
+    const onSketchSaved = jest.fn(() => {
+      throw new Error('handler');
+    });
+    const { canvas } = renderCanvas({ onSketchSaved });
+    const mapped: any = {};
+    mapped.then = jest.fn(() => mapped);
+    mapped.catch = jest.fn(() => mapped);
+    getMethods(canvas).save.mockReturnValueOnce({
+      then: jest.fn(() => mapped),
+    });
+
+    canvas.save({ type: 'file', filename: 'name' });
+
+    expect(mapped.catch).not.toHaveBeenCalled();
+    expect(mapped.then).toHaveBeenCalledTimes(1);
+    const [onFulfilled, onRejected] = mapped.then.mock.calls[0];
+    expect(onRejected).toEqual(expect.any(Function));
+    expect(() => onRejected(new Error('native'))).not.toThrow();
+    expect(() =>
+      onFulfilled({ success: true, type: 'file', data: '/tmp/x.png' })
+    ).toThrow('handler');
+    expect(onSketchSaved).toHaveBeenCalledWith(true, {
+      type: 'file',
+      data: '/tmp/x.png',
+    });
+  });
+
   test('an ignored rejection is not unhandled', async () => {
     nitroMock.mockOptions.deliverHybridRef = false;
     const unhandled = jest.fn();
