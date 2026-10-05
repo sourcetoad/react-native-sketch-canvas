@@ -117,7 +117,3 @@ dependencies {
         implementation jscFlavor
     }
 }
-
-def isNewArchitectureEnabled() {
-  return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
-}
