@@ -3,6 +3,9 @@ import type { StyleProp, ViewStyle } from 'react-native';
 
 export type ImageType = 'png' | 'jpg';
 
+/**
+ * @deprecated Native change events are gone; `save()` and `getBase64()` return promises.
+ */
 export enum OnChangeEventType {
   PathsUpdate = 'pathsUpdate',
   Save = 'save',
@@ -44,6 +47,8 @@ export type CanvasText = {
    */
   lineHeightMultiple?: number;
 };
+
+export type SaveResult = { success: boolean; path: string | null };
 
 export interface SavePreference {
   folder: string;
@@ -90,7 +95,13 @@ export interface SketchCanvasProps {
   onStrokeStart?: (x: number, y: number) => void;
   onStrokeChanged?: (x: number, y: number) => void;
   onStrokeEnd?: (path: Path) => void;
+  /**
+   * @deprecated Use the promise returned by `save()` instead.
+   */
   onSketchSaved?: (result: boolean, path: string) => void;
+  /**
+   * @deprecated Use the promise returned by `getBase64()` instead.
+   */
   onGenerateBase64?: (result: { base64: string }) => void;
   onPathsChange?: (pathsCount: number) => void;
   onCanvasReady?: () => void;
@@ -164,7 +175,13 @@ export interface RNSketchCanvasProps {
     includeText?: boolean;
     cropToImageSize?: boolean;
   };
+  /**
+   * @deprecated Use the promise returned by `save()` instead.
+   */
   onSketchSaved?: (result: boolean, path: string) => void;
+  /**
+   * @deprecated Use the promise returned by `getBase64()` instead.
+   */
   onGenerateBase64?: (result: { base64: string }) => void;
   onCanvasReady?: () => void;
   /**

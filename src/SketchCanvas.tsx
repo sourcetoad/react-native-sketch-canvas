@@ -2,30 +2,58 @@
 
 import memoize from 'memoize-one';
 import React from 'react';
-import { PanResponder, PixelRatio, Platform, processColor } from 'react-native';
-import { requestPermissions } from './handlePermissions';
 import {
-  type SketchCanvasProps,
-  type CanvasText,
-  type PathData,
-  type Path,
-  OnChangeEventType,
+  PanResponder,
+  PixelRatio,
+  Platform,
+  processColor,
+  StyleSheet,
+  View,
+} from 'react-native';
+import { callback } from 'react-native-nitro-modules';
+import { requestPermissions } from './handlePermissions';
+import type {
+  SketchCanvasProps,
+  CanvasText,
+  PathData,
+  Path,
+  SaveResult,
 } from './types';
-
-import ReactNativeSketchCanvasView, {
-  Commands,
-} from './specs/SketchCanvasNativeComponent';
-
-import RNSketchModule from './specs/NativeSketchCanvasModule';
+import {
+  SketchCanvasHost,
+  getSketchCanvasConstants,
+  type SketchCanvasViewRef,
+} from './SketchCanvasNative';
 
 type CanvasState = {
   text: any;
 };
 
-type ComponentRef = React.ComponentRef<typeof ReactNativeSketchCanvasView>;
-
 class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
-  ref = React.createRef<ComponentRef>();
+  _view: SketchCanvasViewRef | null = null;
+
+  _hybridRef = callback((ref: SketchCanvasViewRef) => {
+    this._view = ref;
+    if (this._initialized) {
+      this._pathsToProcess.forEach((p) => this.addPath(p));
+    }
+  });
+
+  _onCanvasReady = callback(() => {
+    this.props.onCanvasReady?.();
+
+    if (this.props.initialPaths && this.props.initialPaths.length > 0) {
+      this.setInitialPaths(this.props.initialPaths);
+    }
+  });
+
+  _onPathsChange = callback((count: number) =>
+    this.props.onPathsChange?.(count)
+  );
+
+  _onInitialPathsLoaded = callback((count: number) =>
+    this.props.onInitialPathsLoaded?.({ loadedCount: count } as any)
+  );
 
   static defaultProps = {
     style: null,
@@ -97,16 +125,14 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
           data: [],
         };
 
-        if (this.ref.current) {
-          Commands.newPath(
-            this.ref.current,
+        if (this._view) {
+          this._view.newPath(
             this._path.id,
             processColor(this._path.color) as number,
             this._path.width ? this._path.width * this._screenScale : 0
           );
 
-          Commands.addPoint(
-            this.ref.current,
+          this._view.addPoint(
             parseFloat(
               (
                 Number((gestureState.x0 - this._offset.x).toFixed(2)) *
@@ -131,9 +157,8 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
         if (!this.props.touchEnabled) {
           return;
         }
-        if (this._path && this.ref.current) {
-          Commands.addPoint(
-            this.ref.current,
+        if (this._path && this._view) {
+          this._view.addPoint(
             parseFloat(
               (
                 Number((gestureState.moveX - this._offset.x).toFixed(2)) *
@@ -187,8 +212,8 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
       });
     }
 
-    if (this.ref.current) {
-      Commands.endPath(this.ref.current);
+    if (this._view) {
+      this._view.endPath();
     }
   };
 
@@ -210,8 +235,8 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     this._paths = [];
     this._path = null;
 
-    if (this.ref.current) {
-      Commands.clear(this.ref.current);
+    if (this._view) {
+      this._view.clear();
     }
   }
 
@@ -242,9 +267,8 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
         }`;
       });
 
-      if (this.ref.current) {
-        Commands.addPath(
-          this.ref.current,
+      if (this._view) {
+        this._view.addPath(
           data.path.id,
           processColor(data.path.color) as number,
           data.path.width ? data.path.width * this._screenScale : 0,
@@ -260,7 +284,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
   setInitialPaths(initialPaths: Path[]) {
     if (
       !this._initialized ||
-      !this.ref.current ||
+      !this._view ||
       !initialPaths ||
       initialPaths.length === 0
     ) {
@@ -296,14 +320,14 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     });
 
     // Call native batch operation
-    Commands.addInitialPaths(this.ref.current, pathsArray);
+    this._view.addInitialPaths(pathsArray);
   }
 
   deletePath(id: any) {
     this._paths = this._paths.filter((p) => p.path.id !== id);
 
-    if (this.ref.current) {
-      Commands.deletePath(this.ref.current, id);
+    if (this._view) {
+      this._view.deletePath(id);
     }
   }
 
@@ -315,19 +339,28 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     includeImage: boolean,
     includeText: boolean,
     cropToImageSize: boolean
-  ) {
-    if (this.ref.current) {
-      Commands.save(
-        this.ref.current,
-        imageType,
-        folder,
-        filename,
-        transparent,
-        includeImage,
-        includeText,
-        cropToImageSize
-      );
-    }
+  ): Promise<SaveResult> {
+    const promise: Promise<SaveResult> = this._view
+      ? this._view
+          .save(
+            imageType,
+            folder,
+            filename,
+            transparent,
+            includeImage,
+            includeText,
+            cropToImageSize
+          )
+          .then(({ success, path }) => ({ success, path: path ?? null }))
+      : Promise.reject(new Error('Canvas is not ready'));
+
+    promise
+      .then(({ success, path }) =>
+        this.props.onSketchSaved?.(success, path ?? '')
+      )
+      .catch(() => {});
+
+    return promise;
   }
 
   getPaths() {
@@ -340,30 +373,22 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     includeImage: boolean,
     includeText: boolean,
     cropToImageSize: boolean
-  ) {
-    if (Platform.OS === 'ios') {
-      if (this.ref.current) {
-        Commands.transferToBase64(
-          this.ref.current,
+  ): Promise<string> {
+    const promise = this._view
+      ? this._view.transferToBase64(
           imageType,
           transparent,
           includeImage,
           includeText,
           cropToImageSize
-        );
-      }
-    } else {
-      if (this.ref.current) {
-        Commands.transferToBase64(
-          this.ref.current,
-          imageType,
-          transparent,
-          includeImage,
-          includeText,
-          cropToImageSize
-        );
-      }
-    }
+        )
+      : Promise.reject(new Error('Canvas is not ready'));
+
+    promise
+      .then((base64) => this.props.onGenerateBase64?.({ base64 }))
+      .catch(() => {});
+
+    return promise;
   }
 
   async componentDidMount() {
@@ -373,64 +398,46 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     );
   }
 
+  componentWillUnmount() {
+    this._view = null;
+  }
+
+  _onLayout = (e: any) => {
+    this._size = {
+      width: e.nativeEvent.layout.width,
+      height: e.nativeEvent.layout.height,
+    };
+    this._initialized = true;
+
+    this._pathsToProcess.length > 0 &&
+      this._pathsToProcess.forEach((p) => this.addPath(p));
+  };
+
   render() {
     return (
-      <ReactNativeSketchCanvasView
-        ref={this.ref}
-        style={this.props.style}
-        onLayout={(e: any) => {
-          this._size = {
-            width: e.nativeEvent.layout.width,
-            height: e.nativeEvent.layout.height,
-          };
-          this._initialized = true;
-
-          // Handle any queued paths using individual operations
-          this._pathsToProcess.length > 0 &&
-            this._pathsToProcess.forEach((p) => this.addPath(p));
-        }}
-        {...this.panResponder.panHandlers}
-        onChange={(e: any) => {
-          const { eventType, pathsUpdate, success, path } = e.nativeEvent || {};
-
-          const isSuccess = success !== undefined;
-          const isSave = eventType === OnChangeEventType.Save;
-          const isPathsUpdate = eventType === OnChangeEventType.PathsUpdate;
-
-          if (!isSave && isPathsUpdate) {
-            this.props.onPathsChange?.(pathsUpdate);
-          } else if (isSave) {
-            this.props.onSketchSaved?.(success, path);
-          } else if (isSuccess) {
-            this.props.onSketchSaved?.(success, '');
-          }
-        }}
-        onGenerateBase64={(e: any) => {
-          this.props.onGenerateBase64?.(e.nativeEvent || {});
-        }}
-        onCanvasReady={() => {
-          this.props.onCanvasReady?.();
-
-          // Handle initial paths prop using batch operation
-          if (this.props.initialPaths && this.props.initialPaths.length > 0) {
-            this.setInitialPaths(this.props.initialPaths);
-          }
-        }}
-        onInitialPathsLoaded={(e: any) => {
-          this.props.onInitialPathsLoaded?.(e.nativeEvent || {});
-        }}
-        localSourceImage={this.props.localSourceImage}
-        permissionDialogTitle={this.props.permissionDialogTitle}
-        permissionDialogMessage={this.props.permissionDialogMessage}
-        text={this.getProcessedText(this.props.text)}
-      />
+      <View style={this.props.style} collapsable={false}>
+        <SketchCanvasHost
+          style={styles.fill}
+          hybridRef={this._hybridRef}
+          onLayout={this._onLayout}
+          {...this.panResponder.panHandlers}
+          onCanvasReady={this._onCanvasReady}
+          onPathsChange={this._onPathsChange}
+          onInitialPathsLoaded={this._onInitialPathsLoaded}
+          localSourceImage={this.props.localSourceImage ?? undefined}
+          text={this.getProcessedText(this.props.text) ?? undefined}
+        />
+      </View>
     );
   }
 }
 
-SketchCanvas.MAIN_BUNDLE = RNSketchModule.getConstants().MainBundlePath;
-SketchCanvas.DOCUMENT = RNSketchModule.getConstants().NSDocumentDirectory;
-SketchCanvas.LIBRARY = RNSketchModule.getConstants().NSLibraryDirectory;
-SketchCanvas.CACHES = RNSketchModule.getConstants().NSCachesDirectory;
+const styles = StyleSheet.create({ fill: { flex: 1 } });
+
+const constants = getSketchCanvasConstants();
+SketchCanvas.MAIN_BUNDLE = constants.mainBundlePath;
+SketchCanvas.DOCUMENT = constants.documentDirectory;
+SketchCanvas.LIBRARY = constants.libraryDirectory;
+SketchCanvas.CACHES = constants.cachesDirectory;
 
 export default SketchCanvas;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, FlatList } from 'react-native';
 import SketchCanvas from './SketchCanvas';
-import type { RNSketchCanvasProps, Path } from './types';
+import type { RNSketchCanvasProps, Path, SaveResult } from './types';
 
 type CanvasState = {
   color: any;
@@ -127,10 +127,10 @@ export default class RNSketchCanvas extends React.Component<
     this._sketchCanvas.deletePath(id);
   }
 
-  save() {
+  save(): Promise<SaveResult> {
     if (this.props.savePreference) {
       const p = this.props.savePreference();
-      this._sketchCanvas.save(
+      return this._sketchCanvas.save(
         p.imageType,
         p.transparent,
         p.folder ? p.folder : '',
@@ -140,7 +140,7 @@ export default class RNSketchCanvas extends React.Component<
         p.cropToImageSize || false
       );
     } else {
-      this._sketchCanvas.save(
+      return this._sketchCanvas.save(
         'png',
         false,
         '',
@@ -158,8 +158,8 @@ export default class RNSketchCanvas extends React.Component<
     includeImage: boolean,
     includeText: boolean,
     cropToImageSize: boolean
-  ) {
-    this._sketchCanvas.getBase64(
+  ): Promise<string> {
+    return this._sketchCanvas.getBase64(
       imageType,
       transparent,
       includeImage,
@@ -321,6 +321,7 @@ export default class RNSketchCanvas extends React.Component<
           onSketchSaved={(success, path) =>
             this.props.onSketchSaved?.(success, path)
           }
+          onGenerateBase64={this.props.onGenerateBase64}
           onPathsChange={this.props.onPathsChange}
           onCanvasReady={this.props.onCanvasReady}
           onInitialPathsLoaded={this.props.onInitialPathsLoaded}
@@ -361,6 +362,7 @@ export type {
   Path,
   CanvasText,
   SavePreference,
+  SaveResult,
   LocalSourceImage,
   SketchCanvasProps,
   RNSketchCanvasProps,

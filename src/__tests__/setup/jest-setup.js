@@ -114,3 +114,47 @@ jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => {
     },
   };
 });
+
+jest.mock('react-native-nitro-modules', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const mockOptions = { deliverHybridRef: true };
+  const createMethods = () => ({
+    newPath: jest.fn(),
+    addPoint: jest.fn(),
+    endPath: jest.fn(),
+    addPath: jest.fn(),
+    addInitialPaths: jest.fn(),
+    deletePath: jest.fn(),
+    clear: jest.fn(),
+    save: jest.fn(() => Promise.resolve({ success: true, path: '/tmp/x.png' })),
+    transferToBase64: jest.fn(() => Promise.resolve('BASE64')),
+  });
+  return {
+    mockOptions,
+    getHostComponent: (_name, loadConfig) => {
+      loadConfig();
+      return function MockSketchCanvasHost(props) {
+        const methods = React.useMemo(createMethods, []);
+        React.useEffect(() => {
+          if (mockOptions.deliverHybridRef) {
+            props.hybridRef?.f(methods);
+          }
+        }, [methods, props.hybridRef]);
+        return React.createElement(View, {
+          ...props,
+          testID: 'sketch-canvas-host',
+        });
+      };
+    },
+    callback: (f) => ({ f }),
+    NitroModules: {
+      createHybridObject: jest.fn(() => ({
+        mainBundlePath: 'test',
+        documentDirectory: 'test',
+        libraryDirectory: 'test',
+        cachesDirectory: 'test',
+      })),
+    },
+  };
+});

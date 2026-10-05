@@ -58,7 +58,7 @@
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
-    "build": "bob build",
+    "build": "bob build && node scripts/copy-nitro-config.mjs",
     "pods": "cd example/ios && bundle install && bundle exec pod install && cd ../..",
     "prepare": "npm run build",
     "nitrogen": "nitrogen"
@@ -122,7 +122,7 @@
       "<rootDir>/src/__tests__/setup/jest-setup.js"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!(react-native|@react-native|@react-native-community|@react-native/js-polyfills)/)"
+      "node_modules/(?!(react-native|@react-native|@react-native-community|@react-native/js-polyfills|react-native-nitro-modules)/)"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/src/__tests__/setup/jest-setup.js"
