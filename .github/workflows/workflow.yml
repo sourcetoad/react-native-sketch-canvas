@@ -26,3 +26,9 @@ jobs:
 
       - name: Prepare Build
         run: npm run build
+
+      - name: Check Build Requires
+        run: node scripts/check-lib-requires.mjs
+
+      - name: Check Package Contents
+        run: node scripts/check-pack.mjs
