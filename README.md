@@ -56,6 +56,7 @@ Then run `pod install` in your `ios` folder. Both platforms autolink.
 
 - Install the peer dependency `react-native-nitro-modules` (~0.37.1). React Native >= 0.86 and the New Architecture are required.
 - `save()` now returns `Promise<SaveResult>` (`{ success: boolean; path: string | null }`) and `getBase64()` returns `Promise<string>`. This applies to both `SketchCanvas` and `RNSketchCanvas`.
+- `save()` and `getBase64()` take an options object ([SaveOptions](#saveoptions-and-base64options-objects) / [Base64Options](#saveoptions-and-base64options-objects)). The positional forms still work but are deprecated and will be removed in 4.0.
 - `onSketchSaved` and `onGenerateBase64` are deprecated in favour of those promises. They still fire when the promise resolves.
 - If the canvas isn't ready (not mounted yet, unmounted, or Android's native canvas isn't ready), the promises reject with `Error('Canvas is not ready')` and the deprecated callbacks don't fire.
 - `RNSketchCanvas` now forwards `onGenerateBase64` to its canvas.
@@ -74,11 +75,11 @@ canvas.current.save('png', false, 'RNSketchCanvas', 'drawing', true, true, false
 canvas.current.getBase64('png', false, true, true, false);
 ```
 
-In 3.0 you can await them instead:
+In 3.0 you pass an options object and await the result instead. Omitted options use their defaults:
 
 ```tsx
-const { success, path } = await canvas.current.save('png', false, 'RNSketchCanvas', 'drawing', true, true, false);
-const base64 = await canvas.current.getBase64('png', false, true, true, false);
+const { success, path } = await canvas.current.save({ folder: 'RNSketchCanvas', filename: 'drawing' });
+const base64 = await canvas.current.getBase64();
 ```
 
 Behaviour changes (iOS, from the Swift rewrite):
@@ -170,9 +171,9 @@ AppRegistry.registerComponent('example', () => Example);
 | undo()                                                                        | Delete the latest path. Can undo multiple times.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | addPath(path)                                                                 | Add a path (see [below](#objects)) to canvas.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | deletePath(id)                                                                | Delete a path with its `id`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| save(imageType, transparent, folder, filename, includeImage, includeText, cropToImageSize) | Returns `Promise<SaveResult>` (`{ success, path }`, `path` is `null` on failure). Save image to filesystem. If `localSourceImage` is set and a background image is loaded successfully, set `includeImage` to true to include background image and set `cropToImageSize` to true to crop output image to background image.<br/>Android: Save image in `imageType` format with transparent background (if `transparent` sets to True) to **/sdcard/Pictures/`folder`/`filename`** (which is Environment.DIRECTORY_PICTURES).<br/>iOS: Save image in `imageType` format with transparent background (if `transparent` sets to True) to **temporary directory/`folder`/`filename`** (which is NSTemporaryDirectory()).<br/>Rejects with `Error('Canvas is not ready')` if the canvas isn't ready. |
+| save(options) | Takes a [SaveOptions](#saveoptions-and-base64options-objects) object and returns `Promise<SaveResult>` (`{ success, path }`, `path` is `null` on failure). Save image to filesystem. If `localSourceImage` is set and a background image is loaded successfully, set `includeImage` to true to include background image and set `cropToImageSize` to true to crop output image to background image.<br/>Android: Save image in `imageType` format with transparent background (if `transparent` sets to True) to **/sdcard/Pictures/`folder`/`filename`** (which is Environment.DIRECTORY_PICTURES).<br/>iOS: Save image in `imageType` format with transparent background (if `transparent` sets to True) to **temporary directory/`folder`/`filename`** (which is NSTemporaryDirectory()).<br/>Rejects with `Error('Canvas is not ready')` if the canvas isn't ready.<br/>**Deprecated:** `save(imageType, transparent, folder, filename, includeImage, includeText, cropToImageSize)` still works and will be removed in 4.0. |
 | getPaths()                                                                    | Get the paths that drawn on the canvas                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| getBase64(imageType, transparent, includeImage, includeText, cropToImageSize) | Returns `Promise<string>` with the base64 string of the canvas (also sent to the deprecated `onGenerateBase64`). Rejects with `Error('Canvas is not ready')` if the canvas isn't ready. Parameters:<br/>- `imageType`: "png" or "jpg"<br/>- `transparent`: whether to include transparency<br/>- `includeImage`: whether to include background image<br/>- `includeText`: whether to include text<br/>- `cropToImageSize`: whether to crop to background image size                                                                                                                                                                                                                                                                                                                                             |
+| getBase64(options?) | Takes an optional [Base64Options](#saveoptions-and-base64options-objects) object and returns `Promise<string>` with the base64 string of the canvas (also sent to the deprecated `onGenerateBase64`). `getBase64()` uses all the defaults. Rejects with `Error('Canvas is not ready')` if the canvas isn't ready.<br/>**Deprecated:** `getBase64(imageType, transparent, includeImage, includeText, cropToImageSize)` still works and will be removed in 4.0.                                                                                                                                                                                                                                                                                                                                             |
 | setInitialPaths(initialPaths)                                                 | Set initial paths to the canvas using native batch processing. This method is called automatically when the `initialPaths` prop is provided, but can also be called manually for dynamic path loading.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 #### Constants
@@ -332,7 +333,7 @@ AppRegistry.registerComponent('example', () => Example);
 | addPath(path)  | See [above](#methods) |
 | deletePath(id) | See [above](#methods) |
 | save()         | Saves with `savePreference()` (or png with a generated filename). Returns `Promise<SaveResult>` |
-| getBase64(imageType, transparent, includeImage, includeText, cropToImageSize) | See [above](#methods) |
+| getBase64(options?) | See [above](#methods). **Deprecated:** the positional `getBase64(imageType, transparent, includeImage, includeText, cropToImageSize)` still works and will be removed in 4.0. |
 
 #### Constants
 
@@ -469,6 +470,25 @@ onInitialPathsLoaded={(eventData) => {
 | includeImage?    | boolean | Set to `true` to include the image loaded from `LocalSourceImage`. (Default is `true`)                                                                                                       |
 | includeText?     | boolean | Set to `true` to include the text drawn from `Text`. (Default is `true`)                                                                                                                     |
 | cropToImageSize? | boolean | Set to `true` to crop output image to the image loaded from `LocalSourceImage`. (Default is `false`)                                                                                         |
+
+### SaveOptions and Base64Options objects
+
+```tsx
+await canvas.current.save({ folder: 'RNSketchCanvas', filename: 'image', imageType: 'jpg' });
+await canvas.current.getBase64({ transparent: true, includeText: false });
+```
+
+`Base64Options` has every `SaveOptions` property except `filename` and `folder`.
+
+| Property         | Type    | Description                                                                                                         |
+|:-----------------|:--------|:--------------------------------------------------------------------------------------------------------------------|
+| filename         | string  | `SaveOptions` only. The file name of the image                                                                      |
+| folder?          | string  | `SaveOptions` only. Android: the folder name in `Pictures` directory<br/>iOS: the folder name in the temporary directory. (Default is `''`) |
+| imageType?       | string  | Image format<br/>Options: `png`, `jpg`. (Default is `png`)                                                          |
+| transparent?     | boolean | Use a transparent background, ignored if imageType is `jpg`. (Default is `false`)                                   |
+| includeImage?    | boolean | Set to `true` to include the image loaded from `LocalSourceImage`. (Default is `true`)                              |
+| includeText?     | boolean | Set to `true` to include the text drawn from `Text`. (Default is `true`)                                            |
+| cropToImageSize? | boolean | Set to `true` to crop output image to the image loaded from `LocalSourceImage`. (Default is `false`)                |
 
 ### Path object
 
@@ -637,6 +657,8 @@ import type {
   SketchCanvasProps,
   RNSketchCanvasProps,
   SaveResult,
+  SaveOptions,
+  Base64Options,
 } from '@sourcetoad/react-native-sketch-canvas';
 ```
 

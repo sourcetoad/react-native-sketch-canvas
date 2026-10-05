@@ -456,7 +456,7 @@ class ExampleApp extends React.Component<ExampleProps, ExampleState> {
                   onPress={() => {
                     Alert.alert(JSON.stringify(this.canvas.getPaths()));
                     this.canvas
-                      .getBase64('jpg', false, true, true, true)
+                      .getBase64({ imageType: 'jpg', cropToImageSize: true })
                       .then((base64: string) => {
                         console.log('getBase64 promise result:', { base64 });
                       })

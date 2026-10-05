@@ -1,7 +1,12 @@
 import React from 'react';
 import { View, TouchableOpacity, FlatList } from 'react-native';
 import SketchCanvas from './SketchCanvas';
-import type { RNSketchCanvasProps, Path, SaveResult } from './types';
+import type {
+  RNSketchCanvasProps,
+  Path,
+  SaveResult,
+  Base64Options,
+} from './types';
 
 type CanvasState = {
   color: any;
@@ -130,37 +135,37 @@ export default class RNSketchCanvas extends React.Component<
   save(): Promise<SaveResult> {
     if (this.props.savePreference) {
       const p = this.props.savePreference();
-      return this._sketchCanvas.save(
-        p.imageType,
-        p.transparent,
-        p.folder ? p.folder : '',
-        p.filename,
-        p.includeImage !== false,
-        p.includeText !== false,
-        p.cropToImageSize || false
-      );
+      return this._sketchCanvas.save({
+        imageType: p.imageType,
+        transparent: p.transparent,
+        folder: p.folder ? p.folder : '',
+        filename: p.filename,
+        includeImage: p.includeImage !== false,
+        includeText: p.includeText !== false,
+        cropToImageSize: p.cropToImageSize || false,
+      });
     } else {
-      return this._sketchCanvas.save(
-        'png',
-        false,
-        '',
-        generateUniqueFilename(),
-        true,
-        true,
-        false
-      );
+      return this._sketchCanvas.save({ filename: generateUniqueFilename() });
     }
   }
 
+  getBase64(options?: Base64Options): Promise<string>;
   getBase64(
     imageType: string,
     transparent: boolean,
     includeImage: boolean,
     includeText: boolean,
     cropToImageSize: boolean
+  ): Promise<string>;
+  getBase64(
+    options?: Base64Options | string,
+    transparent?: boolean,
+    includeImage?: boolean,
+    includeText?: boolean,
+    cropToImageSize?: boolean
   ): Promise<string> {
     return this._sketchCanvas.getBase64(
-      imageType,
+      options,
       transparent,
       includeImage,
       includeText,
@@ -363,6 +368,8 @@ export type {
   CanvasText,
   SavePreference,
   SaveResult,
+  SaveOptions,
+  Base64Options,
   LocalSourceImage,
   SketchCanvasProps,
   RNSketchCanvasProps,

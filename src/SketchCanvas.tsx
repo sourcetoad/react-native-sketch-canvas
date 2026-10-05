@@ -18,6 +18,8 @@ import type {
   PathData,
   Path,
   SaveResult,
+  SaveOptions,
+  Base64Options,
 } from './types';
 import {
   SketchCanvasHost,
@@ -335,7 +337,48 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     }
   }
 
+  save(options: SaveOptions): Promise<SaveResult>;
   save(
+    imageType: string,
+    transparent: boolean,
+    folder: string,
+    filename: string,
+    includeImage: boolean,
+    includeText: boolean,
+    cropToImageSize: boolean
+  ): Promise<SaveResult>;
+  save(
+    options: SaveOptions | string,
+    transparent?: boolean,
+    folder?: string,
+    filename?: string,
+    includeImage?: boolean,
+    includeText?: boolean,
+    cropToImageSize?: boolean
+  ): Promise<SaveResult> {
+    if (typeof options === 'object' && options !== null) {
+      return this._save(
+        options.imageType ?? 'png',
+        options.transparent ?? false,
+        options.folder ?? '',
+        options.filename,
+        options.includeImage ?? true,
+        options.includeText ?? true,
+        options.cropToImageSize ?? false
+      );
+    }
+    return this._save(
+      options,
+      transparent!,
+      folder!,
+      filename!,
+      includeImage!,
+      includeText!,
+      cropToImageSize!
+    );
+  }
+
+  _save(
     imageType: string,
     transparent: boolean,
     folder: string,
@@ -371,7 +414,43 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     return this._paths;
   }
 
+  getBase64(options?: Base64Options): Promise<string>;
   getBase64(
+    imageType: string,
+    transparent: boolean,
+    includeImage: boolean,
+    includeText: boolean,
+    cropToImageSize: boolean
+  ): Promise<string>;
+  getBase64(
+    options?: Base64Options | string,
+    transparent?: boolean,
+    includeImage?: boolean,
+    includeText?: boolean,
+    cropToImageSize?: boolean
+  ): Promise<string> {
+    if (
+      options === undefined ||
+      (typeof options === 'object' && options !== null)
+    ) {
+      return this._getBase64(
+        options?.imageType ?? 'png',
+        options?.transparent ?? false,
+        options?.includeImage ?? true,
+        options?.includeText ?? true,
+        options?.cropToImageSize ?? false
+      );
+    }
+    return this._getBase64(
+      options,
+      transparent!,
+      includeImage!,
+      includeText!,
+      cropToImageSize!
+    );
+  }
+
+  _getBase64(
     imageType: string,
     transparent: boolean,
     includeImage: boolean,

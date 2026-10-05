@@ -207,6 +207,165 @@ describe('save', () => {
   });
 });
 
+describe('options form', () => {
+  test('save maps the options to the native argument order', async () => {
+    const onSketchSaved = jest.fn();
+    const { canvas } = renderCanvas({ onSketchSaved });
+
+    const result = await canvas.save({
+      filename: 'name',
+      folder: 'folder',
+      imageType: 'jpg',
+      transparent: true,
+      includeImage: false,
+      includeText: false,
+      cropToImageSize: true,
+    });
+
+    expect(getMethods(canvas).save).toHaveBeenCalledWith(
+      'jpg',
+      'folder',
+      'name',
+      true,
+      false,
+      false,
+      true
+    );
+    expect(result).toEqual({ success: true, path: '/tmp/x.png' });
+    await flush();
+    expect(onSketchSaved).toHaveBeenCalledWith(true, '/tmp/x.png');
+  });
+
+  test('save applies the defaults for omitted fields', async () => {
+    const { canvas } = renderCanvas();
+
+    await canvas.save({ filename: 'name', transparent: undefined });
+
+    expect(getMethods(canvas).save).toHaveBeenCalledWith(
+      'png',
+      '',
+      'name',
+      false,
+      true,
+      true,
+      false
+    );
+  });
+
+  test('save makes the same native call in both forms', async () => {
+    const { canvas } = renderCanvas();
+
+    await canvas.save('jpg', true, 'folder', 'name', false, true, true);
+    await canvas.save({
+      imageType: 'jpg',
+      transparent: true,
+      folder: 'folder',
+      filename: 'name',
+      includeImage: false,
+      includeText: true,
+      cropToImageSize: true,
+    });
+
+    const calls = getMethods(canvas).save.mock.calls;
+    expect(calls).toHaveLength(2);
+    expect(calls[1]).toEqual(calls[0]);
+  });
+
+  test('save rejects without a view', async () => {
+    const onSketchSaved = jest.fn();
+    const { canvas, unmount } = renderCanvas({ onSketchSaved });
+    unmount();
+
+    await expect(canvas.save({ filename: 'name' })).rejects.toThrow(
+      'Canvas is not ready'
+    );
+    await flush();
+    expect(onSketchSaved).not.toHaveBeenCalled();
+  });
+
+  test('getBase64 maps the options to the native argument order', async () => {
+    const onGenerateBase64 = jest.fn();
+    const { canvas } = renderCanvas({ onGenerateBase64 });
+
+    const result = await canvas.getBase64({
+      imageType: 'jpg',
+      transparent: true,
+      includeImage: false,
+      includeText: false,
+      cropToImageSize: true,
+    });
+
+    expect(result).toBe('BASE64');
+    expect(getMethods(canvas).transferToBase64).toHaveBeenCalledWith(
+      'jpg',
+      true,
+      false,
+      false,
+      true
+    );
+    await flush();
+    expect(onGenerateBase64).toHaveBeenCalledWith({ base64: 'BASE64' });
+  });
+
+  test('getBase64 applies the defaults for omitted fields', async () => {
+    const { canvas } = renderCanvas();
+
+    await canvas.getBase64({ includeText: false });
+
+    expect(getMethods(canvas).transferToBase64).toHaveBeenCalledWith(
+      'png',
+      false,
+      true,
+      false,
+      false
+    );
+  });
+
+  test('getBase64 with no argument uses all the defaults', async () => {
+    const onGenerateBase64 = jest.fn();
+    const { canvas } = renderCanvas({ onGenerateBase64 });
+
+    await expect(canvas.getBase64()).resolves.toBe('BASE64');
+
+    expect(getMethods(canvas).transferToBase64).toHaveBeenCalledWith(
+      'png',
+      false,
+      true,
+      true,
+      false
+    );
+    await flush();
+    expect(onGenerateBase64).toHaveBeenCalledWith({ base64: 'BASE64' });
+  });
+
+  test('getBase64 makes the same native call in both forms', async () => {
+    const { canvas } = renderCanvas();
+
+    await canvas.getBase64('jpg', true, false, true, true);
+    await canvas.getBase64({
+      imageType: 'jpg',
+      transparent: true,
+      includeImage: false,
+      includeText: true,
+      cropToImageSize: true,
+    });
+
+    const calls = getMethods(canvas).transferToBase64.mock.calls;
+    expect(calls).toHaveLength(2);
+    expect(calls[1]).toEqual(calls[0]);
+  });
+
+  test('getBase64 rejects without a view', async () => {
+    const onGenerateBase64 = jest.fn();
+    const { canvas, unmount } = renderCanvas({ onGenerateBase64 });
+    unmount();
+
+    await expect(canvas.getBase64()).rejects.toThrow('Canvas is not ready');
+    await flush();
+    expect(onGenerateBase64).not.toHaveBeenCalled();
+  });
+});
+
 test('onPathsChange is forwarded', () => {
   const onPathsChange = jest.fn();
   renderCanvas({ onPathsChange });

@@ -1,6 +1,6 @@
 import 'react-native';
 import React from 'react';
-import RNSketchCanvas from '../index';
+import RNSketchCanvas, { SketchCanvas } from '../index';
 
 import { render, screen } from '@testing-library/react-native';
 
@@ -44,4 +44,103 @@ test('save returns a promise of the save result', async () => {
   await flush();
   expect(onSketchSaved).toHaveBeenCalledWith(true, '/tmp/x.png');
   expect(screen.getByTestId('sketch-canvas-host')).toBeTruthy();
+});
+
+const getMethods = (canvas: RNSketchCanvas) =>
+  (canvas as any)._sketchCanvas._view;
+
+test('getBase64 accepts an options object', async () => {
+  const canvas = renderCanvas();
+
+  await expect(
+    canvas.getBase64({ imageType: 'jpg', transparent: true })
+  ).resolves.toBe('BASE64');
+
+  expect(getMethods(canvas).transferToBase64).toHaveBeenCalledWith(
+    'jpg',
+    true,
+    true,
+    true,
+    false
+  );
+});
+
+test('getBase64 with no argument uses all the defaults', async () => {
+  const canvas = renderCanvas();
+
+  await expect(canvas.getBase64()).resolves.toBe('BASE64');
+
+  expect(getMethods(canvas).transferToBase64).toHaveBeenCalledWith(
+    'png',
+    false,
+    true,
+    true,
+    false
+  );
+});
+
+test('getBase64 still accepts the positional form', async () => {
+  const canvas = renderCanvas();
+
+  await canvas.getBase64('jpg', true, false, true, true);
+
+  expect(getMethods(canvas).transferToBase64).toHaveBeenCalledWith(
+    'jpg',
+    true,
+    false,
+    true,
+    true
+  );
+});
+
+test('save passes the savePreference through as an options object', async () => {
+  const save = jest.spyOn(SketchCanvas.prototype, 'save');
+  const canvas = renderCanvas({
+    savePreference: () => ({
+      folder: 'folder',
+      filename: 'name',
+      transparent: true,
+      imageType: 'jpg',
+      cropToImageSize: true,
+    }),
+  });
+
+  await canvas.save();
+
+  expect(save).toHaveBeenCalledTimes(1);
+  expect(save.mock.calls[0]).toHaveLength(1);
+  expect(typeof save.mock.calls[0]![0]).toBe('object');
+  expect(getMethods(canvas).save).toHaveBeenCalledWith(
+    'jpg',
+    'folder',
+    'name',
+    true,
+    true,
+    true,
+    true
+  );
+});
+
+test('save without a savePreference uses the defaults and a unique filename', async () => {
+  const save = jest.spyOn(SketchCanvas.prototype, 'save');
+  const canvas = renderCanvas();
+
+  await canvas.save();
+
+  expect(save).toHaveBeenCalledTimes(1);
+  expect(save.mock.calls[0]).toHaveLength(1);
+  expect(typeof save.mock.calls[0]![0]).toBe('object');
+  expect(getMethods(canvas).save).toHaveBeenCalledWith(
+    'png',
+    '',
+    expect.stringMatching(/^[0-9a-f-]{36}$/),
+    false,
+    true,
+    true,
+    false
+  );
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
 });

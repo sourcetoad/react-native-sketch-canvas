@@ -145,7 +145,19 @@
           "useTabs": false
         }
       ]
-    }
+    },
+    "overrides": [
+      {
+        "files": [
+          "*.ts",
+          "*.tsx"
+        ],
+        "rules": {
+          "no-dupe-class-members": "off",
+          "@typescript-eslint/no-dupe-class-members": "error"
+        }
+      }
+    ]
   },
   "eslintIgnore": [
     "node_modules/",

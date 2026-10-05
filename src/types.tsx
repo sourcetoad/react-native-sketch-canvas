@@ -50,6 +50,18 @@ export type CanvasText = {
 
 export type SaveResult = { success: boolean; path: string | null };
 
+export type SaveOptions = {
+  filename: string;
+  folder?: string;
+  imageType?: ImageType;
+  transparent?: boolean;
+  includeImage?: boolean;
+  includeText?: boolean;
+  cropToImageSize?: boolean;
+};
+
+export type Base64Options = Omit<SaveOptions, 'filename' | 'folder'>;
+
 export interface SavePreference {
   folder: string;
   filename: string;
