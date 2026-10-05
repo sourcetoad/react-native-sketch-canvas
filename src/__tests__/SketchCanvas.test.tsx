@@ -71,6 +71,16 @@ describe('pan input', () => {
     expect(methods.endPath).toHaveBeenCalledTimes(1);
   });
 
+  test('an invalid strokeColor starts the path with colour 0', () => {
+    const { canvas, config } = renderWithPan({ strokeColor: 'not-a-colour' });
+    const methods = getMethods(canvas);
+
+    config.onPanResponderGrant!(grantEvt as any, { x0: 130, y0: 250 } as any);
+
+    expect(methods.newPath).toHaveBeenCalledWith(expect.any(Number), 0, 5);
+    expect(methods.addPoint).toHaveBeenLastCalledWith(30, 50);
+  });
+
   test('touchEnabled={false} sends nothing', () => {
     const { canvas, config } = renderWithPan({ touchEnabled: false });
     const methods = getMethods(canvas);
@@ -611,4 +621,43 @@ test('the host receives processed text and the same localSourceImage', () => {
     expect(sentMinimal).not.toHaveProperty(key);
   }
   expect(sentFull).toEqual({ ...full, fontColor: processColor('#FF0000') });
+});
+
+test('initial paths without a colour load with colour 0', () => {
+  const initialPaths = [
+    {
+      size: { width: 150, height: 150 },
+      path: { id: 7, color: undefined, width: 4, data: ['10,20'] },
+    },
+    {
+      size: { width: 150, height: 150 },
+      path: { id: 8, color: '#00FF00', width: 4, data: ['30,40'] },
+    },
+  ];
+  const { canvas } = renderCanvas({ initialPaths });
+
+  layout(300, 300);
+  getHost().props.onCanvasReady.f();
+
+  expect(getMethods(canvas).addInitialPaths).toHaveBeenCalledWith([
+    { pathId: 7, color: 0, width: 4, points: ['20,40'] },
+    {
+      pathId: 8,
+      color: processColor('#00FF00'),
+      width: 4,
+      points: ['60,80'],
+    },
+  ]);
+});
+
+test('a path without a colour is added with colour 0', () => {
+  const { canvas } = renderCanvas();
+  layout(300, 300);
+
+  canvas.addPath({
+    size: { width: 300, height: 300 },
+    path: { id: 12, color: undefined, width: 6, data: ['1,2'] },
+  });
+
+  expect(getMethods(canvas).addPath).toHaveBeenCalledWith(12, 0, 6, ['1,2']);
 });

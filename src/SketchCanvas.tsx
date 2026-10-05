@@ -34,6 +34,9 @@ type CanvasState = {
   text: any;
 };
 
+const toNativeColor = (color: string | undefined): number =>
+  (processColor(color) as number | null | undefined) ?? 0;
+
 class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
   _view: SketchCanvasViewRef | null = null;
 
@@ -136,7 +139,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
         if (this._view) {
           this._view.newPath(
             this._path.id,
-            processColor(this._path.color) as number,
+            toNativeColor(this._path.color),
             this._path.width ? this._path.width * this._screenScale : 0
           );
 
@@ -278,7 +281,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
       if (this._view) {
         this._view.addPath(
           data.path.id,
-          processColor(data.path.color) as number,
+          toNativeColor(data.path.color),
           data.path.width ? data.path.width * this._screenScale : 0,
           pathData
         );
@@ -312,7 +315,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
 
       return {
         pathId: data.path.id,
-        color: processColor(data.path.color) as number,
+        color: toNativeColor(data.path.color),
         width: data.path.width ? data.path.width * this._screenScale : 0,
         points: pathData,
       };
