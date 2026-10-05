@@ -5,6 +5,7 @@ import UIKit
 class HybridSketchCanvasView: HybridSketchCanvasViewSpec {
   private let canvas = MainActor.assumeIsolated { SketchCanvasCore(frame: .zero) }
   private var appliedImage = (filename: "", directory: "", mode: "")
+  private var appliedTextInputs: [CanvasTextInput]?
 
   var view: UIView { canvas }
 
@@ -18,6 +19,8 @@ class HybridSketchCanvasView: HybridSketchCanvasViewSpec {
   var text: [SketchCanvasText]? {
     didSet {
       let inputs = (text ?? []).map(Self.canvasTextInput)
+      guard inputs != appliedTextInputs else { return }
+      appliedTextInputs = inputs
       MainActor.assumeIsolated { canvas.setCanvasText(inputs) }
     }
   }
@@ -59,6 +62,7 @@ class HybridSketchCanvasView: HybridSketchCanvasViewSpec {
     onPathsChange = nil
     onInitialPathsLoaded = nil
     appliedImage = (filename: "", directory: "", mode: "")
+    appliedTextInputs = nil
     MainActor.assumeIsolated { canvas.invalidate() }
   }
 

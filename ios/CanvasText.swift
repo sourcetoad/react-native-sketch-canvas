@@ -1,6 +1,6 @@
 import UIKit
 
-struct CanvasTextInput {
+struct CanvasTextInput: Equatable {
   var text: String
   var font: String
   var fontSize: Double
