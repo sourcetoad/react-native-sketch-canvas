@@ -1,8 +1,8 @@
-import 'react-native';
+import { Text } from 'react-native';
 import React from 'react';
 import RNSketchCanvas, { SketchCanvas } from '../index';
 
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 
@@ -164,4 +164,17 @@ test('save without a savePreference uses the defaults and a unique filename', as
 
 afterEach(() => {
   jest.restoreAllMocks();
+});
+
+test('the toolbar save handles a rejected save', () => {
+  const canvas = renderCanvas({ saveComponent: <Text>Save</Text> });
+  const promise = { then: jest.fn(), catch: jest.fn() };
+  jest.spyOn(canvas, 'save').mockReturnValue(promise as any);
+
+  fireEvent.press(screen.getByText('Save'));
+
+  expect(canvas.save).toHaveBeenCalledTimes(1);
+  expect(promise.catch).toHaveBeenCalledWith(expect.any(Function));
+  const [onRejected] = promise.catch.mock.calls[0];
+  expect(() => onRejected(new Error('Canvas is not ready'))).not.toThrow();
 });

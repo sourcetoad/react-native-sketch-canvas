@@ -278,7 +278,7 @@ export default class RNSketchCanvas extends React.Component<
             {this.props.saveComponent && (
               <TouchableOpacity
                 onPress={() => {
-                  this.save();
+                  this.save().catch(() => {});
                 }}
               >
                 {this.props.saveComponent}
