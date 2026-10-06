@@ -73,13 +73,17 @@ class HybridSketchCanvasView(context: ThemedReactContext) : HybridSketchCanvasVi
     mainHandler.post {
       if (!canvas.isCanvasReady()) {
         Log.i(TAG, NOT_READY)
-        promise.reject(CanvasNotReadyError())
+        promise.reject(MessageOnlyError(NOT_READY))
         return@post
       }
       try {
         promise.resolve(block(canvas))
       } catch (e: Throwable) {
-        promise.reject(e)
+        val message =
+          e.message?.lineSequence()?.firstOrNull { it.isNotBlank() }
+            ?: e.javaClass.simpleName.ifEmpty { e.javaClass.name }
+        Log.e(TAG, message, e)
+        promise.reject(MessageOnlyError(message))
       }
     }
     return promise
@@ -175,10 +179,10 @@ class HybridSketchCanvasView(context: ThemedReactContext) : HybridSketchCanvasVi
       lineHeightMultiple = lineHeightMultiple
     )
 
-  private class CanvasNotReadyError : Error(NOT_READY) {
-    override fun toString() = NOT_READY
+  private class MessageOnlyError(override val message: String) : Error(message) {
+    override fun toString() = message
 
-    override fun printStackTrace(s: PrintWriter) = s.print(NOT_READY)
+    override fun printStackTrace(s: PrintWriter) = s.print(message)
   }
 
   private companion object {
