@@ -55,7 +55,8 @@ Then run `pod install` in your `ios` folder. Both platforms autolink.
 3.0 replaces the Fabric component and TurboModule with a Nitro view, and merges every export into one `save()` and one `onSketchSaved`.
 
 - Install the peer dependency `react-native-nitro-modules` (~0.37.1). React Native >= 0.86 and the New Architecture are required.
-- `save()` takes a [SaveOptions](#saveoptions-object) object whose `type` picks the output: `'file'` (the default), `'base64'` or `'arraybuffer'`. It returns `Promise<SaveResult>` (`{ success, type, data }`). This applies to both `SketchCanvas` and `RNSketchCanvas`.
+- `SketchCanvas.save()` takes a [SaveOptions](#saveoptions-object) object whose `type` picks the output: `'file'` (the default), `'base64'` or `'arraybuffer'`. It returns `Promise<SaveResult>` (`{ success, type, data }`).
+- `RNSketchCanvas.save()` takes no arguments. It reads `savePreference()`, whose `type` picks the output (see [SavePreference](#savepreference-object)), and also returns `Promise<SaveResult>`.
 - **Breaking:** `getBase64()` and `onGenerateBase64` are removed. Use `save({ type: 'base64' })`; the result arrives in `onSketchSaved` and in the promise.
 - **Breaking:** the second argument of `onSketchSaved` is now a [SaveResponse](#saveresult-and-saveresponse-objects) object (`{ type, data }`) instead of the saved path. For a file save, the path is `response.data` (`null` on failure).
 - The positional `save(imageType, transparent, folder, filename, includeImage, includeText, cropToImageSize)` still works and saves a file, but it is deprecated and will be removed in a future major version.
@@ -103,12 +104,12 @@ Behaviour changes (iOS, from the Swift rewrite):
 
 - All `text` field changes are applied. 2.x could skip some updates to an existing `text` array.
 - A save that fails to create its folder no longer crashes. It resolves `{ success: false, type: 'file', data: null }`.
-- `addPath` and `initialPaths` skip a malformed point (one without a comma) instead of crashing. Android still throws, as in 2.x.
 
 Other changes:
 
 - `initialPaths` now loads once even when the canvas becomes ready before its first layout.
 - Android text without `fontSize` uses size 0 instead of throwing.
+- A stroke or path with a missing or invalid colour is sent as colour 0 (`#00000000`), which both platforms draw as an eraser stroke, as 2.x did on iOS.
 
 `onInitialPathsLoaded` is unchanged at runtime: it still receives `{ loadedCount }`.
 
@@ -211,9 +212,10 @@ export default function SaveExample() {
 }
 ```
 
-- `save()` resolves with a [SaveResult](#saveresult-and-saveresponse-objects) (`{ success, type, data }`). The result type follows `type`, so `data` is a `string` for `'file'` and `'base64'` and an `ArrayBuffer` for `'arraybuffer'` (`null` when a file save fails). A failed write resolves with `success: false`; it doesn't reject.
+- `save()` resolves with a [SaveResult](#saveresult-and-saveresponse-objects) (`{ success, type, data }`). The result type follows `type`, so `data` is a `string` for `'file'` and `'base64'` and an `ArrayBuffer` for `'arraybuffer'` (`null` when a file save fails). A file save that can't create the image or its folder resolves with `success: false` and `data: null`. On iOS a failed final write still reports `true` (see [Known Issues](#known-issues)). On Android an exception while exporting rejects.
 - `onSketchSaved(success, response)` fires once for every save that resolves, with `response` being `{ type, data }`.
-- `save()` rejects with `Error('Canvas is not ready')` if the canvas hasn't finished mounting (or is unmounted), and `onSketchSaved` doesn't fire. On Android, commands sent before the canvas is ready are dropped, so a save right after mount can reject.
+- `save()` rejects with `Error('Canvas is not ready')` if the canvas hasn't finished mounting (or is unmounted). It can also reject with a one-line native error message (an Android export failure) or an argument error. `onSketchSaved` never fires when `save()` rejects. On Android, commands sent before the canvas is ready are dropped, so a save right after mount can reject.
+- On iOS, a canvas with no size yet (before its first layout) exports an empty string for `'base64'` and an empty `ArrayBuffer` for `'arraybuffer'`, and a file save resolves `success: false`. Android rejects with `Error('Canvas is not ready')` until the canvas has a size.
 - `save({ type: 'base64' })` and `save({ type: 'arraybuffer' })` with no other options return a PNG of the whole canvas, including the background image and text. The `ArrayBuffer` holds exactly the bytes the base64 string encodes.
 
 #### Properties
@@ -249,7 +251,7 @@ export default function SaveExample() {
 | undo()                                                                        | Delete the latest path. Can undo multiple times.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | addPath(path)                                                                 | Add a path (see [below](#objects)) to canvas.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | deletePath(id)                                                                | Delete a path with its `id`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| save(options) | Takes a [SaveOptions](#saveoptions-object) object and returns `Promise<SaveResult>` (`{ success, type, data }`); the result is also sent to `onSketchSaved`. `type` picks the output:<br/>`'file'` (default): saves the image to the filesystem and resolves the path in `data` (`null` on failure).<br/>Android: Save image in `imageType` format with transparent background (if `transparent` sets to True) to **/sdcard/Pictures/`folder`/`filename`** (which is Environment.DIRECTORY_PICTURES).<br/>iOS: Save image in `imageType` format with transparent background (if `transparent` sets to True) to **temporary directory/`folder`/`filename`** (which is NSTemporaryDirectory()).<br/>`'base64'`: resolves the base64-encoded image in `data`.<br/>`'arraybuffer'`: resolves the encoded image bytes in `data` as an `ArrayBuffer`.<br/>If `localSourceImage` is set and a background image is loaded successfully, set `includeImage` to true to include background image and set `cropToImageSize` to true to crop output image to background image.<br/>Rejects with `Error('Canvas is not ready')` if the canvas isn't ready.<br/>**Deprecated:** `save(imageType, transparent, folder, filename, includeImage, includeText, cropToImageSize)` still works (as `type: 'file'`) and will be removed in a future major version. |
+| save(options) | Takes a [SaveOptions](#saveoptions-object) object and returns `Promise<SaveResult>` (`{ success, type, data }`); the result is also sent to `onSketchSaved`. `type` picks the output:<br/>`'file'` (default): saves the image to the filesystem and resolves the path in `data` (`null` on failure).<br/>Android: Save image in `imageType` format with transparent background (if `transparent` sets to True) to **/sdcard/Pictures/`folder`/`filename`** (which is Environment.DIRECTORY_PICTURES).<br/>iOS: Save image in `imageType` format with transparent background (if `transparent` sets to True) to **temporary directory/`folder`/`filename`** (which is NSTemporaryDirectory()).<br/>`'base64'`: resolves the base64-encoded image in `data`.<br/>`'arraybuffer'`: resolves the encoded image bytes in `data` as an `ArrayBuffer`.<br/>If `localSourceImage` is set and a background image is loaded successfully, set `includeImage` to true to include background image and set `cropToImageSize` to true to crop output image to background image.<br/>Rejects with `Error('Canvas is not ready')` if the canvas isn't ready, or with a one-line native error message (an Android export failure) or an argument error; `onSketchSaved` doesn't fire on a rejection.<br/>**Deprecated:** `save(imageType, transparent, folder, filename, includeImage, includeText, cropToImageSize)` still works (as `type: 'file'`) and will be removed in a future major version. |
 | getPaths()                                                                    | Get the paths that drawn on the canvas                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | setInitialPaths(initialPaths)                                                 | Set initial paths to the canvas using native batch processing. This method is called automatically when the `initialPaths` prop is provided, but can also be called manually for dynamic path loading.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
@@ -489,8 +491,9 @@ export default function Example() {
       <SketchCanvas
         style={{ flex: 1 }}
         initialPaths={savedPaths}
-        onInitialPathsLoaded={(eventData) => {
-          const loadedCount = eventData.loadedCount || 0;
+        onInitialPathsLoaded={(result: unknown) => {
+          // Receives { loadedCount } at runtime (see Known Issues)
+          const loadedCount = (result as { loadedCount?: number }).loadedCount ?? 0;
           console.log(`Loaded ${loadedCount} paths successfully`);
         }}
         onCanvasReady={() => {
@@ -507,8 +510,9 @@ export default function Example() {
 The `onInitialPathsLoaded` callback provides feedback when initial paths have been processed:
 
 ```tsx
-onInitialPathsLoaded={(eventData) => {
-  const loadedCount = eventData.loadedCount || 0;
+onInitialPathsLoaded={(result: unknown) => {
+  // Receives { loadedCount } at runtime (see Known Issues)
+  const loadedCount = (result as { loadedCount?: number }).loadedCount ?? 0;
 
   if (loadedCount > 0) {
     console.log(`Successfully loaded ${loadedCount} paths`);
@@ -542,7 +546,7 @@ onInitialPathsLoaded={(eventData) => {
 | type?            | string  | The output of the toolbar save<br/>Options: `file`, `base64`, `arraybuffer`. (Default is `file`)                                                                                              |
 | folder           | string  | `file` only. Android: the folder name in `Pictures` directory<br/>iOS: the folder name in the temporary directory                                                                            |
 | filename         | string  | `file` only. The file name of image                                                                                                                                                          |
-| transparent      | boolean | save canvas with transparent background, ignored if imageType is `jpg`                                                                                                                       |
+| transparent      | boolean | save canvas with transparent background (png only). Android ignores it for `jpg`; on iOS don't combine it with `jpg`                                                                       |
 | imageType        | string  | image file format<br/>Options: `png`, `jpg`                                                                                                                                                  |
 | includeImage?    | boolean | Set to `true` to include the image loaded from `LocalSourceImage`. (Default is `true`)                                                                                                       |
 | includeText?     | boolean | Set to `true` to include the text drawn from `Text`. (Default is `true`)                                                                                                                     |
@@ -564,7 +568,7 @@ await canvas.current.save({ type: 'arraybuffer' });
 | filename         | string  | `file` only, required. The file name of the image                                                                   |
 | folder?          | string  | `file` only. Android: the folder name in `Pictures` directory<br/>iOS: the folder name in the temporary directory. (Default is `''`) |
 | imageType?       | string  | Image format<br/>Options: `png`, `jpg`. (Default is `png`)                                                          |
-| transparent?     | boolean | Use a transparent background, ignored if imageType is `jpg`. (Default is `false`)                                   |
+| transparent?     | boolean | Use a transparent background (png only). Android ignores it for `jpg`; on iOS don't combine it with `jpg`. (Default is `false`) |
 | includeImage?    | boolean | Set to `true` to include the image loaded from `LocalSourceImage`. (Default is `true`)                              |
 | includeText?     | boolean | Set to `true` to include the text drawn from `Text`. (Default is `true`)                                            |
 | cropToImageSize? | boolean | Set to `true` to crop output image to the image loaded from `LocalSourceImage`. (Default is `false`)                |
@@ -581,9 +585,9 @@ const result = await canvas.current.save({ filename: 'image' });
 
 | Property | Type                                 | Description                                                                                       |
 |:---------|:-------------------------------------|:--------------------------------------------------------------------------------------------------|
-| success  | boolean                              | `SaveResult` only. `true` if the image was written. iOS reports `true` even when the final write fails (2.x behaviour; see [Known Issues](#known-issues)). Always `true` for `base64` and `arraybuffer` |
+| success  | boolean                              | `SaveResult` only. `true` if the image was written. iOS reports `true` even when the final write fails (2.x behaviour; see [Known Issues](#known-issues)). `true` for `base64` and `arraybuffer`, even when iOS exports an empty result from a canvas with no size yet |
 | type     | string                               | `file`, `base64` or `arraybuffer`, matching the `type` you saved with                              |
-| data     | string \| ArrayBuffer \| null        | `file`: the full path of the saved file, or `null` when the save failed<br/>`base64`: the base64-encoded image<br/>`arraybuffer`: the encoded image bytes |
+| data     | string \| ArrayBuffer \| null        | `file`: the full path of the saved file, or `null` when the save failed<br/>`base64`: the base64-encoded image (iOS: an empty string before the canvas has a size)<br/>`arraybuffer`: the encoded image bytes (iOS: an empty `ArrayBuffer` before the canvas has a size) |
 
 ### Path object
 
@@ -596,7 +600,7 @@ const result = await canvas.current.save({ filename: 'image' });
   },
   path: {
     id: 8979841, // path id
-    color: '#FF000000', // ARGB or RGB
+    color: '#000000FF', // #RRGGBB or #RRGGBBAA; a missing or invalid colour is sent as #00000000 and draws as an eraser stroke
     width: 5,
     data: [
       "296.11,281.34",  // x,y
@@ -657,18 +661,18 @@ const result = await canvas.current.save({ filename: 'image' });
 
 ---
 
-These are 2.x behaviours that 3.0 keeps as they are.
+These are 2.x behaviours that 3.0 keeps as they are, unless noted.
 
-- Android: detaching and re-attaching the canvas (for example pushing a screen and popping back) blanks it, including the background image and text. After that the canvas drops every command and logs "Canvas is not ready".
+- Android: detaching and re-attaching the canvas (for example pushing a screen and popping back) blanks it, including the background image and text. After that drawing commands are dropped and logged as "Canvas is not ready", and `save()` rejects with `Error('Canvas is not ready')`.
 - Android: commands sent before the canvas is ready are dropped, so `save()` rejects with `Error('Canvas is not ready')`. iOS accepts them before it's ready.
-- Android: saving writes to the public `Pictures` directory without MediaStore, which fails on API 29+.
+- Android: saving writes with the File API to the public `Pictures` directory, not MediaStore, so scoped storage can block it (for example API 29 without `requestLegacyExternalStorage`).
 - Android: the storage permission request on mount returns a status string that is always truthy, and its result is ignored.
 - Android: `MAIN_BUNDLE`, `DOCUMENT`, `LIBRARY` and `CACHES` are empty strings.
 - Android: loading a background image from a file passes `filename` and `directory` to `File` in reversed order.
 - Android: exports ignore the background image `mode` and always use AspectFit.
 - Android: text `fontSize` is applied in px, not dp.
 - Android: multiline text overlaps unless `lineHeightMultiple` is set.
-- Text without `fontColor` is transparent on iOS and black on Android. Text without `fontSize` uses size 0.
+- Text without `fontColor` is transparent on iOS and black on Android. Text without `fontSize` uses size 0 (Android threw in 2.x).
 - iOS stroke width is an integer, while Android's is a float.
 - iOS: a save reports success even if writing the file fails.
 - `onPathsChange` timing differs per platform. iOS calls it on `addPath`, `deletePath`, `clear` and initial paths, but not for drawn strokes. Android also calls it for drawn strokes and when a background image loads.
@@ -734,7 +738,7 @@ jest.mock('react-native-nitro-modules', () => {
 });
 ```
 
-Also add `react-native-nitro-modules` to the allow-list in your `transformIgnorePatterns`. If your mock covers other Nitro libraries, extend it rather than adding a second `jest.mock('react-native-nitro-modules')`.
+If your mock covers other Nitro libraries, extend it rather than adding a second `jest.mock('react-native-nitro-modules')`.
 
 This mock renders the canvas as a plain `View`, makes `save()` resolve, and provides the constants.
 
