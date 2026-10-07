@@ -9,7 +9,12 @@ const output = execFileSync(
   ['pack', '--dry-run', '--json', '--ignore-scripts'],
   { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] }
 );
-const [pack] = JSON.parse(output);
+const jsonStart = output.search(/^\[/m);
+if (jsonStart === -1) {
+  console.error('npm pack printed no JSON:\n' + output);
+  process.exit(1);
+}
+const [pack] = JSON.parse(output.slice(jsonStart));
 const files = pack.files.map((file) => file.path);
 
 const required = [
