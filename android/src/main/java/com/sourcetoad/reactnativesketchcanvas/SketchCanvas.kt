@@ -194,10 +194,6 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         return true
     }
 
-    fun cancelPendingImageLoad() {
-        mPendingImageLoad?.cancel(true)
-    }
-
     private fun loadImageAsync(filename: String, directory: String?, mode: String?) {
         try {
             // Check if cancelled before starting expensive work
@@ -951,7 +947,7 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         return bitmap
     }
 
-    private fun cleanupResources() {
+    fun release() {
         // Cancel any pending image loads
         mPendingImageLoad?.cancel(true)
         mPendingImageLoad = null
@@ -991,10 +987,5 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
 
         // Reset current path reference
         mCurrentPath = null
-    }
-
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        cleanupResources()
     }
 }

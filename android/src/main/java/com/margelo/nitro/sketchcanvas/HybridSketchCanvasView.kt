@@ -59,7 +59,7 @@ class HybridSketchCanvasView(context: ThemedReactContext) : HybridSketchCanvasVi
     onCanvasReady = null
     onPathsChange = null
     onInitialPathsLoaded = null
-    canvas.cancelPendingImageLoad()
+    canvas.release()
   }
 
   private inline fun onUi(crossinline block: (SketchCanvas) -> Unit) {
