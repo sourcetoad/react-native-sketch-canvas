@@ -110,6 +110,7 @@ Other changes:
 - `initialPaths` now loads once even when the canvas becomes ready before its first layout.
 - Android text without `fontSize` uses size 0 instead of throwing.
 - A stroke or path with a missing or invalid colour is sent as colour 0 (`#00000000`), which both platforms draw as an eraser stroke, as 2.x did on iOS.
+- Android keeps the drawing, background image and text when the canvas is detached and re-attached (for example pushing a screen and popping back), as iOS does. 2.x blanked the canvas and dropped every later command. The canvas releases its memory when it unmounts.
 
 `onInitialPathsLoaded` is unchanged at runtime: it still receives `{ loadedCount }`.
 
@@ -663,7 +664,6 @@ const result = await canvas.current.save({ filename: 'image' });
 
 These are 2.x behaviours that 3.0 keeps as they are, unless noted.
 
-- Android: detaching and re-attaching the canvas (for example pushing a screen and popping back) blanks it, including the background image and text. After that drawing commands are dropped and logged as "Canvas is not ready", and `save()` rejects with `Error('Canvas is not ready')`.
 - Android: commands sent before the canvas is ready are dropped, so `save()` rejects with `Error('Canvas is not ready')`. iOS accepts them before it's ready.
 - Android: saving writes with the File API to the public `Pictures` directory, not MediaStore, so scoped storage can block it (for example API 29 without `requestLegacyExternalStorage`).
 - Android: the storage permission request on mount returns a status string that is always truthy, and its result is ignored.
