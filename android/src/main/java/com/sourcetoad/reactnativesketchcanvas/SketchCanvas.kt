@@ -9,14 +9,7 @@ import android.util.Base64
 import android.util.Log
 import android.view.View
 import androidx.exifinterface.media.ExifInterface
-import com.facebook.react.bridge.ReadableArray
-import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.ThemedReactContext
-import com.facebook.react.uimanager.UIManagerHelper
-import com.sourcetoad.reactnativesketchcanvas.event.OnCanvasReadyEvent
-import com.sourcetoad.reactnativesketchcanvas.event.OnChangeEvent
-import com.sourcetoad.reactnativesketchcanvas.event.OnGenerateBase64Event
-import com.sourcetoad.reactnativesketchcanvas.event.OnInitialPathsLoadedEvent
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -35,6 +28,28 @@ class CanvasText {
     var textBounds: Rect? = null
     var height = 0f
 }
+
+data class CanvasTextInput(
+    val text: String?,
+    val font: String?,
+    val fontSize: Double?,
+    val fontColor: Int?,
+    val overlay: String?,
+    val anchorX: Double?,
+    val anchorY: Double?,
+    val positionX: Double?,
+    val positionY: Double?,
+    val coordinate: String?,
+    val alignment: String?,
+    val lineHeightMultiple: Double?
+)
+
+data class InitialPathInput(
+    val pathId: Int,
+    val color: Int,
+    val width: Float,
+    val points: List<String>
+)
 
 class SketchCanvas(context: ThemedReactContext) : View(context) {
     private val mPaths = ArrayList<SketchData>()
@@ -57,17 +72,15 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
     private val mArrSketchOnText = ArrayList<CanvasText>()
     private var mIsCanvasInitialized = false
     private var mPendingImageLoad: java.util.concurrent.Future<*>? = null
+    var onCanvasReady: (() -> Unit)? = null
+    var onPathsChange: ((Int) -> Unit)? = null
+    var onInitialPathsLoaded: ((Int) -> Unit)? = null
 
     companion object {
         private const val MAX_BITMAP_WIDTH = 4096
         private const val MAX_BITMAP_HEIGHT = 4096
         private const val MAX_BITMAP_MEMORY_BYTES = 64 * 1024 * 1024 // 64MB
         private val imageLoadExecutor = Executors.newSingleThreadExecutor()
-    }
-
-    fun getParentViewId(): Int {
-        val parentView = parent as View
-        return parentView.id
     }
 
     private fun calculateInSampleSize(
@@ -364,68 +377,64 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         }
     }
 
-    fun setCanvasText(aText: ReadableArray?) {
+    fun setCanvasText(aText: List<CanvasTextInput>?) {
         mArrCanvasText.clear()
         mArrSketchOnText.clear()
         mArrTextOnSketch.clear()
         if (aText != null) {
-            for (i in 0 until aText.size()) {
-                val property = aText.getMap(i)
-                if (property?.hasKey("text") == true) {
-                    val alignment = property.getString("alignment") ?: "Left"
+            for (property in aText) {
+                if (property.text != null) {
+                    val alignment = property.alignment ?: "Left"
                     var lineOffset = 0
                     var maxTextWidth = 0
-                    val lines = property.getString("text")!!.split("\n").toTypedArray()
+                    val lines = property.text.split("\n").toTypedArray()
                     val textSet = ArrayList<CanvasText>(lines.size)
                     for (line in lines) {
                         val arr =
-                            if (property.hasKey("overlay") &&
-                                "TextOnSketch" == property.getString("overlay")
-                            )
+                            if ("TextOnSketch" == property.overlay)
                                 mArrTextOnSketch
                             else mArrSketchOnText
                         val text = CanvasText()
                         val p = Paint(Paint.ANTI_ALIAS_FLAG)
                         p.textAlign = Paint.Align.LEFT
                         text.text = line
-                        if (property.hasKey("font")) {
+                        if (property.font != null) {
                             val font: Typeface =
                                 try {
                                     Typeface.createFromAsset(
                                         mContext.assets,
-                                        property.getString("font")
+                                        property.font
                                     )
                                 } catch (ex: Exception) {
-                                    Typeface.create(property.getString("font"), Typeface.NORMAL)
+                                    Typeface.create(property.font, Typeface.NORMAL)
                                 }
                             p.typeface = font
                         }
 
-                        p.textSize = property.getDouble("fontSize").toFloat()
-                        p.color =
-                            if (property.hasKey("fontColor")) property.getInt("fontColor") else Color.BLACK
+                        p.textSize = (property.fontSize ?: 0.0).toFloat()
+                        p.color = property.fontColor ?: Color.BLACK
                         text.anchor =
                             PointF(
-                                property.getMap("anchor")?.getDouble("x")?.toFloat() ?: 0f,
-                                property.getMap("anchor")?.getDouble("y")?.toFloat() ?: 0f
+                                property.anchorX?.toFloat() ?: 0f,
+                                property.anchorY?.toFloat() ?: 0f
                             )
                         text.position =
                             PointF(
-                                property.getMap("position")?.getDouble("x")?.toFloat() ?: 0f,
-                                property.getMap("position")?.getDouble("y")?.toFloat() ?: 0f
+                                property.positionX?.toFloat() ?: 0f,
+                                property.positionY?.toFloat() ?: 0f
                             )
                         text.paint = p
                         text.isAbsoluteCoordinate =
-                            !(property.hasKey("coordinate") && "Ratio" == property.getString("coordinate"))
+                            !("Ratio" == property.coordinate)
                         text.textBounds = Rect()
                         p.getTextBounds(text.text, 0, text.text!!.length, text.textBounds)
                         text.lineOffset = PointF(0f, lineOffset.toFloat())
 
-                        if (property.hasKey("lineHeightMultiple")) {
+                        if (property.lineHeightMultiple != null) {
                             lineOffset +=
                                 (text.textBounds!!.height() *
                                         1.5 *
-                                        (property.getDouble("lineHeightMultiple")))
+                                        (property.lineHeightMultiple))
                                     .toInt()
                         }
 
@@ -498,12 +507,13 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
     }
 
     fun addPoint(x: Float, y: Float) {
-        val updateRect = mCurrentPath!!.addPoint(PointF(x, y))
-        if (mCurrentPath!!.isTranslucent) {
+        val path = mCurrentPath ?: return
+        val updateRect = path.addPoint(PointF(x, y))
+        if (path.isTranslucent) {
             mTranslucentDrawingCanvas!!.drawColor(Color.TRANSPARENT, PorterDuff.Mode.MULTIPLY)
-            mCurrentPath!!.draw(mTranslucentDrawingCanvas!!)
+            path.draw(mTranslucentDrawingCanvas!!)
         } else {
-            mCurrentPath!!.drawLastPoint(mDrawingCanvas!!)
+            path.drawLastPoint(mDrawingCanvas!!)
         }
         invalidate(updateRect)
     }
@@ -523,26 +533,19 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         }
     }
 
-    fun addInitialPaths(pathsArray: ReadableArray?) {
-        if (pathsArray == null) {
-            return
-        }
-
+    fun addInitialPaths(pathsArray: List<InitialPathInput>) {
         var hasErasePaths = false
         val pathsToAdd = ArrayList<SketchData>()
 
         // Process all paths first, validating and converting data
-        for (i in 0 until pathsArray.size()) {
-            val pathData = pathsArray.getMap(i)
-            if (pathData != null) {
-                val sketchData = convertReadableMapToSketchData(pathData)
-                if (sketchData != null) {
-                    // Performance optimization: O(1) duplicate detection instead of O(n) linear search
-                    if (!mPathIds.contains(sketchData.id)) {
-                        pathsToAdd.add(sketchData)
-                        if (sketchData.strokeColor == Color.TRANSPARENT) {
-                            hasErasePaths = true
-                        }
+        for (pathData in pathsArray) {
+            val sketchData = convertInitialPathToSketchData(pathData)
+            if (sketchData != null) {
+                // Performance optimization: O(1) duplicate detection instead of O(n) linear search
+                if (!mPathIds.contains(sketchData.id)) {
+                    pathsToAdd.add(sketchData)
+                    if (sketchData.strokeColor == Color.TRANSPARENT) {
+                        hasErasePaths = true
                     }
                 }
             }
@@ -568,47 +571,28 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         }
 
         // Dispatch onInitialPathsLoaded event with the count of successfully loaded paths
-        val surfaceId = UIManagerHelper.getSurfaceId(mContext)
-        val parentViewId = getParentViewId()
-        UIManagerHelper.getEventDispatcherForReactTag(mContext, parentViewId)
-            ?.dispatchEvent(OnInitialPathsLoadedEvent(surfaceId, parentViewId, pathsToAdd.size))
+        onInitialPathsLoaded?.invoke(pathsToAdd.size)
     }
 
-    private fun convertReadableMapToSketchData(pathData: ReadableMap): SketchData? {
+    private fun convertInitialPathToSketchData(pathData: InitialPathInput): SketchData? {
         try {
-            // Extract and validate required fields
-            if (!pathData.hasKey("pathId") ||
-                !pathData.hasKey("color") ||
-                !pathData.hasKey("width") ||
-                !pathData.hasKey("points")
-            ) {
-                return null
-            }
-
-            val pathId = pathData.getInt("pathId")
-            val color = pathData.getInt("color")
-            val width = pathData.getDouble("width").toFloat()
-            val pointsArray = pathData.getArray("points")
-
-            if (pointsArray == null) {
-                return null
-            }
+            val pathId = pathData.pathId
+            val color = pathData.color
+            val width = pathData.width
+            val pointsArray = pathData.points
 
             // Convert points array to ArrayList<PointF>
-            val points = ArrayList<PointF>(pointsArray.size())
-            for (i in 0 until pointsArray.size()) {
-                val pointString = pointsArray.getString(i)
-                if (pointString != null) {
-                    val coordinates = pointString.split(",")
-                    if (coordinates.size >= 2) {
-                        try {
-                            val x = coordinates[0].toFloat()
-                            val y = coordinates[1].toFloat()
-                            points.add(PointF(x, y))
-                        } catch (e: NumberFormatException) {
-                            // Skip invalid coordinate, continue processing other points
-                            continue
-                        }
+            val points = ArrayList<PointF>(pointsArray.size)
+            for (pointString in pointsArray) {
+                val coordinates = pointString.split(",")
+                if (coordinates.size >= 2) {
+                    try {
+                        val x = coordinates[0].toFloat()
+                        val y = coordinates[1].toFloat()
+                        points.add(PointF(x, y))
+                    } catch (e: NumberFormatException) {
+                        // Skip invalid coordinate, continue processing other points
+                        continue
                     }
                 }
             }
@@ -642,21 +626,13 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
     }
 
     fun end() {
-        if (mCurrentPath != null) {
-            if (mCurrentPath!!.isTranslucent) {
-                mCurrentPath!!.draw(mDrawingCanvas!!)
+        mCurrentPath?.let { path ->
+            if (path.isTranslucent) {
+                path.draw(mDrawingCanvas!!)
                 mTranslucentDrawingCanvas!!.drawColor(Color.TRANSPARENT, PorterDuff.Mode.MULTIPLY)
             }
             mCurrentPath = null
         }
-    }
-
-    fun onSaved(success: Boolean, path: String?) {
-        val surfaceId = UIManagerHelper.getSurfaceId(mContext)
-        UIManagerHelper.getEventDispatcherForReactTag(mContext, getParentViewId())
-            ?.dispatchEvent(
-                OnChangeEvent(surfaceId, getParentViewId(), "save", success, path ?: "", 0)
-            )
     }
 
     fun save(
@@ -667,14 +643,14 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         includeImage: Boolean,
         includeText: Boolean,
         cropToImageSize: Boolean
-    ) {
+    ): String? {
         val f =
             File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
                     .toString() + File.separator + folder
             )
         val success = if (f.exists()) true else f.mkdirs()
-        if (success) {
+        return if (success) {
             val bitmap =
                 createImage(
                     format == "png" && transparent,
@@ -700,41 +676,51 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
                         fos
                     )
                 }
-                onSaved(true, file.path)
+                file.path
             } catch (e: Exception) {
                 e.printStackTrace()
-                onSaved(false, null)
+                null
+            } finally {
+                bitmap.recycle()
             }
         } else {
             Log.e("SketchCanvas", "Failed to create folder!")
-            onSaved(false, null)
+            null
         }
     }
 
-    fun getBase64(
+    fun encodeBase64(
         format: String,
         transparent: Boolean,
         includeImage: Boolean,
         includeText: Boolean,
         cropToImageSize: Boolean
-    ) {
-        val bitmap =
-            createImage(format == "png" && transparent, includeImage, includeText, cropToImageSize)
-        val byteArrayOS = ByteArrayOutputStream()
-        bitmap.compress(
-            if (format == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG,
-            if (format == "png") 100 else 90,
-            byteArrayOS
+    ): String =
+        Base64.encodeToString(
+            encodeBytes(format, transparent, includeImage, includeText, cropToImageSize),
+            Base64.DEFAULT
         )
 
-        UIManagerHelper.getEventDispatcherForReactTag(mContext, getParentViewId())
-            ?.dispatchEvent(
-                OnGenerateBase64Event(
-                    UIManagerHelper.getSurfaceId(mContext),
-                    getParentViewId(),
-                    Base64.encodeToString(byteArrayOS.toByteArray(), Base64.DEFAULT)
-                )
+    fun encodeBytes(
+        format: String,
+        transparent: Boolean,
+        includeImage: Boolean,
+        includeText: Boolean,
+        cropToImageSize: Boolean
+    ): ByteArray {
+        val bitmap =
+            createImage(format == "png" && transparent, includeImage, includeText, cropToImageSize)
+        try {
+            val byteArrayOS = ByteArrayOutputStream()
+            bitmap.compress(
+                if (format == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG,
+                if (format == "png") 100 else 90,
+                byteArrayOS
             )
+            return byteArrayOS.toByteArray()
+        } finally {
+            bitmap.recycle()
+        }
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -807,13 +793,7 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
             invalidate()
 
             if (!mIsCanvasInitialized) {
-                UIManagerHelper.getEventDispatcherForReactTag(mContext, getParentViewId())
-                    ?.dispatchEvent(
-                        OnCanvasReadyEvent(
-                            UIManagerHelper.getSurfaceId(mContext),
-                            getParentViewId()
-                        )
-                    )
+                onCanvasReady?.invoke()
                 mIsCanvasInitialized = true
             }
         }
@@ -870,19 +850,7 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
 
     private fun invalidateCanvas(shouldDispatchEvent: Boolean) {
         if (shouldDispatchEvent) {
-            val surfaceId = UIManagerHelper.getSurfaceId(mContext)
-
-            UIManagerHelper.getEventDispatcherForReactTag(mContext, getParentViewId())
-                ?.dispatchEvent(
-                    OnChangeEvent(
-                        surfaceId,
-                        getParentViewId(),
-                        "pathsUpdate",
-                        false,
-                        "",
-                        mPaths.size
-                    )
-                )
+            onPathsChange?.invoke(mPaths.size)
         }
         invalidate()
     }
@@ -979,7 +947,7 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
         return bitmap
     }
 
-    private fun cleanupResources() {
+    fun release() {
         // Cancel any pending image loads
         mPendingImageLoad?.cancel(true)
         mPendingImageLoad = null
@@ -1019,10 +987,5 @@ class SketchCanvas(context: ThemedReactContext) : View(context) {
 
         // Reset current path reference
         mCurrentPath = null
-    }
-
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        cleanupResources()
     }
 }

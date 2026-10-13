@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, FlatList } from 'react-native';
 import SketchCanvas from './SketchCanvas';
-import type { RNSketchCanvasProps, Path } from './types';
+import type { RNSketchCanvasProps, Path, SaveResult } from './types';
 
 type CanvasState = {
   color: any;
@@ -79,7 +79,6 @@ export default class RNSketchCanvas extends React.Component<
 
     savePreference: null,
     onSketchSaved: () => {},
-    onGenerateBase64: () => {},
 
     text: null,
     localSourceImage: null,
@@ -127,45 +126,28 @@ export default class RNSketchCanvas extends React.Component<
     this._sketchCanvas.deletePath(id);
   }
 
-  save() {
+  save(): Promise<SaveResult> {
     if (this.props.savePreference) {
       const p = this.props.savePreference();
-      this._sketchCanvas.save(
-        p.imageType,
-        p.transparent,
-        p.folder ? p.folder : '',
-        p.filename,
-        p.includeImage !== false,
-        p.includeText !== false,
-        p.cropToImageSize || false
-      );
+      const image = {
+        imageType: p.imageType,
+        transparent: p.transparent,
+        includeImage: p.includeImage !== false,
+        includeText: p.includeText !== false,
+        cropToImageSize: p.cropToImageSize || false,
+      };
+      if (p.type === 'base64' || p.type === 'arraybuffer') {
+        return this._sketchCanvas.save({ ...image, type: p.type });
+      }
+      return this._sketchCanvas.save({
+        ...image,
+        type: 'file',
+        folder: p.folder ? p.folder : '',
+        filename: p.filename,
+      });
     } else {
-      this._sketchCanvas.save(
-        'png',
-        false,
-        '',
-        generateUniqueFilename(),
-        true,
-        true,
-        false
-      );
+      return this._sketchCanvas.save({ filename: generateUniqueFilename() });
     }
-  }
-
-  getBase64(
-    imageType: string,
-    transparent: boolean,
-    includeImage: boolean,
-    includeText: boolean,
-    cropToImageSize: boolean
-  ) {
-    this._sketchCanvas.getBase64(
-      imageType,
-      transparent,
-      includeImage,
-      includeText,
-      cropToImageSize
-    );
   }
 
   nextStrokeWidth() {
@@ -296,7 +278,7 @@ export default class RNSketchCanvas extends React.Component<
             {this.props.saveComponent && (
               <TouchableOpacity
                 onPress={() => {
-                  this.save();
+                  this.save().catch(() => {});
                 }}
               >
                 {this.props.saveComponent}
@@ -318,8 +300,8 @@ export default class RNSketchCanvas extends React.Component<
           onStrokeEnd={this.props.onStrokeEnd}
           user={this.props.user}
           strokeWidth={this.state.strokeWidth}
-          onSketchSaved={(success, path) =>
-            this.props.onSketchSaved?.(success, path)
+          onSketchSaved={(success, response) =>
+            this.props.onSketchSaved?.(success, response)
           }
           onPathsChange={this.props.onPathsChange}
           onCanvasReady={this.props.onCanvasReady}
@@ -361,6 +343,13 @@ export type {
   Path,
   CanvasText,
   SavePreference,
+  SaveType,
+  SaveOptions,
+  FileSaveOptions,
+  Base64SaveOptions,
+  ArrayBufferSaveOptions,
+  SaveResponse,
+  SaveResult,
   LocalSourceImage,
   SketchCanvasProps,
   RNSketchCanvasProps,

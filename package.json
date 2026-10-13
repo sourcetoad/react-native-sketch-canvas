@@ -4,7 +4,7 @@
     "type": "git",
     "url": "https://github.com/sourcetoad/react-native-sketch-canvas"
   },
-  "version": "2.4.1",
+  "version": "3.0.0",
   "description": "react-native-sketch-canvas allows you to draw / sketch on both iOS and Android devices and sync the drawing data between users. Of course you can save as image.",
   "author": "Terry Lin",
   "react-native": "./src/index.tsx",
@@ -32,11 +32,9 @@
     "lib",
     "android",
     "ios",
-    "cpp",
     "*.podspec",
-    "react-native.config.js",
-    "!ios/generated",
-    "!android/generated",
+    "nitrogen",
+    "nitro.json",
     "!ios/build",
     "!android/build",
     "!android/gradle",
@@ -56,9 +54,10 @@
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
-    "build": "bob build",
+    "build": "bob build && node scripts/copy-nitro-config.mjs",
     "pods": "cd example/ios && bundle install && bundle exec pod install && cd ../..",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "nitrogen": "nitrogen"
   },
   "keywords": [
     "react-native",
@@ -77,35 +76,39 @@
   },
   "homepage": "https://github.com/sourcetoad/react-native-sketch-canvas",
   "devDependencies": {
-    "@react-native-community/cli": "20.1.2",
-    "@react-native/babel-preset": "^0.82.1",
-    "@react-native/eslint-config": "^0.82.0",
+    "@react-native-community/cli": "20.2.0",
+    "@react-native/babel-preset": "^0.87.1",
+    "@react-native/eslint-config": "^0.87.1",
+    "@react-native/jest-preset": "^0.87.1",
     "@testing-library/react-native": "^13.2.0",
     "@types/jest": "^29.5.13",
-    "@types/react": "^19.1.1",
+    "@types/react": "^19.2.0",
     "@types/react-dom": "^19.1.0",
     "del-cli": "^5.1.0",
     "eslint": "^8.51.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.1",
     "jest": "^29.7.0",
+    "nitrogen": "0.37.1",
     "prettier": "^3.0.3",
-    "react": "19.1.1",
-    "react-native": "0.82.0",
+    "react": "19.2.3",
+    "react-native": "0.87.1",
     "react-native-builder-bob": "^0.37.0",
-    "react-test-renderer": "19.1.1",
+    "react-native-nitro-modules": "0.37.1",
+    "react-test-renderer": "19.2.3",
     "turbo": "^2.9.14",
     "typescript": "^5.8.3"
   },
   "resolutions": {
-    "@types/react": "^19.1.1"
+    "@types/react": "^19.2.0"
   },
   "peerDependencies": {
     "react": "*",
-    "react-native": "*"
+    "react-native": ">=0.86",
+    "react-native-nitro-modules": "~0.37.1"
   },
   "jest": {
-    "preset": "react-native",
+    "preset": "@react-native/jest-preset",
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"
@@ -115,7 +118,7 @@
       "<rootDir>/src/__tests__/setup/jest-setup.js"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!(react-native|@react-native|@react-native-community|@react-native/js-polyfills)/)"
+      "node_modules/(?!(react-native|@react-native|@react-native-community|@react-native/js-polyfills|react-native-nitro-modules)/)"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/src/__tests__/setup/jest-setup.js"
@@ -142,15 +145,26 @@
           "useTabs": false
         }
       ]
-    }
+    },
+    "overrides": [
+      {
+        "files": [
+          "*.ts",
+          "*.tsx"
+        ],
+        "rules": {
+          "no-dupe-class-members": "off",
+          "@typescript-eslint/no-dupe-class-members": "error"
+        }
+      }
+    ]
   },
   "eslintIgnore": [
     "node_modules/",
     "lib/",
     "example/",
     "**/*/",
-    "!src/",
-    "react-native.config.js"
+    "!src/"
   ],
   "prettier": {
     "quoteProps": "consistent",
@@ -163,6 +177,13 @@
     "source": "src",
     "output": "lib",
     "targets": [
+      [
+        "custom",
+        {
+          "script": "nitrogen",
+          "clean": "nitrogen/"
+        }
+      ],
       [
         "commonjs",
         {
@@ -183,24 +204,6 @@
         }
       ]
     ]
-  },
-  "codegenConfig": {
-    "name": "RNSketchCanvasSpec",
-    "type": "all",
-    "jsSrcsDir": "src",
-    "outputDir": {
-      "ios": "ios/generated",
-      "android": "android/generated"
-    },
-    "android": {
-      "javaPackageName": "com.sourcetoad.reactnativesketchcanvas"
-    },
-    "ios": {
-      "componentProvider": {
-        "RNTSketchCanvas": "RNTSketchCanvas"
-      }
-    },
-    "includesGeneratedCode": false
   },
   "create-react-native-library": {
     "languages": "kotlin-objc",

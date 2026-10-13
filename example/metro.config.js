@@ -11,8 +11,18 @@ const root = path.resolve(__dirname, '..');
  *
  * @type {import('@react-native/metro-config').MetroConfig}
  */
-module.exports = getConfig(getDefaultConfig(__dirname), {
+const defaultConfig = getDefaultConfig(__dirname);
+const config = getConfig(defaultConfig, {
   root,
   pkg,
   project: __dirname,
 });
+const { blacklistRE, ...resolver } = config.resolver;
+
+module.exports = {
+  ...config,
+  resolver: {
+    ...resolver,
+    blockList: [defaultConfig.resolver.blockList, blacklistRE],
+  },
+};

@@ -3,6 +3,9 @@ import type { StyleProp, ViewStyle } from 'react-native';
 
 export type ImageType = 'png' | 'jpg';
 
+/**
+ * @deprecated Native change events are gone; `save()` returns a promise.
+ */
 export enum OnChangeEventType {
   PathsUpdate = 'pathsUpdate',
   Save = 'save',
@@ -45,7 +48,40 @@ export type CanvasText = {
   lineHeightMultiple?: number;
 };
 
+export type SaveType = 'file' | 'base64' | 'arraybuffer';
+
+type ImageOptions = {
+  imageType?: ImageType;
+  transparent?: boolean;
+  includeImage?: boolean;
+  includeText?: boolean;
+  cropToImageSize?: boolean;
+};
+
+export type FileSaveOptions = ImageOptions & {
+  type?: 'file';
+  filename: string;
+  folder?: string;
+};
+
+export type Base64SaveOptions = ImageOptions & { type: 'base64' };
+
+export type ArrayBufferSaveOptions = ImageOptions & { type: 'arraybuffer' };
+
+export type SaveOptions =
+  | FileSaveOptions
+  | Base64SaveOptions
+  | ArrayBufferSaveOptions;
+
+export type SaveResponse =
+  | { type: 'file'; data: string | null }
+  | { type: 'base64'; data: string | null }
+  | { type: 'arraybuffer'; data: ArrayBuffer | null };
+
+export type SaveResult = { success: boolean } & SaveResponse;
+
 export interface SavePreference {
+  type?: SaveType;
   folder: string;
   filename: string;
   transparent: boolean;
@@ -90,8 +126,7 @@ export interface SketchCanvasProps {
   onStrokeStart?: (x: number, y: number) => void;
   onStrokeChanged?: (x: number, y: number) => void;
   onStrokeEnd?: (path: Path) => void;
-  onSketchSaved?: (result: boolean, path: string) => void;
-  onGenerateBase64?: (result: { base64: string }) => void;
+  onSketchSaved?: (success: boolean, response: SaveResponse) => void;
   onPathsChange?: (pathsCount: number) => void;
   onCanvasReady?: () => void;
   /**
@@ -99,14 +134,6 @@ export interface SketchCanvasProps {
    * @param loadedCount Number of paths successfully loaded
    */
   onInitialPathsLoaded?: (loadedCount: number) => void;
-
-  getBase64?: (
-    imageType: ImageType,
-    transparent: boolean,
-    includeImage: boolean,
-    includeText: boolean,
-    cropToImageSize: boolean
-  ) => void;
 }
 
 export interface RNSketchCanvasProps {
@@ -155,17 +182,8 @@ export interface RNSketchCanvasProps {
    * @param includeImage default true
    * @param cropToImageSize default false
    */
-  savePreference?: () => {
-    folder: string;
-    filename: string;
-    transparent: boolean;
-    imageType: ImageType;
-    includeImage?: boolean;
-    includeText?: boolean;
-    cropToImageSize?: boolean;
-  };
-  onSketchSaved?: (result: boolean, path: string) => void;
-  onGenerateBase64?: (result: { base64: string }) => void;
+  savePreference?: () => SavePreference;
+  onSketchSaved?: (success: boolean, response: SaveResponse) => void;
   onCanvasReady?: () => void;
   /**
    * Callback fired when initial paths have been loaded into the canvas.

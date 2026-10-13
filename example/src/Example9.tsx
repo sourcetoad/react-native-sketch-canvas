@@ -111,7 +111,9 @@ export default class Example9 extends Component<Example9Props, Example9State> {
     return (
       <RNSketchCanvas
         key={`performance-canvas-${this.state.testKey}`}
-        ref={(ref) => (this.performanceCanvas = ref)}
+        ref={(ref) => {
+          this.performanceCanvas = ref;
+        }}
         containerStyle={{ backgroundColor: 'transparent', height: 200 }}
         canvasStyle={{ backgroundColor: 'white', flex: 1 }}
         initialPaths={this.state.currentTestData}

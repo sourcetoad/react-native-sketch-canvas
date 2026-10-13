@@ -211,7 +211,9 @@ export default class Example8 extends Component<Example8Props, Example8State> {
 
         <RNSketchCanvas
           key={`test-canvas-${this.state.testKey}`}
-          ref={(ref) => (this.testCanvas = ref)}
+          ref={(ref) => {
+            this.testCanvas = ref;
+          }}
           containerStyle={{ backgroundColor: 'transparent', flex: 1 }}
           canvasStyle={{ backgroundColor: 'white', flex: 1 }}
           initialPaths={

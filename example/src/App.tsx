@@ -20,12 +20,47 @@ import {
   SafeAreaProvider,
   SafeAreaView,
 } from 'react-native-safe-area-context';
+import { NavigationContainer } from '@react-navigation/native';
+import {
+  createNativeStackNavigator,
+  type NativeStackScreenProps,
+} from '@react-navigation/native-stack';
 
 import RNSketchCanvas, {
   SketchCanvas,
+  type SaveResponse,
 } from '@sourcetoad/react-native-sketch-canvas';
 import Example8 from './Example8';
 import Example9 from './Example9';
+import PushedScreen from './PushedScreen';
+
+declare const atob: (data: string) => string;
+
+const savedMessage = (response: SaveResponse) =>
+  response.type === 'file' ? (response.data ?? '') : response.type;
+
+const bytesEqual = (base64: string, buffer: ArrayBuffer) => {
+  const binary = atob(base64.replace(/\s/g, ''));
+  const bytes = new Uint8Array(buffer);
+  if (binary.length !== bytes.length) {
+    return false;
+  }
+  for (let i = 0; i < bytes.length; i++) {
+    if (binary.charCodeAt(i) !== bytes[i]) {
+      return false;
+    }
+  }
+  return true;
+};
+
+type RootStackParamList = {
+  Home: undefined;
+  Pushed: undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+type ExampleProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 type ExampleState = {
   example: number;
@@ -36,8 +71,8 @@ type ExampleState = {
   scrollEnabled: boolean;
 };
 
-class ExampleApp extends React.Component<any, ExampleState> {
-  constructor(props: any) {
+class ExampleApp extends React.Component<ExampleProps, ExampleState> {
+  constructor(props: ExampleProps) {
     super(props);
 
     this.state = {
@@ -206,7 +241,19 @@ class ExampleApp extends React.Component<any, ExampleState> {
         )}
 
         {this.state.example === 1 && (
-          <View style={{ flex: 1, flexDirection: 'row' }}>
+          <View
+            style={{ flex: 1, flexDirection: 'column', alignSelf: 'stretch' }}
+          >
+            <View style={{ flexDirection: 'row' }}>
+              <TouchableOpacity
+                style={[styles.functionButton, { width: 100 }]}
+                onPress={() => {
+                  this.props.navigation.push('Pushed');
+                }}
+              >
+                <Text style={{ color: 'white' }}>Push screen</Text>
+              </TouchableOpacity>
+            </View>
             <RNSketchCanvas
               containerStyle={{ backgroundColor: 'transparent', flex: 1 }}
               canvasStyle={{ backgroundColor: 'transparent', flex: 1 }}
@@ -288,11 +335,11 @@ class ExampleApp extends React.Component<any, ExampleState> {
                   imageType: 'png',
                 };
               }}
-              onSketchSaved={(success, path) => {
-                console.log('onSketchSaved', success, path);
+              onSketchSaved={(success, response) => {
+                console.log('onSketchSaved', success, response);
                 Alert.alert(
                   success ? 'Image saved!' : 'Failed to save image!',
-                  path
+                  savedMessage(response)
                 );
               }}
               onPathsChange={(pathsCount) => {
@@ -353,12 +400,26 @@ class ExampleApp extends React.Component<any, ExampleState> {
                   // });
                 }}
                 // localSourceImage={{ filename: 'bulb.png', directory: RNSketchCanvas.MAIN_BUNDLE }}
-                ref={(ref) => (this.canvas = ref)}
+                ref={(ref) => {
+                  this.canvas = ref;
+                }}
                 style={{ flex: 1 }}
                 strokeColor={this.state.color}
                 strokeWidth={this.state.thickness}
-                onGenerateBase64={(result) => {
-                  console.log('base64 result:', result);
+                onSketchSaved={(success, response) => {
+                  if (response.type === 'base64') {
+                    console.log(
+                      'save base64:',
+                      success,
+                      response.data?.length ?? 0
+                    );
+                  } else if (response.type === 'arraybuffer') {
+                    console.log(
+                      'save arraybuffer:',
+                      success,
+                      response.data?.byteLength ?? 0
+                    );
+                  }
                 }}
                 onStrokeStart={(x, y) => {
                   console.log('x: ', x, ', y: ', y);
@@ -413,7 +474,27 @@ class ExampleApp extends React.Component<any, ExampleState> {
                   ]}
                   onPress={() => {
                     Alert.alert(JSON.stringify(this.canvas.getPaths()));
-                    this.canvas.getBase64('jpg', false, true, true, true);
+                    Promise.all([
+                      this.canvas.save({
+                        type: 'base64',
+                        imageType: 'jpg',
+                        cropToImageSize: true,
+                      }),
+                      this.canvas.save({
+                        type: 'arraybuffer',
+                        imageType: 'jpg',
+                        cropToImageSize: true,
+                      }),
+                    ])
+                      .then(([base64, buffer]) => {
+                        console.log(
+                          'bytes equal:',
+                          bytesEqual(base64.data ?? '', buffer.data!)
+                        );
+                      })
+                      .catch((error: unknown) => {
+                        console.log('save error:', error);
+                      });
                   }}
                 >
                   <Text style={{ color: 'white' }}>Get Paths</Text>
@@ -426,7 +507,9 @@ class ExampleApp extends React.Component<any, ExampleState> {
         {this.state.example === 3 && (
           <View style={{ flex: 1, flexDirection: 'column' }}>
             <RNSketchCanvas
-              ref={(ref) => (this.canvas1 = ref)}
+              ref={(ref) => {
+                this.canvas1 = ref;
+              }}
               user={'user1'}
               containerStyle={{ backgroundColor: 'transparent', flex: 1 }}
               canvasStyle={{ backgroundColor: 'transparent', flex: 1 }}
@@ -504,10 +587,10 @@ class ExampleApp extends React.Component<any, ExampleState> {
                   imageType: 'jpg',
                 };
               }}
-              onSketchSaved={(success, path) => {
+              onSketchSaved={(success, response) => {
                 Alert.alert(
                   success ? 'Image saved!' : 'Failed to save image!',
-                  path
+                  savedMessage(response)
                 );
               }}
               onStrokeEnd={(path) => {
@@ -518,7 +601,9 @@ class ExampleApp extends React.Component<any, ExampleState> {
               }}
             />
             <RNSketchCanvas
-              ref={(ref) => (this.canvas2 = ref)}
+              ref={(ref) => {
+                this.canvas2 = ref;
+              }}
               user={'user2'}
               containerStyle={{ backgroundColor: 'transparent', flex: 1 }}
               canvasStyle={{ backgroundColor: 'transparent', flex: 1 }}
@@ -588,10 +673,10 @@ class ExampleApp extends React.Component<any, ExampleState> {
                   imageType: 'jpg',
                 };
               }}
-              onSketchSaved={(success, path) => {
+              onSketchSaved={(success, response) => {
                 Alert.alert(
                   success ? 'Image saved!' : 'Failed to save image!',
-                  path
+                  savedMessage(response)
                 );
               }}
               onStrokeEnd={(path) => {
@@ -711,10 +796,10 @@ class ExampleApp extends React.Component<any, ExampleState> {
                     imageType: 'png',
                   };
                 }}
-                onSketchSaved={(success, path) => {
+                onSketchSaved={(success, response) => {
                   Alert.alert(
                     success ? 'Image saved!' : 'Failed to save image!',
-                    path
+                    savedMessage(response)
                   );
                 }}
                 onPathsChange={(pathsCount) => {
@@ -812,10 +897,10 @@ class ExampleApp extends React.Component<any, ExampleState> {
                   imageType: 'jpg',
                 };
               }}
-              onSketchSaved={(success, path) => {
+              onSketchSaved={(success, response) => {
                 Alert.alert(
                   success ? 'Image saved!' : 'Failed to save image!',
-                  path
+                  savedMessage(response)
                 );
               }}
               onPathsChange={(pathsCount) => {
@@ -963,10 +1048,10 @@ class ExampleApp extends React.Component<any, ExampleState> {
                   imageType: 'jpg',
                 };
               }}
-              onSketchSaved={(success, path) => {
+              onSketchSaved={(success, response) => {
                 Alert.alert(
                   success ? 'Image saved!' : 'Failed to save image!',
-                  path
+                  savedMessage(response)
                 );
               }}
               onPathsChange={(pathsCount) => {
@@ -1069,6 +1154,14 @@ class ExampleApp extends React.Component<any, ExampleState> {
   }
 }
 
+function HomeScreen(props: ExampleProps) {
+  return (
+    <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+      <ExampleApp {...props} />
+    </SafeAreaView>
+  );
+}
+
 // Wrapper component to use hooks and provide SafeAreaProvider
 function AppWrapper() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -1076,9 +1169,16 @@ function AppWrapper() {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-        <ExampleApp />
-      </SafeAreaView>
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen name="Pushed" component={PushedScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
     </SafeAreaProvider>
   );
 }
