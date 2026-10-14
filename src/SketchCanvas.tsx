@@ -229,10 +229,9 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
   };
 
   _processText(text: any) {
-    text &&
-      text.forEach(
-        (t: { fontColor: any }) => (t.fontColor = processColor(t.fontColor))
-      );
+    text?.forEach(
+      (t: { fontColor: any }) => (t.fontColor = processColor(t.fontColor))
+    );
     return text;
   }
 
@@ -287,8 +286,9 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
         );
       }
     } else {
-      this._pathsToProcess.filter((p: Path) => p.path.id === data.path.id)
-        .length === 0 && this._pathsToProcess.push(data);
+      if (!this._pathsToProcess.some((p: Path) => p.path.id === data.path.id)) {
+        this._pathsToProcess.push(data);
+      }
     }
   }
 
@@ -467,8 +467,7 @@ class SketchCanvas extends React.Component<SketchCanvasProps, CanvasState> {
     };
     this._initialized = true;
 
-    this._pathsToProcess.length > 0 &&
-      this._pathsToProcess.forEach((p) => this.addPath(p));
+    this._pathsToProcess.forEach((p) => this.addPath(p));
 
     if (this._initialPathsPending) {
       this._initialPathsPending = false;

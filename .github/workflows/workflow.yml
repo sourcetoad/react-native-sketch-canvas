@@ -18,6 +18,9 @@ jobs:
       - name: Linting
         run: npm run lint
 
+      - name: Formatting
+        run: npm run fmt:check
+
       - name: Typing
         run: npm run typescript
 
