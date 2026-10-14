@@ -10,12 +10,24 @@
   },
   "autolinking": {
     "SketchCanvasView": {
-      "ios": { "language": "swift", "implementationClassName": "HybridSketchCanvasView" },
-      "android": { "language": "kotlin", "implementationClassName": "HybridSketchCanvasView" }
+      "ios": {
+        "language": "swift",
+        "implementationClassName": "HybridSketchCanvasView"
+      },
+      "android": {
+        "language": "kotlin",
+        "implementationClassName": "HybridSketchCanvasView"
+      }
     },
     "SketchCanvasConstants": {
-      "ios": { "language": "swift", "implementationClassName": "HybridSketchCanvasConstants" },
-      "android": { "language": "kotlin", "implementationClassName": "HybridSketchCanvasConstants" }
+      "ios": {
+        "language": "swift",
+        "implementationClassName": "HybridSketchCanvasConstants"
+      },
+      "android": {
+        "language": "kotlin",
+        "implementationClassName": "HybridSketchCanvasConstants"
+      }
     }
   },
   "ignorePaths": ["node_modules", "lib", "example"]

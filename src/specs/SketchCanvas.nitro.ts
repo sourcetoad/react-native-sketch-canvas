@@ -88,8 +88,10 @@ export type SketchCanvasView = HybridView<
   { ios: 'swift'; android: 'kotlin' }
 >;
 
-export interface SketchCanvasConstants
-  extends HybridObject<{ ios: 'swift'; android: 'kotlin' }> {
+export interface SketchCanvasConstants extends HybridObject<{
+  ios: 'swift';
+  android: 'kotlin';
+}> {
   readonly mainBundlePath: string;
   readonly documentDirectory: string;
   readonly libraryDirectory: string;

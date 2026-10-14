@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "jest"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "no-bitwise": "error",
+    "no-shadow": "error",
+    "react/react-in-jsx-scope": "off",
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn",
+    "jest/expect-expect": "off"
+  },
+  "ignorePatterns": ["lib/", "nitrogen/generated/", "example/"]
+}
