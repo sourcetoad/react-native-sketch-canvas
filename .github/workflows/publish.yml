@@ -7,13 +7,17 @@ jobs:
   publish:
     environment: deploy
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
 
     name: Publish
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: 'npm'
@@ -23,11 +27,9 @@ jobs:
         run: npm ci
 
       - name: Publish (NPM)
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm stage publish
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v7
         with:
           registry-url: 'https://npm.pkg.github.com'
 
