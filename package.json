@@ -4,7 +4,7 @@
     "type": "git",
     "url": "git+https://github.com/sourcetoad/react-native-sketch-canvas.git"
   },
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "react-native-sketch-canvas allows you to draw / sketch on both iOS and Android devices and sync the drawing data between users. Of course you can save as image.",
   "author": "Terry Lin",
   "react-native": "./src/index.tsx",
